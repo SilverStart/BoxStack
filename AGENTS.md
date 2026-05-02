@@ -48,6 +48,7 @@ User-driven collaboration, not autonomous execution.
 - Before writing or editing project files, present a short draft/summary and ask approval.
 - Multi-file changes require explicit approval for the full changeset.
 - No commits without user instruction.
+- Git 커밋 메시지는 사용자가 히스토리를 한눈에 이해할 수 있도록 한글로 작성한다.
 - User-facing responses must be written in Korean.
 
 ## Progress Dashboard Maintenance
@@ -101,4 +102,3 @@ If this is a brand-new Unity game, start with:
 3. `/art-bible` before asset production
 4. `/create-architecture` before implementation
 5. `/test-setup` before the first gameplay story
-
