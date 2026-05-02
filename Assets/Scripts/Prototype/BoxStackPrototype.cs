@@ -6,12 +6,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using System.IO;
+using UnityEditor;
+#endif
+
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
+    private const string ParcelAssetFolder = "Assets/Art/Prototype/Parcel";
+    private const string ParcelResourceFolder = "Prototype/Parcel";
+    private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const int TargetBoxes = 8;
     private const float MoveRange = 2.45f;
     private const float MoveSpeed = 1.85f;
@@ -23,11 +31,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float CameraYOffset = 2.2f;
 
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
+    private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
 
     private GameObject _activeBox;
     private GameObject _droppingBox;
     private Camera _camera;
-    private Sprite _boxSprite;
     private Sprite _floorSprite;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
@@ -46,6 +54,41 @@ public sealed class BoxStackPrototype : MonoBehaviour
         Failed
     }
 
+    private struct BoxVisual
+    {
+        public BoxVisual(Sprite sprite, Vector2 worldSize, Rect visibleTextureRect, bool isPlaceholder)
+        {
+            Sprite = sprite;
+            WorldSize = worldSize;
+            VisibleTextureRect = visibleTextureRect;
+            IsPlaceholder = isPlaceholder;
+        }
+
+        public Sprite Sprite;
+        public Vector2 WorldSize;
+        public Rect VisibleTextureRect;
+        public bool IsPlaceholder;
+    }
+
+    private struct BoxAssetDefinition
+    {
+        public BoxAssetDefinition(string name, Vector2 worldSize)
+        {
+            Name = name;
+            WorldSize = worldSize;
+        }
+
+        public string Name;
+        public Vector2 WorldSize;
+    }
+
+    private static readonly BoxAssetDefinition[] BoxAssetDefinitions =
+    {
+        new BoxAssetDefinition("parcel_box_basic_01", new Vector2(1.0f, 1.0f)),
+        new BoxAssetDefinition("parcel_box_wide_01", new Vector2(1.18f, 0.88f)),
+        new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
+    };
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -59,8 +102,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void Start()
     {
-        _boxSprite = CreateParcelBoxSprite();
-        _floorSprite = CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
+        LoadPrototypeSprites();
         _camera = EnsureCamera();
         CreateFloor();
         RestartGame();
@@ -136,14 +178,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         var floor = new GameObject("Prototype 2D Floor");
         floor.transform.position = new Vector3(0f, -0.65f, 0f);
-        floor.transform.localScale = new Vector3(6.2f, 0.35f, 1f);
 
-        var renderer = floor.AddComponent<SpriteRenderer>();
+        var visual = new GameObject("Visual");
+        visual.transform.SetParent(floor.transform, false);
+
+        var renderer = visual.AddComponent<SpriteRenderer>();
         renderer.sprite = _floorSprite;
         renderer.sortingOrder = -5;
+        FitSpriteToWorldSize(visual.transform, _floorSprite, new Vector2(6.2f, 0.35f));
 
         var collider = floor.AddComponent<BoxCollider2D>();
-        collider.size = Vector2.one;
+        collider.size = new Vector2(6.2f, 0.35f);
     }
 
     private void RestartGame()
@@ -189,16 +234,20 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private GameObject CreatePrototypeBox(string boxName, Color tint)
     {
+        BoxVisual boxVisual = GetBoxVisual(_placedBoxes.Count);
         var box = new GameObject(boxName);
-        box.transform.localScale = Vector3.one * BoxSize;
 
-        var renderer = box.AddComponent<SpriteRenderer>();
-        renderer.sprite = _boxSprite;
-        renderer.color = tint;
+        var visual = new GameObject("Visual");
+        visual.transform.SetParent(box.transform, false);
+
+        var renderer = visual.AddComponent<SpriteRenderer>();
+        renderer.sprite = boxVisual.Sprite;
+        renderer.color = boxVisual.IsPlaceholder ? tint : Color.white;
         renderer.sortingOrder = 10 + _placedBoxes.Count;
+        FitSpriteToWorldSize(visual.transform, boxVisual.Sprite, boxVisual.VisibleTextureRect, boxVisual.WorldSize);
 
         var collider = box.AddComponent<BoxCollider2D>();
-        collider.size = new Vector2(0.96f, 0.96f);
+        collider.size = boxVisual.WorldSize * 0.96f;
 
         var body = box.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
@@ -287,8 +336,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
-        var renderer = droppedBox.GetComponent<SpriteRenderer>();
-        renderer.color = _placedTint;
+        var renderer = droppedBox.GetComponentInChildren<SpriteRenderer>();
+        if (renderer != null && IsPlaceholderSprite(renderer.sprite))
+        {
+            renderer.color = _placedTint;
+        }
+
         _placedBoxes.Add(droppedBox);
         _droppingBox = null;
 
@@ -344,6 +397,182 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         Vector3 position = box.transform.position;
         return position.y < LostHeight || Mathf.Abs(position.x) > LostHorizontalDistance;
+    }
+
+    private void LoadPrototypeSprites()
+    {
+        _boxVisuals.Clear();
+
+        for (int i = 0; i < BoxAssetDefinitions.Length; i++)
+        {
+            BoxAssetDefinition definition = BoxAssetDefinitions[i];
+            Sprite sprite = LoadPrototypeSprite(definition.Name);
+            if (sprite != null)
+            {
+                _boxVisuals.Add(new BoxVisual(sprite, definition.WorldSize, GetVisibleTextureRect(sprite), false));
+            }
+        }
+
+        if (_boxVisuals.Count == 0)
+        {
+            Sprite placeholder = CreateParcelBoxSprite();
+            _boxVisuals.Add(new BoxVisual(placeholder, Vector2.one * BoxSize, GetVisibleTextureRect(placeholder), true));
+        }
+
+        _floorSprite = LoadPrototypeSprite(StackBaseSpriteName) ?? CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
+    }
+
+    private BoxVisual GetBoxVisual(int boxIndex)
+    {
+        if (_boxVisuals.Count == 0)
+        {
+            Sprite placeholder = CreateParcelBoxSprite();
+            return new BoxVisual(placeholder, Vector2.one * BoxSize, GetVisibleTextureRect(placeholder), true);
+        }
+
+        return _boxVisuals[boxIndex % _boxVisuals.Count];
+    }
+
+    private bool IsPlaceholderSprite(Sprite sprite)
+    {
+        for (int i = 0; i < _boxVisuals.Count; i++)
+        {
+            BoxVisual visual = _boxVisuals[i];
+            if (visual.IsPlaceholder && visual.Sprite == sprite)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static Sprite LoadPrototypeSprite(string assetName)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"{ParcelResourceFolder}/{assetName}");
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+#if UNITY_EDITOR
+        string assetPath = $"{ParcelAssetFolder}/{assetName}.png";
+        string absolutePath = Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length));
+        if (File.Exists(absolutePath))
+        {
+            byte[] bytes = File.ReadAllBytes(absolutePath);
+            var fileTexture = new Texture2D(2, 2, TextureFormat.RGBA32, false)
+            {
+                filterMode = FilterMode.Bilinear,
+                name = assetName
+            };
+
+            if (ImageConversion.LoadImage(fileTexture, bytes))
+            {
+                return Sprite.Create(fileTexture, new Rect(0f, 0f, fileTexture.width, fileTexture.height), new Vector2(0.5f, 0.5f), fileTexture.width);
+            }
+        }
+
+        sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
+        if (sprite != null)
+        {
+            return sprite;
+        }
+
+        Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
+        if (texture != null)
+        {
+            return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+        }
+
+        return null;
+#else
+        return null;
+#endif
+    }
+
+    private static Rect GetVisibleTextureRect(Sprite sprite)
+    {
+        if (sprite == null || sprite.texture == null)
+        {
+            return Rect.zero;
+        }
+
+        Rect spriteRect = sprite.rect;
+        Texture2D texture = sprite.texture;
+
+        try
+        {
+            Color32[] pixels = texture.GetPixels32();
+            int textureWidth = texture.width;
+            int minX = Mathf.CeilToInt(spriteRect.xMax);
+            int minY = Mathf.CeilToInt(spriteRect.yMax);
+            int maxX = Mathf.FloorToInt(spriteRect.xMin);
+            int maxY = Mathf.FloorToInt(spriteRect.yMin);
+            int startX = Mathf.FloorToInt(spriteRect.xMin);
+            int startY = Mathf.FloorToInt(spriteRect.yMin);
+            int endX = Mathf.CeilToInt(spriteRect.xMax);
+            int endY = Mathf.CeilToInt(spriteRect.yMax);
+
+            for (int y = startY; y < endY; y++)
+            {
+                for (int x = startX; x < endX; x++)
+                {
+                    if (pixels[(y * textureWidth) + x].a <= 12)
+                    {
+                        continue;
+                    }
+
+                    minX = Mathf.Min(minX, x);
+                    minY = Mathf.Min(minY, y);
+                    maxX = Mathf.Max(maxX, x + 1);
+                    maxY = Mathf.Max(maxY, y + 1);
+                }
+            }
+
+            if (maxX > minX && maxY > minY)
+            {
+                return Rect.MinMaxRect(minX, minY, maxX, maxY);
+            }
+        }
+        catch (UnityException)
+        {
+            return spriteRect;
+        }
+
+        return spriteRect;
+    }
+
+    private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Vector2 worldSize)
+    {
+        FitSpriteToWorldSize(target, sprite, GetVisibleTextureRect(sprite), worldSize);
+    }
+
+    private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Rect visibleTextureRect, Vector2 worldSize)
+    {
+        if (sprite == null)
+        {
+            target.localScale = Vector3.one;
+            target.localPosition = Vector3.zero;
+            return;
+        }
+
+        float pixelsPerUnit = sprite.pixelsPerUnit;
+        Vector2 visibleSize = visibleTextureRect.size / pixelsPerUnit;
+        if (visibleSize.x <= 0f || visibleSize.y <= 0f)
+        {
+            target.localScale = Vector3.one;
+            target.localPosition = Vector3.zero;
+            return;
+        }
+
+        Vector3 scale = new Vector3(worldSize.x / visibleSize.x, worldSize.y / visibleSize.y, 1f);
+        Vector2 spriteCenter = sprite.rect.center;
+        Vector2 visibleCenter = visibleTextureRect.center;
+        Vector2 localVisibleOffset = (visibleCenter - spriteCenter) / pixelsPerUnit;
+
+        target.localScale = scale;
+        target.localPosition = new Vector3(-localVisibleOffset.x * scale.x, -localVisibleOffset.y * scale.y, 0f);
     }
 
     private static Sprite CreateParcelBoxSprite()
