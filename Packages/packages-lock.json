@@ -318,6 +318,15 @@
       },
       "hash": "cf4a4a13138082a3e3f278bc11bcdc80bee269e0"
     },
+    "im.toss.apps-in-toss-unity-sdk": {
+      "version": "https://github.com/toss/apps-in-toss-unity-sdk.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.0.2"
+      },
+      "hash": "787e88c81d60368434f0e48bca283961f544886d"
+    },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",
       "depth": 0,
