@@ -19,7 +19,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
 {
     private const string ParcelAssetFolder = "Assets/Art/Prototype/Parcel";
     private const string ParcelResourceFolder = "Prototype/Parcel";
+    private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
+    private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string StackBaseSpriteName = "parcel_stack_base_01";
+    private const string BackgroundSpriteName = "logistics_center_bg_01";
     private const int TargetBoxes = 8;
     private const float MoveRange = 2.45f;
     private const float MoveSpeed = 1.85f;
@@ -27,8 +30,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float DropSettleSeconds = 1.0f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
-    private const float CameraBaseY = 2.5f;
     private const float CameraYOffset = 2.2f;
+    private const float CameraInitialY = 2.5f;
+    private const float CameraBottomPadding = 0.25f;
+    private const float FloorY = -0.65f;
+    private const float FloorHeight = 0.35f;
+    private const int HudMaxFontSize = 28;
+    private const int HudMinFontSize = 18;
+    private const float HudHorizontalPadding = 24f;
+    private const float HudTopY = 18f;
+    private const float HudBarHeight = 68f;
+    private const float HudProgressHeight = 14f;
 
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
@@ -37,11 +49,23 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private GameObject _droppingBox;
     private Camera _camera;
     private Sprite _floorSprite;
+    private Sprite _backgroundSprite;
+    private GameObject _background;
+    private GUIStyle _hudPillStyle;
+    private GUIStyle _hudPillShadowStyle;
+    private GUIStyle _hudProgressTrackStyle;
+    private GUIStyle _hudProgressFillStyle;
+    private Texture2D _hudPillTexture;
+    private Texture2D _hudPillShadowTexture;
+    private Texture2D _hudProgressTrackTexture;
+    private Texture2D _hudProgressFillTexture;
+    private Texture2D _hudProgressCapTexture;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private PrototypeState _state;
     private float _spawnHeight;
     private float _moveStartedAt;
+    private float _minimumCameraY = CameraInitialY;
     private float _cameraVelocityY;
     private int _attempts;
     private string _statusText = "READY";
@@ -104,6 +128,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         LoadPrototypeSprites();
         _camera = EnsureCamera();
+        CreateBackground();
         CreateFloor();
         RestartGame();
     }
@@ -136,23 +161,225 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void OnGUI()
     {
-        var style = new GUIStyle(GUI.skin.label)
+        EnsureHudStyles();
+
+        float topY = GetHudTopY();
+        float barWidth = Screen.width - (HudHorizontalPadding * 2f);
+        var barRect = new Rect(HudHorizontalPadding, topY, barWidth, HudBarHeight);
+        GUI.Box(new Rect(barRect.x, barRect.y + 2f, barRect.width, barRect.height), GUIContent.none, _hudPillShadowStyle);
+        GUI.Box(barRect, GUIContent.none, _hudPillStyle);
+
+        float leftWidth = Mathf.Clamp(Screen.width * 0.27f, 126f, 176f);
+        float rightWidth = Mathf.Clamp(Screen.width * 0.18f, 72f, 104f);
+        var labelRect = new Rect(barRect.x + 28f, barRect.y + 10f, leftWidth, 22f);
+        var countRect = new Rect(barRect.x + 76f, barRect.y + 14f, leftWidth - 44f, 38f);
+        var statusRect = new Rect(barRect.xMax - rightWidth - 22f, barRect.y + 16f, rightWidth, 36f);
+        var progressRect = new Rect(
+            barRect.x + leftWidth + 62f,
+            barRect.y + ((HudBarHeight - HudProgressHeight) * 0.5f),
+            Mathf.Max(44f, barWidth - leftWidth - rightWidth - 112f),
+            HudProgressHeight);
+
+        var labelStyle = new GUIStyle(GUI.skin.label)
         {
-            alignment = TextAnchor.MiddleCenter,
-            fontSize = 28,
+            alignment = TextAnchor.MiddleLeft,
+            clipping = TextClipping.Clip,
+            fontSize = 18,
+            fontStyle = FontStyle.Normal,
+            wordWrap = false,
+            normal = { textColor = new Color(0.37f, 0.42f, 0.49f, 0.92f) }
+        };
+
+        int countFontSize = GetHudFontSize("88 / 88", countRect.width);
+        var countStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleLeft,
+            clipping = TextClipping.Clip,
+            fontSize = countFontSize,
             fontStyle = FontStyle.Bold,
-            normal = { textColor = Color.white }
+            wordWrap = false,
+            normal = { textColor = new Color(0.11f, 0.13f, 0.16f) }
         };
 
-        var shadowStyle = new GUIStyle(style)
+        var statusStyle = new GUIStyle(labelStyle)
         {
-            normal = { textColor = new Color(0f, 0f, 0f, 0.55f) }
+            alignment = TextAnchor.MiddleCenter
         };
 
-        string line = $"BOXSTACK  {_placedBoxes.Count}/{TargetBoxes}  {_statusText}";
-        var rect = new Rect(0f, 18f, Screen.width, 42f);
-        GUI.Label(new Rect(rect.x + 2f, rect.y + 2f, rect.width, rect.height), line, shadowStyle);
-        GUI.Label(rect, line, style);
+        GUI.Label(labelRect, "박스", labelStyle);
+        GUI.Label(countRect, $"{_placedBoxes.Count} / {TargetBoxes}", countStyle);
+        DrawHudProgress(progressRect, _placedBoxes.Count / (float)TargetBoxes);
+        GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
+    }
+
+    private void DrawHudProgress(Rect rect, float progress)
+    {
+        DrawHudCapsule(rect, new Color(0.71f, 0.91f, 0.88f, 0.75f));
+
+        float fillWidth = rect.width * Mathf.Clamp01(progress);
+        if (fillWidth <= 0.5f)
+        {
+            return;
+        }
+
+        fillWidth = Mathf.Max(rect.height, fillWidth);
+        var fillRect = new Rect(rect.x, rect.y, fillWidth, rect.height);
+        DrawHudCapsule(fillRect, new Color(0.15f, 0.73f, 0.64f, 0.95f));
+    }
+
+    private string GetHudStatusLabel()
+    {
+        switch (_state)
+        {
+            case PrototypeState.ResolvingDrop:
+                return "낙하";
+            case PrototypeState.Won:
+                return "완료";
+            case PrototypeState.Failed:
+                return "실패";
+            default:
+                return "진행";
+        }
+    }
+
+    private static int GetHudFontSize(string text, float maxWidth)
+    {
+        var content = new GUIContent(text);
+        var measuringStyle = new GUIStyle(GUI.skin.label)
+        {
+            fontStyle = FontStyle.Bold,
+            wordWrap = false
+        };
+
+        for (int fontSize = HudMaxFontSize; fontSize > HudMinFontSize; fontSize -= 2)
+        {
+            measuringStyle.fontSize = fontSize;
+            if (measuringStyle.CalcSize(content).x <= maxWidth)
+            {
+                return fontSize;
+            }
+        }
+
+        return HudMinFontSize;
+    }
+
+    private void EnsureHudStyles()
+    {
+        if (_hudPillStyle != null)
+        {
+            return;
+        }
+
+        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.31f, 0.78f, 0.72f, 0.72f));
+        _hudPillShadowTexture = CreateRoundedRectTexture(new Color(0.04f, 0.06f, 0.08f, 0.22f), new Color(0f, 0f, 0f, 0f));
+        _hudProgressTrackTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.58f), new Color(0.12f, 0.18f, 0.22f, 0.18f));
+        _hudProgressFillTexture = CreateRoundedRectTexture(new Color(0.15f, 0.73f, 0.64f, 0.92f), new Color(1f, 1f, 1f, 0.2f));
+        _hudProgressCapTexture = CreateCircleTexture(Color.white);
+
+        _hudPillStyle = CreateHudBoxStyle(_hudPillTexture);
+        _hudPillShadowStyle = CreateHudBoxStyle(_hudPillShadowTexture);
+        _hudProgressTrackStyle = CreateHudBoxStyle(_hudProgressTrackTexture);
+        _hudProgressFillStyle = CreateHudBoxStyle(_hudProgressFillTexture);
+    }
+
+    private void DrawHudCapsule(Rect rect, Color color)
+    {
+        if (rect.width <= 0f || rect.height <= 0f)
+        {
+            return;
+        }
+
+        Color previousColor = GUI.color;
+        GUI.color = color;
+
+        float capSize = rect.height;
+        float centerWidth = Mathf.Max(0f, rect.width - capSize);
+        GUI.DrawTexture(new Rect(rect.x + (capSize * 0.5f), rect.y, centerWidth, rect.height), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(rect.x, rect.y, capSize, capSize), _hudProgressCapTexture);
+        GUI.DrawTexture(new Rect(rect.xMax - capSize, rect.y, capSize, capSize), _hudProgressCapTexture);
+
+        GUI.color = previousColor;
+    }
+
+    private static GUIStyle CreateHudBoxStyle(Texture2D texture)
+    {
+        return new GUIStyle
+        {
+            normal = { background = texture },
+            border = new RectOffset(24, 24, 24, 24)
+        };
+    }
+
+    private static float GetHudTopY()
+    {
+        Rect safeArea = Screen.safeArea;
+        float topInset = Screen.height - safeArea.yMax;
+        return Mathf.Max(HudTopY, topInset + 12f);
+    }
+
+    private static Texture2D CreateRoundedRectTexture(Color fill, Color border)
+    {
+        const int size = 64;
+        const int radius = 28;
+        const int borderSize = 2;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool insideOuter = PixelInsideRoundedRect(x, y, size, size, radius);
+                bool insideInner = PixelInsideRoundedRect(x - borderSize, y - borderSize, size - (borderSize * 2), size - (borderSize * 2), radius - borderSize);
+                texture.SetPixel(x, y, insideOuter ? insideInner ? fill : border : Color.clear);
+            }
+        }
+
+        texture.Apply();
+        return texture;
+    }
+
+    private static Texture2D CreateCircleTexture(Color color)
+    {
+        const int size = 32;
+        const float radius = size * 0.5f;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                float dx = (x + 0.5f) - radius;
+                float dy = (y + 0.5f) - radius;
+                texture.SetPixel(x, y, (dx * dx) + (dy * dy) <= radius * radius ? color : Color.clear);
+            }
+        }
+
+        texture.Apply();
+        return texture;
+    }
+
+    private static bool PixelInsideRoundedRect(int x, int y, int width, int height, int radius)
+    {
+        if (width <= 0 || height <= 0)
+        {
+            return false;
+        }
+
+        float px = x + 0.5f;
+        float py = y + 0.5f;
+        float nearestX = Mathf.Clamp(px, radius, width - radius);
+        float nearestY = Mathf.Clamp(py, radius, height - radius);
+        float dx = px - nearestX;
+        float dy = py - nearestY;
+        return (dx * dx) + (dy * dy) <= radius * radius;
     }
 
     private static Camera EnsureCamera()
@@ -167,7 +394,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         camera.orthographic = true;
         camera.orthographicSize = 4.7f;
-        camera.transform.position = new Vector3(0f, CameraBaseY, -10f);
+        camera.transform.position = new Vector3(0f, CameraInitialY, -10f);
         camera.transform.rotation = Quaternion.identity;
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = new Color(0.07f, 0.09f, 0.12f);
@@ -177,7 +404,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void CreateFloor()
     {
         var floor = new GameObject("Prototype 2D Floor");
-        floor.transform.position = new Vector3(0f, -0.65f, 0f);
+        floor.transform.position = new Vector3(0f, FloorY, 0f);
 
         var visual = new GameObject("Visual");
         visual.transform.SetParent(floor.transform, false);
@@ -188,7 +415,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         FitSpriteToWorldSize(visual.transform, _floorSprite, new Vector2(6.2f, 0.35f));
 
         var collider = floor.AddComponent<BoxCollider2D>();
-        collider.size = new Vector2(6.2f, 0.35f);
+        collider.size = new Vector2(6.2f, FloorHeight);
+
+        UpdateMinimumCameraY();
     }
 
     private void RestartGame()
@@ -282,11 +511,29 @@ public sealed class BoxStackPrototype : MonoBehaviour
         float highestBoxY = GetHighestBoxY();
         GameObject focusBox = _activeBox != null ? _activeBox : _droppingBox;
         float activeY = focusBox != null ? focusBox.transform.position.y : highestBoxY + 1f;
-        float targetY = Mathf.Max(CameraBaseY, Mathf.Lerp(highestBoxY + CameraYOffset, activeY + 1.15f, 0.55f));
+        float targetY = Mathf.Max(_minimumCameraY, Mathf.Lerp(highestBoxY + CameraYOffset, activeY + 1.15f, 0.55f));
         float nextY = Mathf.SmoothDamp(_camera.transform.position.y, targetY, ref _cameraVelocityY, 0.18f);
 
         _camera.transform.position = new Vector3(0f, nextY, -10f);
         _camera.transform.rotation = Quaternion.identity;
+        UpdateBackground();
+    }
+
+    private void UpdateMinimumCameraY()
+    {
+        if (_camera == null)
+        {
+            _minimumCameraY = CameraInitialY;
+            return;
+        }
+
+        float floorBottomY = FloorY - (FloorHeight * 0.5f);
+        _minimumCameraY = floorBottomY + _camera.orthographicSize - CameraBottomPadding;
+
+        if (_camera.transform.position.y < _minimumCameraY)
+        {
+            _camera.transform.position = new Vector3(0f, _minimumCameraY, -10f);
+        }
     }
 
     private float GetHighestBoxY()
@@ -420,6 +667,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _floorSprite = LoadPrototypeSprite(StackBaseSpriteName) ?? CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
+        _backgroundSprite = LoadPrototypeSprite(BackgroundSpriteName, BackgroundResourceFolder, BackgroundAssetFolder);
     }
 
     private BoxVisual GetBoxVisual(int boxIndex)
@@ -449,14 +697,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private static Sprite LoadPrototypeSprite(string assetName)
     {
-        Sprite sprite = Resources.Load<Sprite>($"{ParcelResourceFolder}/{assetName}");
+        return LoadPrototypeSprite(assetName, ParcelResourceFolder, ParcelAssetFolder);
+    }
+
+    private static Sprite LoadPrototypeSprite(string assetName, string resourceFolder, string assetFolder)
+    {
+        Sprite sprite = Resources.Load<Sprite>($"{resourceFolder}/{assetName}");
         if (sprite != null)
         {
             return sprite;
         }
 
 #if UNITY_EDITOR
-        string assetPath = $"{ParcelAssetFolder}/{assetName}.png";
+        string assetPath = $"{assetFolder}/{assetName}.png";
         string absolutePath = Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length));
         if (File.Exists(absolutePath))
         {
@@ -489,6 +742,36 @@ public sealed class BoxStackPrototype : MonoBehaviour
 #else
         return null;
 #endif
+    }
+
+    private void CreateBackground()
+    {
+        if (_camera == null || _backgroundSprite == null)
+        {
+            return;
+        }
+
+        _background = new GameObject("Prototype Logistics Center Background");
+        _background.transform.SetParent(_camera.transform, false);
+
+        var renderer = _background.AddComponent<SpriteRenderer>();
+        renderer.sprite = _backgroundSprite;
+        renderer.sortingOrder = -50;
+
+        UpdateBackground();
+    }
+
+    private void UpdateBackground()
+    {
+        if (_camera == null || _background == null || _backgroundSprite == null)
+        {
+            return;
+        }
+
+        float height = _camera.orthographicSize * 2.08f;
+        float width = height * _camera.aspect;
+        FitSpriteToCoverWorldSize(_background.transform, _backgroundSprite, new Vector2(width, height));
+        _background.transform.localPosition = new Vector3(0f, 0f, 10f);
     }
 
     private static Rect GetVisibleTextureRect(Sprite sprite)
@@ -573,6 +856,25 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         target.localScale = scale;
         target.localPosition = new Vector3(-localVisibleOffset.x * scale.x, -localVisibleOffset.y * scale.y, 0f);
+    }
+
+    private static void FitSpriteToCoverWorldSize(Transform target, Sprite sprite, Vector2 worldSize)
+    {
+        if (sprite == null)
+        {
+            target.localScale = Vector3.one;
+            return;
+        }
+
+        Vector2 spriteSize = sprite.rect.size / sprite.pixelsPerUnit;
+        if (spriteSize.x <= 0f || spriteSize.y <= 0f)
+        {
+            target.localScale = Vector3.one;
+            return;
+        }
+
+        float scale = Mathf.Max(worldSize.x / spriteSize.x, worldSize.y / spriteSize.y);
+        target.localScale = new Vector3(scale, scale, 1f);
     }
 
     private static Sprite CreateParcelBoxSprite()
