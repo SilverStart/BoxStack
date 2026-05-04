@@ -4,7 +4,7 @@ Last updated: 2026-05-05
 
 ## Next Immediate Action
 
-Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, then implement `StageConfig` and wire the 20-stage table from `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md`.
+Playtest the HUD stage-label click, stage select overlay, stage selection restart behavior, stage-clear next-stage flow, then test stages 1, 5, 10, 15, and 20 using the wired `StageConfig` table in `Assets/Scripts/Prototype/BoxStackPrototype.cs`; tune target counts, box sequences, speed multipliers, and range multipliers if the difficulty curve feels unfair.
 
 ## Prototype / Playtest History
 
@@ -31,6 +31,9 @@ Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStack
 - 2026-05-05: Single-column tolerance relaxed from `0.45` to `0.75` so visually stable stacks are less likely to fail unfairly.
 - 2026-05-05: Box `gravityScale` lowered from `2.4` to `1.6` to reduce excessive lower-box movement when stacks grow.
 - 2026-05-05: Result popup restart now requires completing the button click on the button instead of any screen tap.
+- 2026-05-05: Hardcoded `StageConfig` progression wired into the prototype with 20 fixed-clear stages, configured box sequences, speed/range multipliers, HUD stage display, and keyboard stage navigation.
+- 2026-05-05: Stage-clear result popup now advances to the next stage; final stage clear loops back to stage 1.
+- 2026-05-05: HUD stage label now opens a lightweight 20-stage select overlay; selecting a stage restarts the run on that stage.
 
 ## Current Decisions
 
@@ -38,7 +41,7 @@ Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStack
 - Keep planning lightweight: active state plus dashboard, no heavy GDD/ADR/review workflow by default.
 - Record playtest outcomes briefly in this dashboard and `production/session-state/active.md`.
 - Target launch context is Toss app-in-app, so prototype direction favors lightweight 2D/2.5D sprites over modeled 3D assets.
-- Current prototype uses timing-based drops, runtime placeholder parcel sprites, 2D physics stacking, rotation-locked orthographic camera follow, 8-box target, and quick restart.
+- Current prototype uses timing-based drops, runtime placeholder parcel sprites, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
 - Next asset direction is AI-generated 2D PNGs with clear silhouettes, visible contact edges, transparent backgrounds, and mobile-readable parcel details.
 - Expected prototype sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
@@ -49,8 +52,8 @@ Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStack
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
 - First game UI direction is Toss Minimal: a compact top bar with progress feedback plus a central success/fail result popup for run completion.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
-- Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed 8-box stack must survive 5 seconds before success.
-- Stage implementation should start with hardcoded prototype `StageConfig` data, then playtest stages 1, 5, 10, 15, and 20 before filling/tuning the full run.
+- Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
+- Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 
 ## Open Questions
 
@@ -60,9 +63,9 @@ Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStack
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - What bottom padding feels best on the target portrait app-in-app viewport?
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
-- Should temporary stage navigation be keyboard-only, HUD-visible, or both during prototype playtests?
+- Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
-- Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough after playtest?
+- Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 
 ## Risks
 

@@ -23,10 +23,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
-    private const bool UseLogisticsCenterBackground = false;
-    private const int TargetBoxes = 8;
-    private const float MoveRange = 2.45f;
-    private const float MoveSpeed = 1.85f;
+    private static readonly bool UseLogisticsCenterBackground = false;
+    private const float BaseMoveRange = 2.45f;
+    private const float BaseMoveSpeed = 1.85f;
     private const float BoxSize = 1.0f;
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
@@ -72,12 +71,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private PrototypeState _state;
+    private PrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
     private float _moveStartedAt;
     private float _minimumCameraY = CameraInitialY;
     private float _cameraVelocityY;
     private float _clearValidationEndTime;
+    private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
+    private int _currentStageIndex;
     private string _statusText = "READY";
 
     private enum PrototypeState
@@ -85,6 +87,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         Playing,
         ResolvingDrop,
         ValidatingClear,
+        StageSelect,
         Won,
         Failed
     }
@@ -117,6 +120,24 @@ public sealed class BoxStackPrototype : MonoBehaviour
         public Vector2 WorldSize;
     }
 
+    private struct StageConfig
+    {
+        public StageConfig(int number, int targetBoxes, string boxSequence, float speedMultiplier, float rangeMultiplier)
+        {
+            Number = number;
+            TargetBoxes = targetBoxes;
+            BoxSequence = boxSequence;
+            SpeedMultiplier = speedMultiplier;
+            RangeMultiplier = rangeMultiplier;
+        }
+
+        public int Number;
+        public int TargetBoxes;
+        public string BoxSequence;
+        public float SpeedMultiplier;
+        public float RangeMultiplier;
+    }
+
     private static readonly BoxAssetDefinition[] BoxAssetDefinitions =
     {
         new BoxAssetDefinition("parcel_box_basic_01", new Vector2(1.0f, 1.0f)),
@@ -124,7 +145,54 @@ public sealed class BoxStackPrototype : MonoBehaviour
         new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
     };
 
+    private static readonly StageConfig[] StageConfigs =
+    {
+        new StageConfig(1, 4, "BBBB", 0.75f, 0.75f),
+        new StageConfig(2, 5, "BBBBB", 0.80f, 0.80f),
+        new StageConfig(3, 6, "BBWBBB", 0.85f, 0.85f),
+        new StageConfig(4, 6, "BTBBWB", 0.90f, 0.90f),
+        new StageConfig(5, 7, "BBWBTBB", 0.95f, 0.95f),
+        new StageConfig(6, 7, "WBBTBBW", 1.00f, 1.00f),
+        new StageConfig(7, 8, "BBTBWBBB", 1.00f, 1.00f),
+        new StageConfig(8, 8, "WBTBBWBT", 1.05f, 1.00f),
+        new StageConfig(9, 8, "BTTBWBBW", 1.05f, 1.05f),
+        new StageConfig(10, 9, "BBWTBBWBB", 1.10f, 1.05f),
+        new StageConfig(11, 9, "WTBBTBWBB", 1.10f, 1.10f),
+        new StageConfig(12, 9, "BWBTWBTBB", 1.15f, 1.10f),
+        new StageConfig(13, 10, "BBTWBTBWBB", 1.15f, 1.15f),
+        new StageConfig(14, 10, "WBTBTWBBTB", 1.20f, 1.15f),
+        new StageConfig(15, 10, "BTWBBTWTBB", 1.20f, 1.20f),
+        new StageConfig(16, 11, "WBBTWBTBWBB", 1.25f, 1.20f),
+        new StageConfig(17, 11, "BTBWTBBWTBB", 1.25f, 1.25f),
+        new StageConfig(18, 12, "BWTBBWTBTWBB", 1.30f, 1.25f),
+        new StageConfig(19, 12, "WTBTWBBTWBTB", 1.35f, 1.30f),
+        new StageConfig(20, 12, "BTWTBWTBWTBB", 1.40f, 1.30f)
+    };
+
     private static readonly Color ParcelBrownBackgroundColor = new Color(0.70f, 0.56f, 0.38f);
+
+    private StageConfig CurrentStage
+    {
+        get
+        {
+            return StageConfigs[Mathf.Clamp(_currentStageIndex, 0, StageConfigs.Length - 1)];
+        }
+    }
+
+    private int CurrentTargetBoxes
+    {
+        get { return CurrentStage.TargetBoxes; }
+    }
+
+    private float CurrentMoveRange
+    {
+        get { return BaseMoveRange * CurrentStage.RangeMultiplier; }
+    }
+
+    private float CurrentMoveSpeed
+    {
+        get { return BaseMoveSpeed * CurrentStage.SpeedMultiplier; }
+    }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
@@ -152,6 +220,29 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void Update()
     {
+        if (_state == PrototypeState.StageSelect)
+        {
+            if (CloseStageSelectPressed())
+            {
+                CloseStageSelect();
+            }
+
+            UpdateCamera();
+            return;
+        }
+
+        if (PreviousStagePressed())
+        {
+            ChangeStage(-1);
+            return;
+        }
+
+        if (NextStagePressed())
+        {
+            ChangeStage(1);
+            return;
+        }
+
         if (RestartPressed())
         {
             RestartGame();
@@ -232,10 +323,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
         };
         SetTextColorStates(statusStyle, labelColor);
 
-        GUI.Label(labelRect, "박스", labelStyle);
-        GUI.Label(countRect, $"{_placedBoxes.Count} / {TargetBoxes}", countStyle);
-        DrawHudProgress(progressRect, _placedBoxes.Count / (float)TargetBoxes);
+        GUI.Label(labelRect, GetStageLabel(), labelStyle);
+        if (GUI.Button(labelRect, GUIContent.none, labelStyle))
+        {
+            OpenStageSelect();
+        }
+
+        GUI.Label(countRect, $"{_placedBoxes.Count} / {CurrentTargetBoxes}", countStyle);
+        DrawHudProgress(progressRect, _placedBoxes.Count / (float)CurrentTargetBoxes);
         GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
+
+        if (_state == PrototypeState.StageSelect)
+        {
+            DrawStageSelectOverlay();
+            return;
+        }
 
         DrawResultPopup();
     }
@@ -263,6 +365,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 return "낙하";
             case PrototypeState.ValidatingClear:
                 return "검수";
+            case PrototypeState.StageSelect:
+                return "선택";
             case PrototypeState.Won:
                 return "완료";
             case PrototypeState.Failed:
@@ -270,6 +374,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
             default:
                 return "진행";
         }
+    }
+
+    private string GetStageLabel()
+    {
+        return $"ST {CurrentStage.Number:00}";
     }
 
     private static int GetHudFontSize(string text, float maxWidth)
@@ -334,6 +443,108 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _resultButtonStyle.active.textColor = Color.white;
     }
 
+    private void DrawStageSelectOverlay()
+    {
+        Color previousColor = GUI.color;
+        GUI.color = new Color(0f, 0f, 0f, 0.28f);
+        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+        GUI.color = previousColor;
+
+        float panelWidth = Mathf.Max(300f, Mathf.Min(420f, Screen.width - 36f));
+        float panelHeight = Mathf.Max(380f, Mathf.Min(520f, Screen.height - GetHudTopY() - HudBarHeight - 48f));
+        float panelY = Mathf.Clamp(
+            GetHudTopY() + HudBarHeight + 20f,
+            18f,
+            Screen.height - panelHeight - 18f);
+        var panelRect = new Rect(
+            (Screen.width - panelWidth) * 0.5f,
+            panelY,
+            panelWidth,
+            panelHeight);
+
+        GUI.Box(panelRect, GUIContent.none, _resultPanelStyle);
+
+        Color titleColor = new Color(0.09f, 0.11f, 0.14f);
+        var titleStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 24,
+            fontStyle = FontStyle.Bold,
+            normal = { textColor = titleColor }
+        };
+        SetTextColorStates(titleStyle, titleColor);
+
+        Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
+        var bodyStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 14,
+            fontStyle = FontStyle.Normal,
+            normal = { textColor = bodyColor }
+        };
+        SetTextColorStates(bodyStyle, bodyColor);
+
+        var normalStageButtonStyle = new GUIStyle(_hudPillStyle)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 14,
+            fontStyle = FontStyle.Bold,
+            wordWrap = true
+        };
+        SetTextColorStates(normalStageButtonStyle, new Color(0.18f, 0.14f, 0.10f));
+
+        var selectedStageButtonStyle = new GUIStyle(_resultButtonStyle)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 14,
+            fontStyle = FontStyle.Bold,
+            wordWrap = true
+        };
+        SetTextColorStates(selectedStageButtonStyle, Color.white);
+
+        var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 20f, panelRect.width - 48f, 32f);
+        var bodyRect = new Rect(panelRect.x + 24f, panelRect.y + 54f, panelRect.width - 48f, 22f);
+        GUI.Label(titleRect, "스테이지 선택", titleStyle);
+        GUI.Label(bodyRect, "배송 루트", bodyStyle);
+
+        const int columns = 4;
+        const float gap = 8f;
+        float gridX = panelRect.x + 24f;
+        float gridY = panelRect.y + 92f;
+        float gridWidth = panelRect.width - 48f;
+        float cellWidth = (gridWidth - (gap * (columns - 1))) / columns;
+        float cellHeight = Mathf.Clamp((panelRect.height - 174f - (gap * 4f)) / 5f, 44f, 58f);
+
+        for (int i = 0; i < StageConfigs.Length; i++)
+        {
+            StageConfig stage = StageConfigs[i];
+            int column = i % columns;
+            int row = i / columns;
+            var cellRect = new Rect(
+                gridX + (column * (cellWidth + gap)),
+                gridY + (row * (cellHeight + gap)),
+                cellWidth,
+                cellHeight);
+
+            GUIStyle cellStyle = i == _currentStageIndex ? selectedStageButtonStyle : normalStageButtonStyle;
+            string label = $"ST {stage.Number:00}\n{stage.TargetBoxes}개";
+            if (GUI.Button(cellRect, label, cellStyle))
+            {
+                SelectStage(i);
+            }
+        }
+
+        var closeRect = new Rect(panelRect.x + 72f, panelRect.yMax - 66f, panelRect.width - 144f, 46f);
+        if (GUI.Button(closeRect, "닫기", _resultButtonStyle))
+        {
+            CloseStageSelect();
+        }
+    }
+
     private void DrawResultPopup()
     {
         if (!IsResultState())
@@ -342,9 +553,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         bool won = _state == PrototypeState.Won;
-        string title = won ? "배송 완료!" : "배송 실패";
+        bool hasNextStage = won && HasNextStage();
+        string title = won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패";
         string body = GetResultBody(won);
-        string hint = won ? "다시 하기" : "다시 도전";
+        string hint = GetResultButtonLabel(won, hasNextStage);
+
         Color previousColor = GUI.color;
         GUI.color = new Color(0f, 0f, 0f, 0.28f);
         GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
@@ -396,7 +609,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (GUI.Button(buttonRect, hint, _resultButtonStyle))
         {
-            RestartGame();
+            HandleResultButton(won, hasNextStage);
         }
     }
 
@@ -409,7 +622,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (won)
         {
-            return $"박스 {TargetBoxes}개를 한 줄로 쌓았어요";
+            if (HasNextStage())
+            {
+                return $"스테이지 {CurrentStage.Number} 클리어";
+            }
+
+            return "20스테이지를 모두 클리어했어요";
         }
 
         if (_statusText == "STACK CROOKED")
@@ -418,6 +636,32 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         return "박스가 떨어졌어요";
+    }
+
+    private string GetResultButtonLabel(bool won, bool hasNextStage)
+    {
+        if (!won)
+        {
+            return "다시 도전";
+        }
+
+        return hasNextStage ? "다음 스테이지" : "처음부터";
+    }
+
+    private void HandleResultButton(bool won, bool hasNextStage)
+    {
+        if (won && hasNextStage)
+        {
+            ChangeStage(1);
+            return;
+        }
+
+        if (won)
+        {
+            _currentStageIndex = 0;
+        }
+
+        RestartGame();
     }
 
     private void DrawHudCapsule(Rect rect, Color color)
@@ -591,18 +835,72 @@ public sealed class BoxStackPrototype : MonoBehaviour
         SpawnNextBox();
     }
 
+    private void ChangeStage(int direction)
+    {
+        int nextStageIndex = Mathf.Clamp(_currentStageIndex + direction, 0, StageConfigs.Length - 1);
+        if (nextStageIndex == _currentStageIndex)
+        {
+            return;
+        }
+
+        _currentStageIndex = nextStageIndex;
+        RestartGame();
+    }
+
+    private void SelectStage(int stageIndex)
+    {
+        stageIndex = Mathf.Clamp(stageIndex, 0, StageConfigs.Length - 1);
+        CloseStageSelect();
+
+        if (stageIndex != _currentStageIndex)
+        {
+            _currentStageIndex = stageIndex;
+        }
+
+        RestartGame();
+    }
+
+    private void OpenStageSelect()
+    {
+        if (_state == PrototypeState.StageSelect)
+        {
+            return;
+        }
+
+        _stateBeforeStageSelect = _state;
+        _timeScaleBeforeStageSelect = Time.timeScale;
+        Time.timeScale = 0f;
+        _state = PrototypeState.StageSelect;
+    }
+
+    private void CloseStageSelect()
+    {
+        if (_state != PrototypeState.StageSelect)
+        {
+            return;
+        }
+
+        Time.timeScale = _timeScaleBeforeStageSelect <= 0f ? 1f : _timeScaleBeforeStageSelect;
+        _state = _stateBeforeStageSelect;
+    }
+
+    private bool HasNextStage()
+    {
+        return _currentStageIndex < StageConfigs.Length - 1;
+    }
+
     private void SpawnNextBox()
     {
         _spawnHeight = 0.45f + (_placedBoxes.Count * BoxSize) + 2.15f;
         _moveStartedAt = Time.time;
 
         _activeBox = CreatePrototypeBox($"Prototype Parcel Box {_placedBoxes.Count + 1}", _activeTint);
-        _activeBox.transform.position = new Vector3(-MoveRange, _spawnHeight, 0f);
+        _activeBox.transform.position = new Vector3(-CurrentMoveRange, _spawnHeight, 0f);
     }
 
     private GameObject CreatePrototypeBox(string boxName, Color tint)
     {
-        BoxVisual boxVisual = GetBoxVisual(_placedBoxes.Count);
+        BoxVisual boxVisual = GetBoxVisual(GetStageBoxCode(_placedBoxes.Count));
         var box = new GameObject(boxName);
 
         var visual = new GameObject("Visual");
@@ -636,7 +934,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         float elapsed = Time.time - _moveStartedAt;
-        float x = Mathf.Sin(elapsed * MoveSpeed) * MoveRange;
+        float x = Mathf.Sin(elapsed * CurrentMoveSpeed) * CurrentMoveRange;
         _activeBox.transform.position = new Vector3(x, _spawnHeight, 0f);
     }
 
@@ -737,7 +1035,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
-        if (_placedBoxes.Count >= TargetBoxes)
+        if (_placedBoxes.Count >= CurrentTargetBoxes)
         {
             BeginClearValidation();
             yield break;
@@ -856,7 +1154,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
             if (sprite != null)
             {
                 _boxVisuals.Add(new BoxVisual(sprite, definition.WorldSize, GetVisibleTextureRect(sprite), false));
+                continue;
             }
+
+            Sprite placeholder = CreateParcelBoxSprite();
+            _boxVisuals.Add(new BoxVisual(placeholder, definition.WorldSize, GetVisibleTextureRect(placeholder), true));
         }
 
         if (_boxVisuals.Count == 0)
@@ -871,7 +1173,18 @@ public sealed class BoxStackPrototype : MonoBehaviour
             : null;
     }
 
-    private BoxVisual GetBoxVisual(int boxIndex)
+    private char GetStageBoxCode(int boxIndex)
+    {
+        string sequence = CurrentStage.BoxSequence;
+        if (string.IsNullOrEmpty(sequence))
+        {
+            return 'B';
+        }
+
+        return sequence[Mathf.Clamp(boxIndex, 0, sequence.Length - 1)];
+    }
+
+    private BoxVisual GetBoxVisual(char boxCode)
     {
         if (_boxVisuals.Count == 0)
         {
@@ -879,7 +1192,22 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return new BoxVisual(placeholder, Vector2.one * BoxSize, GetVisibleTextureRect(placeholder), true);
         }
 
-        return _boxVisuals[boxIndex % _boxVisuals.Count];
+        int visualIndex = GetBoxVisualIndex(boxCode);
+        visualIndex = Mathf.Clamp(visualIndex, 0, _boxVisuals.Count - 1);
+        return _boxVisuals[visualIndex];
+    }
+
+    private static int GetBoxVisualIndex(char boxCode)
+    {
+        switch (boxCode)
+        {
+            case 'W':
+                return 1;
+            case 'T':
+                return 2;
+            default:
+                return 0;
+        }
     }
 
     private bool IsPlaceholderSprite(Sprite sprite)
@@ -1161,6 +1489,35 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame;
 #else
         return Input.GetKeyDown(KeyCode.R);
+#endif
+    }
+
+    private static bool PreviousStagePressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null
+            && (Keyboard.current.leftArrowKey.wasPressedThisFrame || Keyboard.current.pKey.wasPressedThisFrame);
+#else
+        return Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.P);
+#endif
+    }
+
+    private static bool NextStagePressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null
+            && (Keyboard.current.rightArrowKey.wasPressedThisFrame || Keyboard.current.nKey.wasPressedThisFrame);
+#else
+        return Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.N);
+#endif
+    }
+
+    private static bool CloseStageSelectPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
+#else
+        return Input.GetKeyDown(KeyCode.Escape);
 #endif
     }
 }
