@@ -23,13 +23,16 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
+    private const bool UseLogisticsCenterBackground = false;
     private const int TargetBoxes = 8;
     private const float MoveRange = 2.45f;
     private const float MoveSpeed = 1.85f;
     private const float BoxSize = 1.0f;
     private const float DropSettleSeconds = 1.0f;
+    private const float ClearValidationSeconds = 5.0f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
+    private const float StackLineTolerance = 0.75f;
     private const float CameraYOffset = 2.2f;
     private const float CameraInitialY = 2.5f;
     private const float CameraBottomPadding = 0.25f;
@@ -41,6 +44,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float HudTopY = 18f;
     private const float HudBarHeight = 68f;
     private const float HudProgressHeight = 14f;
+    private const float ResultPanelMaxWidth = 360f;
+    private const float ResultPanelHeight = 260f;
 
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
@@ -55,11 +60,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private GUIStyle _hudPillShadowStyle;
     private GUIStyle _hudProgressTrackStyle;
     private GUIStyle _hudProgressFillStyle;
+    private GUIStyle _resultPanelStyle;
+    private GUIStyle _resultPanelShadowStyle;
+    private GUIStyle _resultButtonStyle;
     private Texture2D _hudPillTexture;
     private Texture2D _hudPillShadowTexture;
     private Texture2D _hudProgressTrackTexture;
     private Texture2D _hudProgressFillTexture;
     private Texture2D _hudProgressCapTexture;
+    private Texture2D _resultPanelTexture;
+    private Texture2D _resultPanelShadowTexture;
+    private Texture2D _resultButtonTexture;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private PrototypeState _state;
@@ -67,6 +78,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _moveStartedAt;
     private float _minimumCameraY = CameraInitialY;
     private float _cameraVelocityY;
+    private float _clearValidationEndTime;
     private int _attempts;
     private string _statusText = "READY";
 
@@ -74,6 +86,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         Playing,
         ResolvingDrop,
+        ValidatingClear,
         Won,
         Failed
     }
@@ -113,6 +126,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
     };
 
+    private static readonly Color ParcelBrownBackgroundColor = new Color(0.70f, 0.56f, 0.38f);
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     private static void Bootstrap()
     {
@@ -128,7 +143,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         LoadPrototypeSprites();
         _camera = EnsureCamera();
-        CreateBackground();
+        if (UseLogisticsCenterBackground)
+        {
+            CreateBackground();
+        }
+
         CreateFloor();
         RestartGame();
     }
@@ -155,6 +174,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 EndRun(false, "STACK LOST");
             }
         }
+        else if (_state == PrototypeState.ValidatingClear)
+        {
+            UpdateClearValidation();
+        }
 
         UpdateCamera();
     }
@@ -180,6 +203,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             Mathf.Max(44f, barWidth - leftWidth - rightWidth - 112f),
             HudProgressHeight);
 
+        Color labelColor = new Color(0.37f, 0.42f, 0.49f, 0.92f);
         var labelStyle = new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleLeft,
@@ -187,10 +211,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontSize = 18,
             fontStyle = FontStyle.Normal,
             wordWrap = false,
-            normal = { textColor = new Color(0.37f, 0.42f, 0.49f, 0.92f) }
+            normal = { textColor = labelColor }
         };
+        SetTextColorStates(labelStyle, labelColor);
 
         int countFontSize = GetHudFontSize("88 / 88", countRect.width);
+        Color countColor = new Color(0.11f, 0.13f, 0.16f);
         var countStyle = new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleLeft,
@@ -198,23 +224,27 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontSize = countFontSize,
             fontStyle = FontStyle.Bold,
             wordWrap = false,
-            normal = { textColor = new Color(0.11f, 0.13f, 0.16f) }
+            normal = { textColor = countColor }
         };
+        SetTextColorStates(countStyle, countColor);
 
         var statusStyle = new GUIStyle(labelStyle)
         {
             alignment = TextAnchor.MiddleCenter
         };
+        SetTextColorStates(statusStyle, labelColor);
 
         GUI.Label(labelRect, "박스", labelStyle);
         GUI.Label(countRect, $"{_placedBoxes.Count} / {TargetBoxes}", countStyle);
         DrawHudProgress(progressRect, _placedBoxes.Count / (float)TargetBoxes);
         GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
+
+        DrawResultPopup();
     }
 
     private void DrawHudProgress(Rect rect, float progress)
     {
-        DrawHudCapsule(rect, new Color(0.71f, 0.91f, 0.88f, 0.75f));
+        DrawHudCapsule(rect, new Color(0.90f, 0.78f, 0.58f, 0.75f));
 
         float fillWidth = rect.width * Mathf.Clamp01(progress);
         if (fillWidth <= 0.5f)
@@ -224,7 +254,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         fillWidth = Mathf.Max(rect.height, fillWidth);
         var fillRect = new Rect(rect.x, rect.y, fillWidth, rect.height);
-        DrawHudCapsule(fillRect, new Color(0.15f, 0.73f, 0.64f, 0.95f));
+        DrawHudCapsule(fillRect, new Color(0.58f, 0.38f, 0.18f, 0.95f));
     }
 
     private string GetHudStatusLabel()
@@ -233,6 +263,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             case PrototypeState.ResolvingDrop:
                 return "낙하";
+            case PrototypeState.ValidatingClear:
+                return "검수";
             case PrototypeState.Won:
                 return "완료";
             case PrototypeState.Failed:
@@ -263,6 +295,18 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return HudMinFontSize;
     }
 
+    private static void SetTextColorStates(GUIStyle style, Color color)
+    {
+        style.normal.textColor = color;
+        style.hover.textColor = color;
+        style.active.textColor = color;
+        style.focused.textColor = color;
+        style.onNormal.textColor = color;
+        style.onHover.textColor = color;
+        style.onActive.textColor = color;
+        style.onFocused.textColor = color;
+    }
+
     private void EnsureHudStyles()
     {
         if (_hudPillStyle != null)
@@ -270,16 +314,115 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.31f, 0.78f, 0.72f, 0.72f));
+        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.73f, 0.52f, 0.28f, 0.72f));
         _hudPillShadowTexture = CreateRoundedRectTexture(new Color(0.04f, 0.06f, 0.08f, 0.22f), new Color(0f, 0f, 0f, 0f));
         _hudProgressTrackTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.58f), new Color(0.12f, 0.18f, 0.22f, 0.18f));
-        _hudProgressFillTexture = CreateRoundedRectTexture(new Color(0.15f, 0.73f, 0.64f, 0.92f), new Color(1f, 1f, 1f, 0.2f));
+        _hudProgressFillTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.92f), new Color(1f, 1f, 1f, 0.2f));
         _hudProgressCapTexture = CreateCircleTexture(Color.white);
+        _resultPanelTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.42f));
+        _resultPanelShadowTexture = CreateRoundedRectTexture(new Color(0.03f, 0.05f, 0.07f, 0.30f), new Color(0f, 0f, 0f, 0f));
+        _resultButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.96f), new Color(1f, 1f, 1f, 0.2f));
 
         _hudPillStyle = CreateHudBoxStyle(_hudPillTexture);
         _hudPillShadowStyle = CreateHudBoxStyle(_hudPillShadowTexture);
         _hudProgressTrackStyle = CreateHudBoxStyle(_hudProgressTrackTexture);
         _hudProgressFillStyle = CreateHudBoxStyle(_hudProgressFillTexture);
+        _resultPanelStyle = CreateHudBoxStyle(_resultPanelTexture);
+        _resultPanelShadowStyle = CreateHudBoxStyle(_resultPanelShadowTexture);
+        _resultButtonStyle = CreateHudBoxStyle(_resultButtonTexture);
+        _resultButtonStyle.alignment = TextAnchor.MiddleCenter;
+        _resultButtonStyle.fontStyle = FontStyle.Bold;
+        _resultButtonStyle.fontSize = 20;
+        _resultButtonStyle.normal.textColor = Color.white;
+        _resultButtonStyle.hover.textColor = Color.white;
+        _resultButtonStyle.active.textColor = Color.white;
+    }
+
+    private void DrawResultPopup()
+    {
+        if (!IsResultState())
+        {
+            return;
+        }
+
+        bool won = _state == PrototypeState.Won;
+        string title = won ? "배송 완료!" : "배송 실패";
+        string body = GetResultBody(won);
+        string hint = won ? "다시 하기" : "다시 도전";
+        Color previousColor = GUI.color;
+        GUI.color = new Color(0f, 0f, 0f, 0.28f);
+        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
+        GUI.color = previousColor;
+
+        float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, Screen.width - 48f));
+        float panelHeight = Mathf.Max(220f, Mathf.Min(ResultPanelHeight, Screen.height - 160f));
+        float panelY = Mathf.Clamp(
+            Mathf.Max(GetHudTopY() + HudBarHeight + 28f, (Screen.height - panelHeight) * 0.5f),
+            24f,
+            Screen.height - panelHeight - 24f);
+        var panelRect = new Rect(
+            (Screen.width - panelWidth) * 0.5f,
+            panelY,
+            panelWidth,
+            panelHeight);
+
+        GUI.Box(new Rect(panelRect.x, panelRect.y + 5f, panelRect.width, panelRect.height), GUIContent.none, _resultPanelShadowStyle);
+        GUI.Box(panelRect, GUIContent.none, _resultPanelStyle);
+
+        Color titleColor = new Color(0.09f, 0.11f, 0.14f);
+        var titleStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.width * 0.065f), 26, 34),
+            fontStyle = FontStyle.Bold,
+            normal = { textColor = titleColor }
+        };
+        SetTextColorStates(titleStyle, titleColor);
+
+        Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
+        var bodyStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 18,
+            fontStyle = FontStyle.Normal,
+            wordWrap = true,
+            normal = { textColor = bodyColor }
+        };
+        SetTextColorStates(bodyStyle, bodyColor);
+
+        var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
+        var bodyRect = new Rect(panelRect.x + 32f, panelRect.y + 96f, panelRect.width - 64f, 52f);
+        var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 70f, panelRect.width - 108f, 46f);
+
+        GUI.Label(titleRect, title, titleStyle);
+        GUI.Label(bodyRect, body, bodyStyle);
+
+        if (GUI.Button(buttonRect, hint, _resultButtonStyle))
+        {
+            RestartGame();
+        }
+    }
+
+    private bool IsResultState()
+    {
+        return _state == PrototypeState.Won || _state == PrototypeState.Failed;
+    }
+
+    private string GetResultBody(bool won)
+    {
+        if (won)
+        {
+            return $"박스 {TargetBoxes}개를 한 줄로 쌓았어요";
+        }
+
+        if (_statusText == "STACK CROOKED")
+        {
+            return "한 줄로 쌓이지 않았어요";
+        }
+
+        return "박스가 떨어졌어요";
     }
 
     private void DrawHudCapsule(Rect rect, Color color)
@@ -397,7 +540,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         camera.transform.position = new Vector3(0f, CameraInitialY, -10f);
         camera.transform.rotation = Quaternion.identity;
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = new Color(0.07f, 0.09f, 0.12f);
+        camera.backgroundColor = ParcelBrownBackgroundColor;
         return camera;
     }
 
@@ -446,6 +589,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _activeBox = null;
         _droppingBox = null;
         _cameraVelocityY = 0f;
+        _clearValidationEndTime = 0f;
         _attempts++;
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -480,7 +624,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var body = box.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
-        body.gravityScale = 2.4f;
+        body.gravityScale = 1.6f;
         body.mass = 1f;
         body.linearDamping = 0.25f;
         body.angularDamping = 0.4f;
@@ -592,15 +736,50 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _placedBoxes.Add(droppedBox);
         _droppingBox = null;
 
+        if (!StackIsSingleColumn())
+        {
+            EndRun(false, "STACK CROOKED");
+            yield break;
+        }
+
         if (_placedBoxes.Count >= TargetBoxes)
         {
-            EndRun(true, "STACK COMPLETE");
+            BeginClearValidation();
             yield break;
         }
 
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
+    }
+
+    private void BeginClearValidation()
+    {
+        _state = PrototypeState.ValidatingClear;
+        _statusText = "VERIFYING";
+        _clearValidationEndTime = Time.time + ClearValidationSeconds;
+    }
+
+    private void UpdateClearValidation()
+    {
+        if (AnyBoxLost())
+        {
+            EndRun(false, "STACK LOST");
+            return;
+        }
+
+        if (!StackIsSingleColumn())
+        {
+            EndRun(false, "STACK CROOKED");
+            return;
+        }
+
+        if (Time.time < _clearValidationEndTime)
+        {
+            return;
+        }
+
+        EndRun(true, "STACK COMPLETE");
     }
 
     private void EndRun(bool won, string status)
@@ -635,6 +814,31 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return false;
     }
 
+    private bool StackIsSingleColumn()
+    {
+        if (_placedBoxes.Count == 0)
+        {
+            return true;
+        }
+
+        if (_placedBoxes[0] == null)
+        {
+            return false;
+        }
+
+        float referenceX = _placedBoxes[0].transform.position.x;
+        for (int i = 1; i < _placedBoxes.Count; i++)
+        {
+            GameObject box = _placedBoxes[i];
+            if (box == null || Mathf.Abs(box.transform.position.x - referenceX) > StackLineTolerance)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private static bool BoxIsLost(GameObject box)
     {
         if (box == null)
@@ -667,7 +871,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _floorSprite = LoadPrototypeSprite(StackBaseSpriteName) ?? CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
-        _backgroundSprite = LoadPrototypeSprite(BackgroundSpriteName, BackgroundResourceFolder, BackgroundAssetFolder);
+        _backgroundSprite = UseLogisticsCenterBackground
+            ? LoadPrototypeSprite(BackgroundSpriteName, BackgroundResourceFolder, BackgroundAssetFolder)
+            : null;
     }
 
     private BoxVisual GetBoxVisual(int boxIndex)

@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-04
+Last updated: 2026-05-05
 
 ## Next Immediate Action
 
-Implement `StageConfig` in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, wire the 20-stage table from `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md`, then playtest stages 1, 5, 10, 15, and 20.
+Playtest the single-column clear tolerance in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, then implement `StageConfig` and wire the 20-stage table from `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md`.
 
 ## Prototype / Playtest History
 
@@ -24,6 +24,13 @@ Implement `StageConfig` in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, wire
 - 2026-05-04: Four HUD mockup variants generated for selection: Toss Minimal, Delivery Tracker, Casual Game, and No Top HUD.
 - 2026-05-04: HUD variant 01 Toss Minimal applied to the prototype as a single quiet top bar with box count, progress, and compact status text.
 - 2026-05-04: 20-stage fixed-clear difficulty plan recorded at `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md`; infinite stacking deferred to a later challenge-mode experiment.
+- 2026-05-04: Success/fail result popup added so one play session has a clear ending and restart path.
+- 2026-05-04: Logistics center image background disabled for focus testing; prototype now uses a parcel-brown solid camera background.
+- 2026-05-05: Clear condition changed from box count only to single-column stacking; a settled box outside tolerance now fails immediately.
+- 2026-05-05: Success now requires the completed 8-box stack to survive a 5-second validation window before the clear popup appears.
+- 2026-05-05: Single-column tolerance relaxed from `0.45` to `0.75` so visually stable stacks are less likely to fail unfairly.
+- 2026-05-05: Box `gravityScale` lowered from `2.4` to `1.6` to reduce excessive lower-box movement when stacks grow.
+- 2026-05-05: Result popup restart now requires completing the button click on the button instead of any screen tap.
 
 ## Current Decisions
 
@@ -38,9 +45,11 @@ Implement `StageConfig` in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, wire
 - Parcel PNG visuals and `BoxCollider2D` sizes are based on visible alpha bounds rather than the full transparent source image rectangle.
 - Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` for live Editor inspection, asset refresh, Play/Stop, console reads, screenshots, and injected C# checks.
 - Background direction is a bright 2D parcel logistics center with a calm central play lane, not a full 3D modeled warehouse.
+- Current background test uses a parcel-brown solid color because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- First game UI direction is Toss Minimal: a compact top bar with progress feedback, with heavier result UI deferred.
+- First game UI direction is Toss Minimal: a compact top bar with progress feedback plus a central success/fail result popup for run completion.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
+- Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed 8-box stack must survive 5 seconds before success.
 - Stage implementation should start with hardcoded prototype `StageConfig` data, then playtest stages 1, 5, 10, 15, and 20 before filling/tuning the full run.
 
 ## Open Questions
@@ -52,6 +61,8 @@ Implement `StageConfig` in `Assets/Scripts/Prototype/BoxStackPrototype.cs`, wire
 - What bottom padding feels best on the target portrait app-in-app viewport?
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
 - Should temporary stage navigation be keyboard-only, HUD-visible, or both during prototype playtests?
+- Does the parcel-brown solid background improve focus compared with the logistics center image?
+- Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough after playtest?
 
 ## Risks
 
