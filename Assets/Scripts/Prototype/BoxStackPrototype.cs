@@ -61,7 +61,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private GUIStyle _hudProgressTrackStyle;
     private GUIStyle _hudProgressFillStyle;
     private GUIStyle _resultPanelStyle;
-    private GUIStyle _resultPanelShadowStyle;
     private GUIStyle _resultButtonStyle;
     private Texture2D _hudPillTexture;
     private Texture2D _hudPillShadowTexture;
@@ -69,7 +68,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Texture2D _hudProgressFillTexture;
     private Texture2D _hudProgressCapTexture;
     private Texture2D _resultPanelTexture;
-    private Texture2D _resultPanelShadowTexture;
     private Texture2D _resultButtonTexture;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
@@ -314,13 +312,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.73f, 0.52f, 0.28f, 0.72f));
+        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.73f, 0.52f, 0.28f, 0.72f), 4);
         _hudPillShadowTexture = CreateRoundedRectTexture(new Color(0.04f, 0.06f, 0.08f, 0.22f), new Color(0f, 0f, 0f, 0f));
         _hudProgressTrackTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.58f), new Color(0.12f, 0.18f, 0.22f, 0.18f));
         _hudProgressFillTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.92f), new Color(1f, 1f, 1f, 0.2f));
         _hudProgressCapTexture = CreateCircleTexture(Color.white);
-        _resultPanelTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.42f));
-        _resultPanelShadowTexture = CreateRoundedRectTexture(new Color(0.03f, 0.05f, 0.07f, 0.30f), new Color(0f, 0f, 0f, 0f));
+        _resultPanelTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.58f), 4);
         _resultButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.96f), new Color(1f, 1f, 1f, 0.2f));
 
         _hudPillStyle = CreateHudBoxStyle(_hudPillTexture);
@@ -328,8 +325,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _hudProgressTrackStyle = CreateHudBoxStyle(_hudProgressTrackTexture);
         _hudProgressFillStyle = CreateHudBoxStyle(_hudProgressFillTexture);
         _resultPanelStyle = CreateHudBoxStyle(_resultPanelTexture);
-        _resultPanelShadowStyle = CreateHudBoxStyle(_resultPanelShadowTexture);
-        _resultButtonStyle = CreateHudBoxStyle(_resultButtonTexture);
+        _resultButtonStyle = CreateHudBoxStyle(_resultButtonTexture, 24);
         _resultButtonStyle.alignment = TextAnchor.MiddleCenter;
         _resultButtonStyle.fontStyle = FontStyle.Bold;
         _resultButtonStyle.fontSize = 20;
@@ -366,7 +362,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
             panelWidth,
             panelHeight);
 
-        GUI.Box(new Rect(panelRect.x, panelRect.y + 5f, panelRect.width, panelRect.height), GUIContent.none, _resultPanelShadowStyle);
         GUI.Box(panelRect, GUIContent.none, _resultPanelStyle);
 
         Color titleColor = new Color(0.09f, 0.11f, 0.14f);
@@ -394,7 +389,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
         var bodyRect = new Rect(panelRect.x + 32f, panelRect.y + 96f, panelRect.width - 64f, 52f);
-        var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 70f, panelRect.width - 108f, 46f);
+        var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 78f, panelRect.width - 108f, 54f);
 
         GUI.Label(titleRect, title, titleStyle);
         GUI.Label(bodyRect, body, bodyStyle);
@@ -444,12 +439,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
     }
 
-    private static GUIStyle CreateHudBoxStyle(Texture2D texture)
+    private static GUIStyle CreateHudBoxStyle(Texture2D texture, int sliceBorder = 24)
     {
         return new GUIStyle
         {
             normal = { background = texture },
-            border = new RectOffset(24, 24, 24, 24)
+            border = new RectOffset(sliceBorder, sliceBorder, sliceBorder, sliceBorder)
         };
     }
 
@@ -460,11 +455,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return Mathf.Max(HudTopY, topInset + 12f);
     }
 
-    private static Texture2D CreateRoundedRectTexture(Color fill, Color border)
+    private static Texture2D CreateRoundedRectTexture(Color fill, Color border, int borderSize = 2)
     {
         const int size = 64;
         const int radius = 28;
-        const int borderSize = 2;
+        borderSize = Mathf.Clamp(borderSize, 1, radius - 1);
         var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
         {
             filterMode = FilterMode.Bilinear,
