@@ -711,7 +711,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
             bool previousEnabled = GUI.enabled;
             GUI.enabled = !_rescueAdInProgress;
-            string rescueLabel = _rescueAdInProgress ? "복구권 확인 중..." : "광고 보고 복구권 사용";
+            string rescueLabel = _rescueAdInProgress ? "광고 확인 중..." : "광고 보고 이어하기";
             if (GUI.Button(rescueRect, rescueLabel, _resultButtonStyle))
             {
                 StartCoroutine(MockRewardAdAndRescue());
@@ -753,7 +753,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             if (CanUseFailureRescue())
             {
-                return _rescueAdInProgress ? "복구권을 확인하고 방금 전으로 돌아가요" : "복구권으로 방금 전 상태를 되살릴 수 있어요";
+                return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "한 번 되돌릴 수 있어요";
             }
 
             return "한 줄로 쌓이지 않았어요";
@@ -761,7 +761,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (CanUseFailureRescue())
         {
-            return _rescueAdInProgress ? "복구권을 확인하고 방금 전으로 돌아가요" : "복구권으로 방금 전 상태를 되살릴 수 있어요";
+            return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "한 번 되돌릴 수 있어요";
         }
 
         return "박스가 떨어졌어요";
@@ -781,12 +781,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_rescueAdInProgress)
         {
-            return "광고 확인 중 - 복구 준비";
+            return "광고 확인 중...";
         }
 
         if (CanUseFailureRescue())
         {
-            return $"이번 스테이지 복구권 {_undoUsesRemaining}회 남음";
+            return $"복구권 {_undoUsesRemaining}회 남음";
         }
 
         return "이번 스테이지 복구권 사용 완료";

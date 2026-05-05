@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the clarified fail-popup rescue flow. Check whether players understand "이번 스테이지 복구권 1회 남음", "광고 확인 중 - 복구 준비", and "이번 스테이지 복구권 사용 완료" without extra explanation.
+Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check whether "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기" are clear enough without the more explanatory prototype wording.
 
 ## Prototype / Playtest History
 
@@ -39,6 +39,7 @@ Playtest stages 10, 15, and 20 with the clarified fail-popup rescue flow. Check 
 - 2026-05-06: Failure rescue UX changed toward a reward-ad prototype flow: the fail popup now offers "광고 보고 되돌리기" with a short mock confirmation delay before restoring the pre-drop stack snapshot.
 - 2026-05-06: Fail popup now shows rescue status text, so playtests can verify whether players understand "available", "checking", and "used" states.
 - 2026-05-06: Failure rescue popup copy clarified so the rescue ticket state appears before the reward-ad action: available, checking, and used states now use explicit stage-ticket wording.
+- 2026-05-06: Failure rescue copy shortened toward user-facing wording: "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기".
 
 ## Current Decisions
 
@@ -61,7 +62,7 @@ Playtest stages 10, 15, and 20 with the clarified fail-popup rescue flow. Check 
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 - Later-stage difficulty should first be tested with a limited fail-popup rescue, because it maps naturally to reward-ad recovery or extra-use monetization without lowering the stage table.
 - Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
-- The fail-popup rescue state should foreground the stage rescue ticket first, with the reward-ad mock action presented as the way to spend it.
+- The fail-popup rescue state should use short user-facing copy while still making the rescue ticket and reward-ad action understandable.
 
 ## Open Questions
 
