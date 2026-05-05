@@ -43,7 +43,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float HudTopY = 18f;
     private const float HudBarHeight = 68f;
     private const float HudProgressHeight = 14f;
-    private const int UndoUsesPerStage = 1;
+    private const int FreeRescuesPerStage = 1;
+    private const int AdRescuesPerStage = 1;
     private const float ResultPanelMaxWidth = 360f;
     private const float ResultPanelHeight = 260f;
 
@@ -86,7 +87,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private int _currentStageIndex;
-    private int _undoUsesRemaining;
+    private int _freeRescuesRemaining;
+    private int _adRescuesRemaining;
     private bool _hasRescueSnapshot;
     private bool _rescueAdInProgress;
     private string _statusText = "READY";
@@ -280,7 +282,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (UndoPressed() && UseFailureRescue())
+        if (UndoPressed() && UseFreeFailureRescue())
         {
             return;
         }
@@ -503,7 +505,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             42f);
         bool canUse = CanUseUndoSkill();
         GUIStyle buttonStyle = canUse ? _undoButtonStyle : _undoButtonDisabledStyle;
-        string label = $"되돌리기 {_undoUsesRemaining}";
+        string label = $"되돌리기 {GetTotalRescuesRemaining()}";
 
         bool previousEnabled = GUI.enabled;
         GUI.enabled = canUse;
@@ -711,10 +713,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
             bool previousEnabled = GUI.enabled;
             GUI.enabled = !_rescueAdInProgress;
-            string rescueLabel = _rescueAdInProgress ? "광고 확인 중..." : "광고 보고 이어하기";
+            string rescueLabel = GetRescueButtonLabel();
             if (GUI.Button(rescueRect, rescueLabel, _resultButtonStyle))
             {
-                StartCoroutine(MockRewardAdAndRescue());
+                if (CanUseFreeFailureRescue())
+                {
+                    UseFreeFailureRescue();
+                }
+                else
+                {
+                    StartCoroutine(MockRewardAdAndRescue());
+                }
             }
 
             GUI.enabled = previousEnabled;
@@ -753,7 +762,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             if (CanUseFailureRescue())
             {
-                return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "한 번 되돌릴 수 있어요";
+                return GetFailureRescueBody();
             }
 
             return "한 줄로 쌓이지 않았어요";
@@ -761,7 +770,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (CanUseFailureRescue())
         {
-            return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "한 번 되돌릴 수 있어요";
+            return GetFailureRescueBody();
         }
 
         return "박스가 떨어졌어요";
@@ -786,10 +795,32 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (CanUseFailureRescue())
         {
-            return $"복구권 {_undoUsesRemaining}회 남음";
+            return CanUseFreeFailureRescue()
+                ? $"복구권 {_freeRescuesRemaining}회 남음"
+                : $"광고 복구 {_adRescuesRemaining}회 가능";
         }
 
         return "이번 스테이지 복구권 사용 완료";
+    }
+
+    private string GetFailureRescueBody()
+    {
+        if (_rescueAdInProgress)
+        {
+            return "광고 확인 후 방금 전으로 돌아가요";
+        }
+
+        return CanUseFreeFailureRescue() ? "한 번 되돌릴 수 있어요" : "광고 보고 한 번 더 이어갈 수 있어요";
+    }
+
+    private string GetRescueButtonLabel()
+    {
+        if (_rescueAdInProgress)
+        {
+            return "광고 확인 중...";
+        }
+
+        return CanUseFreeFailureRescue() ? "바로 이어하기" : "광고 보고 이어하기";
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)
@@ -974,7 +1005,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
-        _undoUsesRemaining = UndoUsesPerStage;
+        _freeRescuesRemaining = FreeRescuesPerStage;
+        _adRescuesRemaining = AdRescuesPerStage;
         _hasRescueSnapshot = false;
         _rescueAdInProgress = false;
         _attempts++;
@@ -1039,31 +1071,67 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool CanUseUndoSkill()
     {
-        return CanUseFailureRescue();
+        return CanUseFreeFailureRescue();
     }
 
     private void UndoLastPlacedBox()
     {
-        UseFailureRescue();
+        UseFreeFailureRescue();
     }
 
     private bool CanUseFailureRescue()
     {
         return _state == PrototypeState.Failed
-            && _undoUsesRemaining > 0
+            && GetTotalRescuesRemaining() > 0
             && _hasRescueSnapshot;
     }
 
-    private bool UseFailureRescue()
+    private bool CanUseFreeFailureRescue()
     {
-        if (!CanUseFailureRescue())
+        return _state == PrototypeState.Failed
+            && _freeRescuesRemaining > 0
+            && _hasRescueSnapshot;
+    }
+
+    private bool CanUseAdFailureRescue()
+    {
+        return _state == PrototypeState.Failed
+            && _freeRescuesRemaining <= 0
+            && _adRescuesRemaining > 0
+            && _hasRescueSnapshot;
+    }
+
+    private int GetTotalRescuesRemaining()
+    {
+        return _freeRescuesRemaining + _adRescuesRemaining;
+    }
+
+    private bool UseFreeFailureRescue()
+    {
+        if (!CanUseFreeFailureRescue())
         {
             return false;
         }
 
+        _freeRescuesRemaining--;
+        return RestoreFailureRescueSnapshot();
+    }
+
+    private bool UseAdFailureRescue()
+    {
+        if (!CanUseAdFailureRescue())
+        {
+            return false;
+        }
+
+        _adRescuesRemaining--;
+        return RestoreFailureRescueSnapshot();
+    }
+
+    private bool RestoreFailureRescueSnapshot()
+    {
         StopAllCoroutines();
         _rescueAdInProgress = false;
-        _undoUsesRemaining--;
 
         if (_activeBox != null)
         {
@@ -1126,7 +1194,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private IEnumerator MockRewardAdAndRescue()
     {
-        if (_rescueAdInProgress || !CanUseFailureRescue())
+        if (_rescueAdInProgress || !CanUseAdFailureRescue())
         {
             yield break;
         }
@@ -1134,7 +1202,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _rescueAdInProgress = true;
         yield return new WaitForSecondsRealtime(0.65f);
 
-        UseFailureRescue();
+        UseAdFailureRescue();
     }
 
     private void SpawnNextBox()

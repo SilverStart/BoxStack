@@ -1,7 +1,7 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Playtest user-facing failure rescue copy
+Task: Playtest free-first failure rescue policy
 <!-- /STATUS -->
 
 # Active Session State
@@ -17,7 +17,7 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 - Name: BoxStack playable prototype
 - State: Core 2D stacking system validated as good enough for the next prototype phase.
 - Goal: Turn the validated timing-based parcel-box stacking loop into a Toss app-in-app style 2D/2.5D vertical slice using AI-generated PNG assets.
-- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, one-use failure rescue undo with a mock reward-ad confirmation step, user-facing fail-popup rescue copy (`한 번 되돌릴 수 있어요`, `복구권 1회 남음`, `광고 보고 이어하기`), and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately. After the stage target count is stacked, the stack must survive a 5-second validation window before success. Box `gravityScale` is currently `1.6` after lowering it to reduce excessive movement in lower boxes. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
+- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, a free-first failure rescue policy with one free restore plus one mock reward-ad restore per stage, user-facing fail-popup rescue copy (`한 번 되돌릴 수 있어요`, `복구권 1회 남음`, `바로 이어하기`, `광고 보고 이어하기`), and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately. After the stage target count is stacked, the stack must survive a 5-second validation window before success. Box `gravityScale` is currently `1.6` after lowering it to reduce excessive movement in lower boxes. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
 - Asset pipeline: Prototype art brief exists at `design/assets/boxstack-prototype-art-brief.md`; first AI-generated parcel PNG set is in `Assets/Art/Prototype/Parcel/`, and a logistics center background is in `Assets/Art/Prototype/Backgrounds/logistics_center_bg_01.png`. The logistics center background is currently disabled for readability testing; the prototype uses a parcel-brown solid camera background instead. Runtime placeholders still cover missing parcel assets.
 - UI exploration: Four HUD mockup variants were generated in `design/ui/hud-variants/`; variant 01 Toss Minimal is now applied to the prototype HUD for playtest. Result popup is currently an `OnGUI` prototype overlay with restart by button release or `R`.
 - Stage plan: A 20-stage fixed-clear difficulty plan is recorded at `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md` and now wired into the prototype as hardcoded `StageConfig` data. Stage navigation is available during Editor Play with previous/next keyboard controls, and tapping/clicking the HUD stage label opens a simple 20-stage select overlay. After playtesting, stages 10+ feel significantly harder, so the prototype now tests a stage-limited failure rescue undo instead of lowering the difficulty table. Main mode should use fixed box-count clears; infinite stacking is deferred as a later challenge-mode experiment.
@@ -26,7 +26,7 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 
 ## Next Action
 
-Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check whether "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기" are clear enough without the more explanatory prototype wording.
+Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the first failure shows "바로 이어하기", the second failure shows "광고 보고 이어하기", and a third failure falls back to "다시 도전" only.
 
 ## Open Questions
 
@@ -39,7 +39,7 @@ Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check w
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
-- Should the fail-popup rescue be free once per stage, ad-rewarded only, or free once with extra uses from ads?
+- Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 
 ## Risks

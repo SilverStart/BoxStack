@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check whether "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기" are clear enough without the more explanatory prototype wording.
+Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the first failure shows "바로 이어하기", the second failure shows "광고 보고 이어하기", and a third failure falls back to "다시 도전" only.
 
 ## Prototype / Playtest History
 
@@ -40,6 +40,7 @@ Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check w
 - 2026-05-06: Fail popup now shows rescue status text, so playtests can verify whether players understand "available", "checking", and "used" states.
 - 2026-05-06: Failure rescue popup copy clarified so the rescue ticket state appears before the reward-ad action: available, checking, and used states now use explicit stage-ticket wording.
 - 2026-05-06: Failure rescue copy shortened toward user-facing wording: "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기".
+- 2026-05-06: Failure rescue policy changed to free-first: each stage now grants one free snapshot restore, then one mock reward-ad restore, then no further rescue.
 
 ## Current Decisions
 
@@ -60,9 +61,9 @@ Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check w
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- Later-stage difficulty should first be tested with a limited fail-popup rescue, because it maps naturally to reward-ad recovery or extra-use monetization without lowering the stage table.
+- Later-stage difficulty should first be tested with a free-first fail-popup rescue, because it softens difficulty before introducing the reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
-- The fail-popup rescue state should use short user-facing copy while still making the rescue ticket and reward-ad action understandable.
+- The fail-popup rescue state should use short user-facing copy while distinguishing free continuation from reward-ad continuation.
 
 ## Open Questions
 
@@ -75,7 +76,7 @@ Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check w
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
-- Should the fail-popup rescue be free once per stage, ad-rewarded only, or free once with extra uses from ads?
+- Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 
 ## Risks
@@ -87,7 +88,7 @@ Playtest stages 10, 15, and 20 with the shorter user-facing rescue copy. Check w
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
-- Snapshot-based rescue should feel fair, but it may feel too powerful if it removes all risk from hard stages.
-- Reward-style rescue can make failure feel monetized too early if the base difficulty is not already perceived as fair.
+- Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
+- Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.
