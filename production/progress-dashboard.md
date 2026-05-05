@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-05
+Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removing the last placed box is enough to make later stages feel fair, and whether the skill should eventually become an ad-rewarded rescue after failure.
+Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check whether restoring the stack to the last drop's pre-drop snapshot makes later stages feel fair, and whether this should become an ad-rewarded recovery action.
 
 ## Prototype / Playtest History
 
@@ -35,6 +35,7 @@ Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removi
 - 2026-05-05: Stage-clear result popup now advances to the next stage; final stage clear loops back to stage 1.
 - 2026-05-05: HUD stage label now opens a lightweight 20-stage select overlay; selecting a stage restarts the run on that stage.
 - 2026-05-05: Playtest found stages 10+ significantly harder; prototype now tests a one-use undo skill that removes the last placed box instead of lowering the difficulty table.
+- 2026-05-06: Undo test direction changed to a fail-popup rescue: the prototype captures a pre-drop stack snapshot, freezes the failed stack, and lets the player restore once per stage.
 
 ## Current Decisions
 
@@ -55,7 +56,7 @@ Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removi
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- Later-stage difficulty should first be tested with a limited undo skill, because it can later map naturally to a reward-ad rescue or extra-use monetization hook.
+- Later-stage difficulty should first be tested with a limited fail-popup rescue, because it maps naturally to reward-ad recovery or extra-use monetization without lowering the stage table.
 
 ## Open Questions
 
@@ -68,7 +69,7 @@ Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removi
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
-- Should undo remain a proactive in-run skill, or become a fail-popup rescue unlocked by reward ads?
+- Should the fail-popup rescue be free once per stage, ad-rewarded only, or free once with extra uses from ads?
 
 ## Risks
 
@@ -79,6 +80,6 @@ Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removi
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
-- The undo skill may not help enough if most mistakes trigger immediate failure before the player can react.
+- Snapshot-based rescue should feel fair, but it may feel too powerful if it removes all risk from hard stages.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

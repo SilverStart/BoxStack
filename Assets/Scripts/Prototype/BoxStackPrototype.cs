@@ -49,6 +49,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
+    private readonly List<BoxSnapshot> _rescueSnapshot = new List<BoxSnapshot>();
 
     private GameObject _activeBox;
     private GameObject _droppingBox;
@@ -86,6 +87,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _attempts;
     private int _currentStageIndex;
     private int _undoUsesRemaining;
+    private bool _hasRescueSnapshot;
     private string _statusText = "READY";
 
     private enum PrototypeState
@@ -142,6 +144,28 @@ public sealed class BoxStackPrototype : MonoBehaviour
         public string BoxSequence;
         public float SpeedMultiplier;
         public float RangeMultiplier;
+    }
+
+    private struct BoxSnapshot
+    {
+        public BoxSnapshot(GameObject box, Vector3 position, Quaternion rotation, RigidbodyType2D bodyType, Vector2 linearVelocity, float angularVelocity, bool simulated)
+        {
+            Box = box;
+            Position = position;
+            Rotation = rotation;
+            BodyType = bodyType;
+            LinearVelocity = linearVelocity;
+            AngularVelocity = angularVelocity;
+            Simulated = simulated;
+        }
+
+        public GameObject Box;
+        public Vector3 Position;
+        public Quaternion Rotation;
+        public RigidbodyType2D BodyType;
+        public Vector2 LinearVelocity;
+        public float AngularVelocity;
+        public bool Simulated;
     }
 
     private static readonly BoxAssetDefinition[] BoxAssetDefinitions =
@@ -255,9 +279,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (UndoPressed())
+        if (UndoPressed() && UseFailureRescue())
         {
-            UndoLastPlacedBox();
             return;
         }
 
@@ -344,11 +367,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.Label(countRect, $"{_placedBoxes.Count} / {CurrentTargetBoxes}", countStyle);
         DrawHudProgress(progressRect, _placedBoxes.Count / (float)CurrentTargetBoxes);
         GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
-
-        if (!IsResultState() && _state != PrototypeState.StageSelect)
-        {
-            DrawUndoSkillButton(barRect);
-        }
 
         if (_state == PrototypeState.StageSelect)
         {
@@ -607,6 +625,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         bool won = _state == PrototypeState.Won;
         bool hasNextStage = won && HasNextStage();
+        bool canRescue = !won && CanUseFailureRescue();
         string title = won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패";
         string body = GetResultBody(won);
         string hint = GetResultButtonLabel(won, hasNextStage);
@@ -617,7 +636,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
 
         float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, Screen.width - 48f));
-        float panelHeight = Mathf.Max(220f, Mathf.Min(ResultPanelHeight, Screen.height - 160f));
+        float desiredPanelHeight = canRescue ? ResultPanelHeight + 58f : ResultPanelHeight;
+        float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, Screen.height - 160f));
         float panelY = Mathf.Clamp(
             Mathf.Max(GetHudTopY() + HudBarHeight + 28f, (Screen.height - panelHeight) * 0.5f),
             24f,
@@ -660,6 +680,24 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.Label(titleRect, title, titleStyle);
         GUI.Label(bodyRect, body, bodyStyle);
 
+        if (canRescue)
+        {
+            var rescueRect = new Rect(buttonRect.x, panelRect.yMax - 138f, buttonRect.width, 50f);
+            var retryRect = new Rect(buttonRect.x, panelRect.yMax - 78f, buttonRect.width, 50f);
+
+            if (GUI.Button(rescueRect, "되돌리기", _resultButtonStyle))
+            {
+                UseFailureRescue();
+            }
+
+            if (GUI.Button(retryRect, hint, _resultButtonStyle))
+            {
+                HandleResultButton(won, hasNextStage);
+            }
+
+            return;
+        }
+
         if (GUI.Button(buttonRect, hint, _resultButtonStyle))
         {
             HandleResultButton(won, hasNextStage);
@@ -685,7 +723,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (_statusText == "STACK CROOKED")
         {
+            if (CanUseFailureRescue())
+            {
+                return "방금 떨어뜨리기 전으로 돌아갈 수 있어요";
+            }
+
             return "한 줄로 쌓이지 않았어요";
+        }
+
+        if (CanUseFailureRescue())
+        {
+            return "방금 떨어뜨리기 전으로 돌아갈 수 있어요";
         }
 
         return "박스가 떨어졌어요";
@@ -878,11 +926,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _placedBoxes.Clear();
+        _rescueSnapshot.Clear();
         _activeBox = null;
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
         _undoUsesRemaining = UndoUsesPerStage;
+        _hasRescueSnapshot = false;
         _attempts++;
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -945,19 +995,29 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool CanUseUndoSkill()
     {
-        return _state == PrototypeState.Playing
-            && _activeBox != null
-            && _placedBoxes.Count > 0
-            && _undoUsesRemaining > 0;
+        return CanUseFailureRescue();
     }
 
     private void UndoLastPlacedBox()
     {
-        if (!CanUseUndoSkill())
+        UseFailureRescue();
+    }
+
+    private bool CanUseFailureRescue()
+    {
+        return _state == PrototypeState.Failed
+            && _undoUsesRemaining > 0
+            && _hasRescueSnapshot;
+    }
+
+    private bool UseFailureRescue()
+    {
+        if (!CanUseFailureRescue())
         {
-            return;
+            return false;
         }
 
+        StopAllCoroutines();
         _undoUsesRemaining--;
 
         if (_activeBox != null)
@@ -966,19 +1026,57 @@ public sealed class BoxStackPrototype : MonoBehaviour
             _activeBox = null;
         }
 
-        int lastIndex = _placedBoxes.Count - 1;
-        GameObject removedBox = _placedBoxes[lastIndex];
-        _placedBoxes.RemoveAt(lastIndex);
-        if (removedBox != null)
+        if (_droppingBox != null && !_placedBoxes.Contains(_droppingBox))
         {
-            Destroy(removedBox);
+            Destroy(_droppingBox);
         }
 
         _droppingBox = null;
+
+        for (int i = _placedBoxes.Count - 1; i >= _rescueSnapshot.Count; i--)
+        {
+            GameObject extraBox = _placedBoxes[i];
+            _placedBoxes.RemoveAt(i);
+            if (extraBox != null)
+            {
+                Destroy(extraBox);
+            }
+        }
+
+        for (int i = 0; i < _rescueSnapshot.Count; i++)
+        {
+            BoxSnapshot snapshot = _rescueSnapshot[i];
+            if (snapshot.Box == null)
+            {
+                continue;
+            }
+
+            if (i < _placedBoxes.Count)
+            {
+                _placedBoxes[i] = snapshot.Box;
+            }
+
+            snapshot.Box.transform.position = snapshot.Position;
+            snapshot.Box.transform.rotation = snapshot.Rotation;
+
+            var body = snapshot.Box.GetComponent<Rigidbody2D>();
+            if (body != null)
+            {
+                body.bodyType = snapshot.BodyType;
+                body.simulated = snapshot.Simulated;
+                body.linearVelocity = snapshot.LinearVelocity;
+                body.angularVelocity = snapshot.AngularVelocity;
+            }
+        }
+
+        _rescueSnapshot.Clear();
+        _hasRescueSnapshot = false;
+        _clearValidationEndTime = 0f;
         _state = PrototypeState.Playing;
-        _statusText = "UNDO";
+        _statusText = "RESCUED";
         _cameraVelocityY = 0f;
         SpawnNextBox();
+        return true;
     }
 
     private void SpawnNextBox()
@@ -1088,6 +1186,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
+        CaptureRescueSnapshot();
         _state = PrototypeState.ResolvingDrop;
         _statusText = "DROP";
 
@@ -1107,7 +1206,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (droppedBox == null || BoxIsLost(droppedBox))
         {
-            _droppingBox = null;
             EndRun(false, "MISSED");
             yield break;
         }
@@ -1167,6 +1265,38 @@ public sealed class BoxStackPrototype : MonoBehaviour
         EndRun(true, "STACK COMPLETE");
     }
 
+    private void CaptureRescueSnapshot()
+    {
+        _rescueSnapshot.Clear();
+
+        for (int i = 0; i < _placedBoxes.Count; i++)
+        {
+            GameObject box = _placedBoxes[i];
+            if (box == null)
+            {
+                continue;
+            }
+
+            var body = box.GetComponent<Rigidbody2D>();
+            if (body == null)
+            {
+                _rescueSnapshot.Add(new BoxSnapshot(box, box.transform.position, box.transform.rotation, RigidbodyType2D.Dynamic, Vector2.zero, 0f, true));
+                continue;
+            }
+
+            _rescueSnapshot.Add(new BoxSnapshot(
+                box,
+                box.transform.position,
+                box.transform.rotation,
+                body.bodyType,
+                body.linearVelocity,
+                body.angularVelocity,
+                body.simulated));
+        }
+
+        _hasRescueSnapshot = true;
+    }
+
     private void EndRun(bool won, string status)
     {
         if (_state == PrototypeState.Won || _state == PrototypeState.Failed)
@@ -1183,7 +1313,35 @@ public sealed class BoxStackPrototype : MonoBehaviour
             _activeBox = null;
         }
 
+        if (_droppingBox != null && !_placedBoxes.Contains(_droppingBox))
+        {
+            Destroy(_droppingBox);
+        }
+
         _droppingBox = null;
+        FreezePlacedBoxPhysics();
+    }
+
+    private void FreezePlacedBoxPhysics()
+    {
+        for (int i = 0; i < _placedBoxes.Count; i++)
+        {
+            GameObject box = _placedBoxes[i];
+            if (box == null)
+            {
+                continue;
+            }
+
+            var body = box.GetComponent<Rigidbody2D>();
+            if (body == null)
+            {
+                continue;
+            }
+
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.simulated = false;
+        }
     }
 
     private bool AnyBoxLost()
