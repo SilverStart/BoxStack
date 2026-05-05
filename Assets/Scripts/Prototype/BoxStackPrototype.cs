@@ -627,8 +627,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
         bool won = _state == PrototypeState.Won;
         bool hasNextStage = won && HasNextStage();
         bool canRescue = !won && CanUseFailureRescue();
+        bool hasRescueStatus = !won;
         string title = won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패";
         string body = GetResultBody(won);
+        string rescueStatus = hasRescueStatus ? GetRescueStatusLabel() : string.Empty;
         string hint = GetResultButtonLabel(won, hasNextStage);
 
         Color previousColor = GUI.color;
@@ -637,7 +639,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
 
         float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, Screen.width - 48f));
-        float desiredPanelHeight = canRescue ? ResultPanelHeight + 58f : ResultPanelHeight;
+        float desiredPanelHeight = canRescue ? ResultPanelHeight + 82f : hasRescueStatus ? ResultPanelHeight + 28f : ResultPanelHeight;
         float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, Screen.height - 160f));
         float panelY = Mathf.Clamp(
             Mathf.Max(GetHudTopY() + HudBarHeight + 28f, (Screen.height - panelHeight) * 0.5f),
@@ -674,12 +676,33 @@ public sealed class BoxStackPrototype : MonoBehaviour
         };
         SetTextColorStates(bodyStyle, bodyColor);
 
+        Color rescueStatusColor = _rescueAdInProgress
+            ? new Color(0.58f, 0.38f, 0.18f)
+            : canRescue
+                ? new Color(0.30f, 0.23f, 0.16f)
+                : new Color(0.55f, 0.45f, 0.36f);
+        var rescueStatusStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleCenter,
+            clipping = TextClipping.Clip,
+            fontSize = 15,
+            fontStyle = FontStyle.Bold,
+            wordWrap = false,
+            normal = { textColor = rescueStatusColor }
+        };
+        SetTextColorStates(rescueStatusStyle, rescueStatusColor);
+
         var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
         var bodyRect = new Rect(panelRect.x + 32f, panelRect.y + 96f, panelRect.width - 64f, 52f);
         var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 78f, panelRect.width - 108f, 54f);
+        var rescueStatusRect = new Rect(panelRect.x + 32f, panelRect.y + 154f, panelRect.width - 64f, 24f);
 
         GUI.Label(titleRect, title, titleStyle);
         GUI.Label(bodyRect, body, bodyStyle);
+        if (hasRescueStatus)
+        {
+            GUI.Label(rescueStatusRect, rescueStatus, rescueStatusStyle);
+        }
 
         if (canRescue)
         {
@@ -752,6 +775,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         return hasNextStage ? "다음 스테이지" : "처음부터";
+    }
+
+    private string GetRescueStatusLabel()
+    {
+        if (_rescueAdInProgress)
+        {
+            return "복구권 확인 중";
+        }
+
+        if (CanUseFailureRescue())
+        {
+            return $"복구권 {_undoUsesRemaining}회 남음";
+        }
+
+        return "복구권 사용 완료";
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)

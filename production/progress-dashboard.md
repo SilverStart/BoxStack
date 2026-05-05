@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" mock flow. Check whether the short confirmation delay feels acceptable and whether this recovery should be free once, ad-rewarded, or free once with ad-funded extra uses.
+Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" mock flow and rescue status text. Check whether players understand when one rescue is available, in progress, or already used.
 
 ## Prototype / Playtest History
 
@@ -37,6 +37,7 @@ Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" 
 - 2026-05-05: Playtest found stages 10+ significantly harder; prototype now tests a one-use undo skill that removes the last placed box instead of lowering the difficulty table.
 - 2026-05-06: Undo test direction changed to a fail-popup rescue: the prototype captures a pre-drop stack snapshot, freezes the failed stack, and lets the player restore once per stage.
 - 2026-05-06: Failure rescue UX changed toward a reward-ad prototype flow: the fail popup now offers "광고 보고 되돌리기" with a short mock confirmation delay before restoring the pre-drop stack snapshot.
+- 2026-05-06: Fail popup now shows rescue status text, so playtests can verify whether players understand "available", "checking", and "used" states.
 
 ## Current Decisions
 
@@ -59,6 +60,7 @@ Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" 
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 - Later-stage difficulty should first be tested with a limited fail-popup rescue, because it maps naturally to reward-ad recovery or extra-use monetization without lowering the stage table.
 - Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
+- The fail-popup rescue state should be readable before deeper ad or monetization work begins.
 
 ## Open Questions
 
