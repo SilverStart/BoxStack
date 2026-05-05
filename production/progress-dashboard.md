@@ -4,7 +4,7 @@ Last updated: 2026-05-05
 
 ## Next Immediate Action
 
-Playtest the HUD stage-label click, stage select overlay, stage selection restart behavior, stage-clear next-stage flow, then test stages 1, 5, 10, 15, and 20 using the wired `StageConfig` table in `Assets/Scripts/Prototype/BoxStackPrototype.cs`; tune target counts, box sequences, speed multipliers, and range multipliers if the difficulty curve feels unfair.
+Playtest stages 10, 15, and 20 with the one-use undo skill. Check whether removing the last placed box is enough to make later stages feel fair, and whether the skill should eventually become an ad-rewarded rescue after failure.
 
 ## Prototype / Playtest History
 
@@ -34,6 +34,7 @@ Playtest the HUD stage-label click, stage select overlay, stage selection restar
 - 2026-05-05: Hardcoded `StageConfig` progression wired into the prototype with 20 fixed-clear stages, configured box sequences, speed/range multipliers, HUD stage display, and keyboard stage navigation.
 - 2026-05-05: Stage-clear result popup now advances to the next stage; final stage clear loops back to stage 1.
 - 2026-05-05: HUD stage label now opens a lightweight 20-stage select overlay; selecting a stage restarts the run on that stage.
+- 2026-05-05: Playtest found stages 10+ significantly harder; prototype now tests a one-use undo skill that removes the last placed box instead of lowering the difficulty table.
 
 ## Current Decisions
 
@@ -54,6 +55,7 @@ Playtest the HUD stage-label click, stage select overlay, stage selection restar
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
+- Later-stage difficulty should first be tested with a limited undo skill, because it can later map naturally to a reward-ad rescue or extra-use monetization hook.
 
 ## Open Questions
 
@@ -66,6 +68,7 @@ Playtest the HUD stage-label click, stage select overlay, stage selection restar
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
+- Should undo remain a proactive in-run skill, or become a fail-popup rescue unlocked by reward ads?
 
 ## Risks
 
@@ -76,5 +79,6 @@ Playtest the HUD stage-label click, stage select overlay, stage selection restar
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
+- The undo skill may not help enough if most mistakes trigger immediate failure before the player can react.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

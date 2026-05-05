@@ -43,6 +43,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float HudTopY = 18f;
     private const float HudBarHeight = 68f;
     private const float HudProgressHeight = 14f;
+    private const int UndoUsesPerStage = 1;
     private const float ResultPanelMaxWidth = 360f;
     private const float ResultPanelHeight = 260f;
 
@@ -61,6 +62,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private GUIStyle _hudProgressFillStyle;
     private GUIStyle _resultPanelStyle;
     private GUIStyle _resultButtonStyle;
+    private GUIStyle _undoButtonStyle;
+    private GUIStyle _undoButtonDisabledStyle;
     private Texture2D _hudPillTexture;
     private Texture2D _hudPillShadowTexture;
     private Texture2D _hudProgressTrackTexture;
@@ -68,6 +71,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Texture2D _hudProgressCapTexture;
     private Texture2D _resultPanelTexture;
     private Texture2D _resultButtonTexture;
+    private Texture2D _undoButtonTexture;
+    private Texture2D _undoButtonDisabledTexture;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private PrototypeState _state;
@@ -80,6 +85,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private int _currentStageIndex;
+    private int _undoUsesRemaining;
     private string _statusText = "READY";
 
     private enum PrototypeState
@@ -249,6 +255,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
+        if (UndoPressed())
+        {
+            UndoLastPlacedBox();
+            return;
+        }
+
         if (_state == PrototypeState.Playing)
         {
             MoveActiveBox();
@@ -332,6 +344,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.Label(countRect, $"{_placedBoxes.Count} / {CurrentTargetBoxes}", countStyle);
         DrawHudProgress(progressRect, _placedBoxes.Count / (float)CurrentTargetBoxes);
         GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
+
+        if (!IsResultState() && _state != PrototypeState.StageSelect)
+        {
+            DrawUndoSkillButton(barRect);
+        }
 
         if (_state == PrototypeState.StageSelect)
         {
@@ -428,6 +445,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _hudProgressCapTexture = CreateCircleTexture(Color.white);
         _resultPanelTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.58f), 4);
         _resultButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.96f), new Color(1f, 1f, 1f, 0.2f));
+        _undoButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.94f), new Color(1f, 1f, 1f, 0.18f), 3);
+        _undoButtonDisabledTexture = CreateRoundedRectTexture(new Color(0.55f, 0.48f, 0.38f, 0.56f), new Color(1f, 1f, 1f, 0.12f), 3);
 
         _hudPillStyle = CreateHudBoxStyle(_hudPillTexture);
         _hudPillShadowStyle = CreateHudBoxStyle(_hudPillShadowTexture);
@@ -441,6 +460,40 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _resultButtonStyle.normal.textColor = Color.white;
         _resultButtonStyle.hover.textColor = Color.white;
         _resultButtonStyle.active.textColor = Color.white;
+
+        _undoButtonStyle = CreateHudBoxStyle(_undoButtonTexture, 18);
+        _undoButtonStyle.alignment = TextAnchor.MiddleCenter;
+        _undoButtonStyle.fontStyle = FontStyle.Bold;
+        _undoButtonStyle.fontSize = 15;
+        SetTextColorStates(_undoButtonStyle, Color.white);
+
+        _undoButtonDisabledStyle = CreateHudBoxStyle(_undoButtonDisabledTexture, 18);
+        _undoButtonDisabledStyle.alignment = TextAnchor.MiddleCenter;
+        _undoButtonDisabledStyle.fontStyle = FontStyle.Bold;
+        _undoButtonDisabledStyle.fontSize = 15;
+        SetTextColorStates(_undoButtonDisabledStyle, new Color(1f, 1f, 1f, 0.62f));
+    }
+
+    private void DrawUndoSkillButton(Rect barRect)
+    {
+        float buttonWidth = Mathf.Clamp(Screen.width * 0.24f, 92f, 122f);
+        var buttonRect = new Rect(
+            barRect.xMax - buttonWidth - 22f,
+            barRect.yMax + 10f,
+            buttonWidth,
+            42f);
+        bool canUse = CanUseUndoSkill();
+        GUIStyle buttonStyle = canUse ? _undoButtonStyle : _undoButtonDisabledStyle;
+        string label = $"되돌리기 {_undoUsesRemaining}";
+
+        bool previousEnabled = GUI.enabled;
+        GUI.enabled = canUse;
+        if (GUI.Button(buttonRect, label, buttonStyle))
+        {
+            UndoLastPlacedBox();
+        }
+
+        GUI.enabled = previousEnabled;
     }
 
     private void DrawStageSelectOverlay()
@@ -829,6 +882,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
+        _undoUsesRemaining = UndoUsesPerStage;
         _attempts++;
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -887,6 +941,44 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private bool HasNextStage()
     {
         return _currentStageIndex < StageConfigs.Length - 1;
+    }
+
+    private bool CanUseUndoSkill()
+    {
+        return _state == PrototypeState.Playing
+            && _activeBox != null
+            && _placedBoxes.Count > 0
+            && _undoUsesRemaining > 0;
+    }
+
+    private void UndoLastPlacedBox()
+    {
+        if (!CanUseUndoSkill())
+        {
+            return;
+        }
+
+        _undoUsesRemaining--;
+
+        if (_activeBox != null)
+        {
+            Destroy(_activeBox);
+            _activeBox = null;
+        }
+
+        int lastIndex = _placedBoxes.Count - 1;
+        GameObject removedBox = _placedBoxes[lastIndex];
+        _placedBoxes.RemoveAt(lastIndex);
+        if (removedBox != null)
+        {
+            Destroy(removedBox);
+        }
+
+        _droppingBox = null;
+        _state = PrototypeState.Playing;
+        _statusText = "UNDO";
+        _cameraVelocityY = 0f;
+        SpawnNextBox();
     }
 
     private void SpawnNextBox()
@@ -1489,6 +1581,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame;
 #else
         return Input.GetKeyDown(KeyCode.R);
+#endif
+    }
+
+    private static bool UndoPressed()
+    {
+#if ENABLE_INPUT_SYSTEM
+        return Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame;
+#else
+        return Input.GetKeyDown(KeyCode.U);
 #endif
     }
 
