@@ -51,6 +51,17 @@ User-driven collaboration, not autonomous execution.
 - Git 커밋 메시지는 사용자가 히스토리를 한눈에 이해할 수 있도록 한글로 작성한다.
 - User-facing responses must be written in Korean.
 
+## Behavioral Guardrails
+
+Apply these as supporting rules only when they do not conflict with the project-specific collaboration, Unity, approval, and dashboard rules above.
+
+- For non-trivial or ambiguous work, state key assumptions and surface tradeoffs before implementation.
+- Prefer the smallest change that satisfies the requested outcome; do not add speculative features, configurability, or abstractions.
+- Keep edits surgical: match existing style and avoid unrelated formatting, cleanup, or refactoring.
+- If unrelated dead code or risks are noticed, mention them instead of changing them without approval.
+- Define a verifiable success criterion before implementation. Use automated tests for gameplay logic when practical; use Unity Play mode, screenshots, or documented playtest evidence for prototype, UI, visual, and feel changes.
+- Remove only unused code introduced by the current change unless the user explicitly approves broader cleanup.
+
 ## Progress Dashboard Maintenance
 
 `production/progress-dashboard.md`는 프로젝트 진행도의 한 눈에 보기 요약입니다.
