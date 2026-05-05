@@ -88,6 +88,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _currentStageIndex;
     private int _undoUsesRemaining;
     private bool _hasRescueSnapshot;
+    private bool _rescueAdInProgress;
     private string _statusText = "READY";
 
     private enum PrototypeState
@@ -685,11 +686,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
             var rescueRect = new Rect(buttonRect.x, panelRect.yMax - 138f, buttonRect.width, 50f);
             var retryRect = new Rect(buttonRect.x, panelRect.yMax - 78f, buttonRect.width, 50f);
 
-            if (GUI.Button(rescueRect, "되돌리기", _resultButtonStyle))
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = !_rescueAdInProgress;
+            string rescueLabel = _rescueAdInProgress ? "광고 확인 중..." : "광고 보고 되돌리기";
+            if (GUI.Button(rescueRect, rescueLabel, _resultButtonStyle))
             {
-                UseFailureRescue();
+                StartCoroutine(MockRewardAdAndRescue());
             }
 
+            GUI.enabled = previousEnabled;
             if (GUI.Button(retryRect, hint, _resultButtonStyle))
             {
                 HandleResultButton(won, hasNextStage);
@@ -725,7 +730,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             if (CanUseFailureRescue())
             {
-                return "방금 떨어뜨리기 전으로 돌아갈 수 있어요";
+                return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "광고를 보고 방금 전으로 돌아갈 수 있어요";
             }
 
             return "한 줄로 쌓이지 않았어요";
@@ -733,7 +738,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (CanUseFailureRescue())
         {
-            return "방금 떨어뜨리기 전으로 돌아갈 수 있어요";
+            return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "광고를 보고 방금 전으로 돌아갈 수 있어요";
         }
 
         return "박스가 떨어졌어요";
@@ -933,6 +938,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _clearValidationEndTime = 0f;
         _undoUsesRemaining = UndoUsesPerStage;
         _hasRescueSnapshot = false;
+        _rescueAdInProgress = false;
         _attempts++;
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -1018,6 +1024,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         StopAllCoroutines();
+        _rescueAdInProgress = false;
         _undoUsesRemaining--;
 
         if (_activeBox != null)
@@ -1077,6 +1084,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _cameraVelocityY = 0f;
         SpawnNextBox();
         return true;
+    }
+
+    private IEnumerator MockRewardAdAndRescue()
+    {
+        if (_rescueAdInProgress || !CanUseFailureRescue())
+        {
+            yield break;
+        }
+
+        _rescueAdInProgress = true;
+        yield return new WaitForSecondsRealtime(0.65f);
+
+        UseFailureRescue();
     }
 
     private void SpawnNextBox()

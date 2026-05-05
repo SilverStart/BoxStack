@@ -1,7 +1,7 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Playtest failure rescue undo for later-stage difficulty
+Task: Playtest reward-style failure rescue undo
 <!-- /STATUS -->
 
 # Active Session State
@@ -17,7 +17,7 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 - Name: BoxStack playable prototype
 - State: Core 2D stacking system validated as good enough for the next prototype phase.
 - Goal: Turn the validated timing-based parcel-box stacking loop into a Toss app-in-app style 2D/2.5D vertical slice using AI-generated PNG assets.
-- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, one-use failure rescue undo, and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately. After the stage target count is stacked, the stack must survive a 5-second validation window before success. Box `gravityScale` is currently `1.6` after lowering it to reduce excessive movement in lower boxes. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
+- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, one-use failure rescue undo with a mock reward-ad confirmation step, and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately. After the stage target count is stacked, the stack must survive a 5-second validation window before success. Box `gravityScale` is currently `1.6` after lowering it to reduce excessive movement in lower boxes. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
 - Asset pipeline: Prototype art brief exists at `design/assets/boxstack-prototype-art-brief.md`; first AI-generated parcel PNG set is in `Assets/Art/Prototype/Parcel/`, and a logistics center background is in `Assets/Art/Prototype/Backgrounds/logistics_center_bg_01.png`. The logistics center background is currently disabled for readability testing; the prototype uses a parcel-brown solid camera background instead. Runtime placeholders still cover missing parcel assets.
 - UI exploration: Four HUD mockup variants were generated in `design/ui/hud-variants/`; variant 01 Toss Minimal is now applied to the prototype HUD for playtest. Result popup is currently an `OnGUI` prototype overlay with restart by button release or `R`.
 - Stage plan: A 20-stage fixed-clear difficulty plan is recorded at `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md` and now wired into the prototype as hardcoded `StageConfig` data. Stage navigation is available during Editor Play with previous/next keyboard controls, and tapping/clicking the HUD stage label opens a simple 20-stage select overlay. After playtesting, stages 10+ feel significantly harder, so the prototype now tests a stage-limited failure rescue undo instead of lowering the difficulty table. Main mode should use fixed box-count clears; infinite stacking is deferred as a later challenge-mode experiment.
@@ -26,7 +26,7 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 
 ## Next Action
 
-Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check whether restoring the stack to the last drop's pre-drop snapshot makes later stages feel fair, and whether this should become an ad-rewarded recovery action.
+Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" mock flow. Check whether the short confirmation delay feels acceptable and whether this recovery should be free once, ad-rewarded, or free once with ad-funded extra uses.
 
 ## Open Questions
 
@@ -40,6 +40,7 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Should the fail-popup rescue be free once per stage, ad-rewarded only, or free once with extra uses from ads?
+- Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 
 ## Risks
 
@@ -51,5 +52,6 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Snapshot-based rescue should feel fair, but it may feel too powerful if it removes all risk from hard stages.
+- Reward-style rescue can make failure feel monetized too early if the base difficulty is not already perceived as fair.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

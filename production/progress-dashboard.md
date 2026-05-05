@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check whether restoring the stack to the last drop's pre-drop snapshot makes later stages feel fair, and whether this should become an ad-rewarded recovery action.
+Playtest stages 10, 15, and 20 with the fail-popup "광고 보고 되돌리기" mock flow. Check whether the short confirmation delay feels acceptable and whether this recovery should be free once, ad-rewarded, or free once with ad-funded extra uses.
 
 ## Prototype / Playtest History
 
@@ -36,6 +36,7 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - 2026-05-05: HUD stage label now opens a lightweight 20-stage select overlay; selecting a stage restarts the run on that stage.
 - 2026-05-05: Playtest found stages 10+ significantly harder; prototype now tests a one-use undo skill that removes the last placed box instead of lowering the difficulty table.
 - 2026-05-06: Undo test direction changed to a fail-popup rescue: the prototype captures a pre-drop stack snapshot, freezes the failed stack, and lets the player restore once per stage.
+- 2026-05-06: Failure rescue UX changed toward a reward-ad prototype flow: the fail popup now offers "광고 보고 되돌리기" with a short mock confirmation delay before restoring the pre-drop stack snapshot.
 
 ## Current Decisions
 
@@ -57,6 +58,7 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 - Later-stage difficulty should first be tested with a limited fail-popup rescue, because it maps naturally to reward-ad recovery or extra-use monetization without lowering the stage table.
+- Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
 
 ## Open Questions
 
@@ -70,6 +72,7 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Should the fail-popup rescue be free once per stage, ad-rewarded only, or free once with extra uses from ads?
+- Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 
 ## Risks
 
@@ -81,5 +84,6 @@ Playtest stages 10, 15, and 20 with the one-use failure rescue undo. Check wheth
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Snapshot-based rescue should feel fair, but it may feel too powerful if it removes all risk from hard stages.
+- Reward-style rescue can make failure feel monetized too early if the base difficulty is not already perceived as fair.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.
