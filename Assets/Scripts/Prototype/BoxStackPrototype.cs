@@ -639,7 +639,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
 
         float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, Screen.width - 48f));
-        float desiredPanelHeight = canRescue ? ResultPanelHeight + 82f : hasRescueStatus ? ResultPanelHeight + 28f : ResultPanelHeight;
+        float desiredPanelHeight = canRescue ? ResultPanelHeight + 88f : hasRescueStatus ? ResultPanelHeight + 34f : ResultPanelHeight;
         float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, Screen.height - 160f));
         float panelY = Mathf.Clamp(
             Mathf.Max(GetHudTopY() + HudBarHeight + 28f, (Screen.height - panelHeight) * 0.5f),
@@ -687,7 +687,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             clipping = TextClipping.Clip,
             fontSize = 15,
             fontStyle = FontStyle.Bold,
-            wordWrap = false,
+            wordWrap = true,
             normal = { textColor = rescueStatusColor }
         };
         SetTextColorStates(rescueStatusStyle, rescueStatusColor);
@@ -695,7 +695,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
         var bodyRect = new Rect(panelRect.x + 32f, panelRect.y + 96f, panelRect.width - 64f, 52f);
         var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 78f, panelRect.width - 108f, 54f);
-        var rescueStatusRect = new Rect(panelRect.x + 32f, panelRect.y + 154f, panelRect.width - 64f, 24f);
+        var rescueStatusRect = new Rect(panelRect.x + 32f, panelRect.y + 152f, panelRect.width - 64f, 34f);
 
         GUI.Label(titleRect, title, titleStyle);
         GUI.Label(bodyRect, body, bodyStyle);
@@ -706,12 +706,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (canRescue)
         {
-            var rescueRect = new Rect(buttonRect.x, panelRect.yMax - 138f, buttonRect.width, 50f);
+            var rescueRect = new Rect(buttonRect.x, panelRect.yMax - 140f, buttonRect.width, 52f);
             var retryRect = new Rect(buttonRect.x, panelRect.yMax - 78f, buttonRect.width, 50f);
 
             bool previousEnabled = GUI.enabled;
             GUI.enabled = !_rescueAdInProgress;
-            string rescueLabel = _rescueAdInProgress ? "광고 확인 중..." : "광고 보고 되돌리기";
+            string rescueLabel = _rescueAdInProgress ? "복구권 확인 중..." : "광고 보고 복구권 사용";
             if (GUI.Button(rescueRect, rescueLabel, _resultButtonStyle))
             {
                 StartCoroutine(MockRewardAdAndRescue());
@@ -753,7 +753,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             if (CanUseFailureRescue())
             {
-                return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "광고를 보고 방금 전으로 돌아갈 수 있어요";
+                return _rescueAdInProgress ? "복구권을 확인하고 방금 전으로 돌아가요" : "복구권으로 방금 전 상태를 되살릴 수 있어요";
             }
 
             return "한 줄로 쌓이지 않았어요";
@@ -761,7 +761,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (CanUseFailureRescue())
         {
-            return _rescueAdInProgress ? "광고 확인 후 방금 전으로 돌아가요" : "광고를 보고 방금 전으로 돌아갈 수 있어요";
+            return _rescueAdInProgress ? "복구권을 확인하고 방금 전으로 돌아가요" : "복구권으로 방금 전 상태를 되살릴 수 있어요";
         }
 
         return "박스가 떨어졌어요";
@@ -781,15 +781,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_rescueAdInProgress)
         {
-            return "복구권 확인 중";
+            return "광고 확인 중 - 복구 준비";
         }
 
         if (CanUseFailureRescue())
         {
-            return $"복구권 {_undoUsesRemaining}회 남음";
+            return $"이번 스테이지 복구권 {_undoUsesRemaining}회 남음";
         }
 
-        return "복구권 사용 완료";
+        return "이번 스테이지 복구권 사용 완료";
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)
