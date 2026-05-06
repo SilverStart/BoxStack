@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest delayed collapse failure detection. Confirm a stack that slides out of the single-column tolerance during `Playing` or `ResolvingDrop` shows the failure popup immediately, while stable stacks still continue normally.
+Playtest parcel contact friction. Confirm lower boxes slide less when stacked boxes press down, while intentionally bad stacks can still collapse instead of feeling glued together.
 
 ## Prototype / Playtest History
 
@@ -44,6 +44,7 @@ Playtest delayed collapse failure detection. Confirm a stack that slides out of 
 - 2026-05-06: Stage progression now stores the highest unlocked stage with PlayerPrefs, disables locked stages in stage select, and unlocks the next stage on clear.
 - 2026-05-06: Stage select now includes prototype-only progression controls for fast playtesting: reset unlock progress to stage 1 or unlock all 20 stages.
 - 2026-05-06: Failure detection now also checks delayed stack collapse during normal play and drop resolution, so gravity-driven collapse can show the fail popup immediately.
+- 2026-05-06: Runtime `PhysicsMaterial2D` added to parcel boxes and the floor with `friction = 1.2`, `bounciness = 0` to reduce unwanted sliding while keeping gravity collapse.
 
 ## Current Decisions
 
@@ -83,6 +84,7 @@ Playtest delayed collapse failure detection. Confirm a stack that slides out of 
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
+- Does `friction = 1.2` reduce the unwanted slide without making the stack feel glued together?
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?

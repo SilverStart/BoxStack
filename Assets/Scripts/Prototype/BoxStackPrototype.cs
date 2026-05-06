@@ -30,6 +30,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float BoxSize = 1.0f;
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
+    private const float ParcelFriction = 1.2f;
+    private const float ParcelBounciness = 0f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
     private const float StackLineTolerance = 0.75f;
@@ -58,6 +60,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Camera _camera;
     private Sprite _floorSprite;
     private Sprite _backgroundSprite;
+    private PhysicsMaterial2D _parcelPhysicsMaterial;
     private GameObject _background;
     private GUIStyle _hudPillStyle;
     private GUIStyle _hudPillShadowStyle;
@@ -243,6 +246,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void Start()
     {
         LoadPrototypeSprites();
+        CreatePhysicsMaterials();
         _camera = EnsureCamera();
         if (UseLogisticsCenterBackground)
         {
@@ -1014,6 +1018,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var collider = floor.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(6.2f, FloorHeight);
+        collider.sharedMaterial = _parcelPhysicsMaterial;
 
         UpdateMinimumCameraY();
     }
@@ -1320,6 +1325,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var collider = box.AddComponent<BoxCollider2D>();
         collider.size = boxVisual.WorldSize * 0.96f;
+        collider.sharedMaterial = _parcelPhysicsMaterial;
 
         var body = box.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
@@ -1330,6 +1336,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         return box;
+    }
+
+    private void CreatePhysicsMaterials()
+    {
+        _parcelPhysicsMaterial = new PhysicsMaterial2D("Prototype Parcel Friction")
+        {
+            friction = ParcelFriction,
+            bounciness = ParcelBounciness
+        };
     }
 
     private void MoveActiveBox()
