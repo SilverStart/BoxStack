@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the first failure shows "바로 이어하기", the second failure shows "광고 보고 이어하기", and a third failure falls back to "다시 도전" only.
+Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stages are disabled in stage select, clearing a stage unlocks the next stage, and the highest unlocked stage remains available after restarting Play mode.
 
 ## Prototype / Playtest History
 
@@ -41,6 +41,7 @@ Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the fi
 - 2026-05-06: Failure rescue popup copy clarified so the rescue ticket state appears before the reward-ad action: available, checking, and used states now use explicit stage-ticket wording.
 - 2026-05-06: Failure rescue copy shortened toward user-facing wording: "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기".
 - 2026-05-06: Failure rescue policy changed to free-first: each stage now grants one free snapshot restore, then one mock reward-ad restore, then no further rescue.
+- 2026-05-06: Stage progression now stores the highest unlocked stage with PlayerPrefs, disables locked stages in stage select, and unlocks the next stage on clear.
 
 ## Current Decisions
 
@@ -64,6 +65,8 @@ Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the fi
 - Later-stage difficulty should first be tested with a free-first fail-popup rescue, because it softens difficulty before introducing the reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
 - The fail-popup rescue state should use short user-facing copy while distinguishing free continuation from reward-ad continuation.
+- Ad/free rescue use should not reduce clear rewards or visible stage progress, because that could discourage players from watching an ad.
+- Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 
 ## Open Questions
 
@@ -78,6 +81,7 @@ Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the fi
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
+- Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 
 ## Risks
 
@@ -90,5 +94,6 @@ Playtest stages 10, 15, and 20 with the free-first rescue policy. Confirm the fi
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
+- PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

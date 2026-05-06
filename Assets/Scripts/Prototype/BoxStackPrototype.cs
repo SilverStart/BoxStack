@@ -21,6 +21,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string ParcelResourceFolder = "Prototype/Parcel";
     private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
+    private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -87,6 +88,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private int _currentStageIndex;
+    private int _highestUnlockedStageIndex;
     private int _freeRescuesRemaining;
     private int _adRescuesRemaining;
     private bool _hasRescueSnapshot;
@@ -248,6 +250,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         CreateFloor();
+        LoadStageProgress();
         RestartGame();
     }
 
@@ -596,6 +599,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         for (int i = 0; i < StageConfigs.Length; i++)
         {
             StageConfig stage = StageConfigs[i];
+            bool unlocked = IsStageUnlocked(i);
             int column = i % columns;
             int row = i / columns;
             var cellRect = new Rect(
@@ -604,12 +608,20 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 cellWidth,
                 cellHeight);
 
-            GUIStyle cellStyle = i == _currentStageIndex ? selectedStageButtonStyle : normalStageButtonStyle;
-            string label = $"ST {stage.Number:00}\n{stage.TargetBoxes}개";
+            GUIStyle cellStyle = !unlocked
+                ? _undoButtonDisabledStyle
+                : i == _currentStageIndex
+                    ? selectedStageButtonStyle
+                    : normalStageButtonStyle;
+            string label = unlocked ? $"ST {stage.Number:00}\n{stage.TargetBoxes}개" : $"ST {stage.Number:00}\n잠김";
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = unlocked;
             if (GUI.Button(cellRect, label, cellStyle))
             {
                 SelectStage(i);
             }
+
+            GUI.enabled = previousEnabled;
         }
 
         var closeRect = new Rect(panelRect.x + 72f, panelRect.yMax - 66f, panelRect.width - 144f, 46f);
@@ -752,7 +764,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             if (HasNextStage())
             {
-                return $"스테이지 {CurrentStage.Number} 클리어";
+                return $"스테이지 {CurrentStage.Number} 클리어\n다음 스테이지가 열렸어요";
             }
 
             return "20스테이지를 모두 클리어했어요";
@@ -1017,7 +1029,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void ChangeStage(int direction)
     {
-        int nextStageIndex = Mathf.Clamp(_currentStageIndex + direction, 0, StageConfigs.Length - 1);
+        int nextStageIndex = Mathf.Clamp(_currentStageIndex + direction, 0, _highestUnlockedStageIndex);
         if (nextStageIndex == _currentStageIndex)
         {
             return;
@@ -1030,6 +1042,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void SelectStage(int stageIndex)
     {
         stageIndex = Mathf.Clamp(stageIndex, 0, StageConfigs.Length - 1);
+        if (!IsStageUnlocked(stageIndex))
+        {
+            return;
+        }
+
         CloseStageSelect();
 
         if (stageIndex != _currentStageIndex)
@@ -1067,6 +1084,35 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private bool HasNextStage()
     {
         return _currentStageIndex < StageConfigs.Length - 1;
+    }
+
+    private bool IsStageUnlocked(int stageIndex)
+    {
+        return stageIndex <= _highestUnlockedStageIndex;
+    }
+
+    private void LoadStageProgress()
+    {
+        int unlockedStageNumber = PlayerPrefs.GetInt(HighestUnlockedStageKey, 1);
+        _highestUnlockedStageIndex = Mathf.Clamp(unlockedStageNumber - 1, 0, StageConfigs.Length - 1);
+        _currentStageIndex = Mathf.Clamp(_currentStageIndex, 0, _highestUnlockedStageIndex);
+    }
+
+    private void SaveStageProgress()
+    {
+        PlayerPrefs.SetInt(HighestUnlockedStageKey, StageConfigs[_highestUnlockedStageIndex].Number);
+        PlayerPrefs.Save();
+    }
+
+    private void UnlockNextStage()
+    {
+        if (!HasNextStage() || _highestUnlockedStageIndex > _currentStageIndex)
+        {
+            return;
+        }
+
+        _highestUnlockedStageIndex = Mathf.Clamp(_currentStageIndex + 1, 0, StageConfigs.Length - 1);
+        SaveStageProgress();
     }
 
     private bool CanUseUndoSkill()
@@ -1432,6 +1478,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _state = won ? PrototypeState.Won : PrototypeState.Failed;
         _statusText = status;
+        if (won)
+        {
+            UnlockNextStage();
+        }
 
         if (_activeBox != null)
         {
