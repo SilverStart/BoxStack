@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest parcel contact friction. Confirm lower boxes slide less when stacked boxes press down, while intentionally bad stacks can still collapse instead of feeling glued together.
+Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `전체 해금` still appear for playtest speed, while the code path hides them in non-development user builds.
 
 ## Prototype / Playtest History
 
@@ -45,6 +45,7 @@ Playtest parcel contact friction. Confirm lower boxes slide less when stacked bo
 - 2026-05-06: Stage select now includes prototype-only progression controls for fast playtesting: reset unlock progress to stage 1 or unlock all 20 stages.
 - 2026-05-06: Failure detection now also checks delayed stack collapse during normal play and drop resolution, so gravity-driven collapse can show the fail popup immediately.
 - 2026-05-06: Runtime `PhysicsMaterial2D` added to parcel boxes and the floor with `friction = 1.2`, `bounciness = 0` to reduce unwanted sliding while keeping gravity collapse.
+- 2026-05-06: Stage select progress test controls are now limited to Editor/development builds so reset/unlock helpers do not appear in normal user builds.
 
 ## Current Decisions
 
@@ -70,7 +71,7 @@ Playtest parcel contact friction. Confirm lower boxes slide less when stacked bo
 - The fail-popup rescue state should use short user-facing copy while distinguishing free continuation from reward-ad continuation.
 - Ad/free rescue use should not reduce clear rewards or visible stage progress, because that could discourage players from watching an ad.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
-- Stage select may expose prototype-only progress test controls while validating difficulty and unlock persistence; hide or remove them before any user-facing build.
+- Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 
 ## Open Questions
 
@@ -88,7 +89,7 @@ Playtest parcel contact friction. Confirm lower boxes slide less when stacked bo
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
-- Are the prototype-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind an Editor-only debug gesture later?
+- Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
 ## Risks
 
@@ -102,6 +103,6 @@ Playtest parcel contact friction. Confirm lower boxes slide less when stacked bo
 - Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
-- Prototype-only progression controls are useful for playtest speed, but they must be removed or hidden before any user-facing build.
+- Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

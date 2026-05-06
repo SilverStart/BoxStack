@@ -643,18 +643,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
             GUI.enabled = previousEnabled;
         }
 
-        float helperY = panelRect.yMax - 112f;
-        float helperWidth = (gridWidth - gap) * 0.5f;
-        var resetRect = new Rect(gridX, helperY, helperWidth, 34f);
-        var unlockRect = new Rect(gridX + helperWidth + gap, helperY, helperWidth, 34f);
-        if (GUI.Button(resetRect, "진행 초기화", _undoButtonStyle))
+        if (ShouldShowProgressTestControls())
         {
-            ResetStageProgress();
-        }
+            float helperY = panelRect.yMax - 112f;
+            float helperWidth = (gridWidth - gap) * 0.5f;
+            var resetRect = new Rect(gridX, helperY, helperWidth, 34f);
+            var unlockRect = new Rect(gridX + helperWidth + gap, helperY, helperWidth, 34f);
+            if (GUI.Button(resetRect, "진행 초기화", _undoButtonStyle))
+            {
+                ResetStageProgress();
+            }
 
-        if (GUI.Button(unlockRect, "전체 해금", _undoButtonStyle))
-        {
-            UnlockAllStagesForPlaytest();
+            if (GUI.Button(unlockRect, "전체 해금", _undoButtonStyle))
+            {
+                UnlockAllStagesForPlaytest();
+            }
         }
 
         var closeRect = new Rect(panelRect.x + 72f, panelRect.yMax - 66f, panelRect.width - 144f, 46f);
@@ -662,6 +665,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         {
             CloseStageSelect();
         }
+    }
+
+    private static bool ShouldShowProgressTestControls()
+    {
+        return Application.isEditor || Debug.isDebugBuild;
     }
 
     private void DrawResultPopup()
