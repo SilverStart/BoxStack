@@ -303,6 +303,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
             {
                 EndRun(false, "STACK LOST");
             }
+            else if (!StackIsSingleColumn())
+            {
+                EndRun(false, "STACK CROOKED");
+            }
+        }
+        else if (_state == PrototypeState.ResolvingDrop)
+        {
+            if (AnyBoxLost())
+            {
+                EndRun(false, "STACK LOST");
+            }
+            else if (!StackIsSingleColumn())
+            {
+                EndRun(false, "STACK CROOKED");
+            }
         }
         else if (_state == PrototypeState.ValidatingClear)
         {

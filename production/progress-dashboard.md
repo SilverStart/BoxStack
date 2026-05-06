@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest prototype progression controls. Confirm `진행 초기화` returns unlock progress to stage 1, `전체 해금` opens all 20 stages for late-stage testing, and the selected unlock state remains available after restarting Play mode.
+Playtest delayed collapse failure detection. Confirm a stack that slides out of the single-column tolerance during `Playing` or `ResolvingDrop` shows the failure popup immediately, while stable stacks still continue normally.
 
 ## Prototype / Playtest History
 
@@ -43,6 +43,7 @@ Playtest prototype progression controls. Confirm `진행 초기화` returns unlo
 - 2026-05-06: Failure rescue policy changed to free-first: each stage now grants one free snapshot restore, then one mock reward-ad restore, then no further rescue.
 - 2026-05-06: Stage progression now stores the highest unlocked stage with PlayerPrefs, disables locked stages in stage select, and unlocks the next stage on clear.
 - 2026-05-06: Stage select now includes prototype-only progression controls for fast playtesting: reset unlock progress to stage 1 or unlock all 20 stages.
+- 2026-05-06: Failure detection now also checks delayed stack collapse during normal play and drop resolution, so gravity-driven collapse can show the fail popup immediately.
 
 ## Current Decisions
 
@@ -81,6 +82,7 @@ Playtest prototype progression controls. Confirm `진행 초기화` returns unlo
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
+- Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
