@@ -4,7 +4,7 @@ Last updated: 2026-05-06
 
 ## Next Immediate Action
 
-Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stages are disabled in stage select, clearing a stage unlocks the next stage, and the highest unlocked stage remains available after restarting Play mode.
+Playtest prototype progression controls. Confirm `진행 초기화` returns unlock progress to stage 1, `전체 해금` opens all 20 stages for late-stage testing, and the selected unlock state remains available after restarting Play mode.
 
 ## Prototype / Playtest History
 
@@ -42,6 +42,7 @@ Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stage
 - 2026-05-06: Failure rescue copy shortened toward user-facing wording: "한 번 되돌릴 수 있어요", "복구권 1회 남음", and "광고 보고 이어하기".
 - 2026-05-06: Failure rescue policy changed to free-first: each stage now grants one free snapshot restore, then one mock reward-ad restore, then no further rescue.
 - 2026-05-06: Stage progression now stores the highest unlocked stage with PlayerPrefs, disables locked stages in stage select, and unlocks the next stage on clear.
+- 2026-05-06: Stage select now includes prototype-only progression controls for fast playtesting: reset unlock progress to stage 1 or unlock all 20 stages.
 
 ## Current Decisions
 
@@ -67,6 +68,7 @@ Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stage
 - The fail-popup rescue state should use short user-facing copy while distinguishing free continuation from reward-ad continuation.
 - Ad/free rescue use should not reduce clear rewards or visible stage progress, because that could discourage players from watching an ad.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
+- Stage select may expose prototype-only progress test controls while validating difficulty and unlock persistence; hide or remove them before any user-facing build.
 
 ## Open Questions
 
@@ -82,6 +84,7 @@ Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stage
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
+- Are the prototype-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind an Editor-only debug gesture later?
 
 ## Risks
 
@@ -95,5 +98,6 @@ Playtest stage unlock persistence. Confirm stage 1 starts unlocked, locked stage
 - Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
+- Prototype-only progression controls are useful for playtest speed, but they must be removed or hidden before any user-facing build.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`.

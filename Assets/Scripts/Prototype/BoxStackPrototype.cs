@@ -528,7 +528,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
 
         float panelWidth = Mathf.Max(300f, Mathf.Min(420f, Screen.width - 36f));
-        float panelHeight = Mathf.Max(380f, Mathf.Min(520f, Screen.height - GetHudTopY() - HudBarHeight - 48f));
+        float panelHeight = Mathf.Max(430f, Mathf.Min(560f, Screen.height - GetHudTopY() - HudBarHeight - 48f));
         float panelY = Mathf.Clamp(
             GetHudTopY() + HudBarHeight + 20f,
             18f,
@@ -594,7 +594,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         float gridY = panelRect.y + 92f;
         float gridWidth = panelRect.width - 48f;
         float cellWidth = (gridWidth - (gap * (columns - 1))) / columns;
-        float cellHeight = Mathf.Clamp((panelRect.height - 174f - (gap * 4f)) / 5f, 44f, 58f);
+        float cellHeight = Mathf.Clamp((panelRect.height - 246f - (gap * 4f)) / 5f, 38f, 54f);
 
         for (int i = 0; i < StageConfigs.Length; i++)
         {
@@ -622,6 +622,20 @@ public sealed class BoxStackPrototype : MonoBehaviour
             }
 
             GUI.enabled = previousEnabled;
+        }
+
+        float helperY = panelRect.yMax - 112f;
+        float helperWidth = (gridWidth - gap) * 0.5f;
+        var resetRect = new Rect(gridX, helperY, helperWidth, 34f);
+        var unlockRect = new Rect(gridX + helperWidth + gap, helperY, helperWidth, 34f);
+        if (GUI.Button(resetRect, "진행 초기화", _undoButtonStyle))
+        {
+            ResetStageProgress();
+        }
+
+        if (GUI.Button(unlockRect, "전체 해금", _undoButtonStyle))
+        {
+            UnlockAllStagesForPlaytest();
         }
 
         var closeRect = new Rect(panelRect.x + 72f, panelRect.yMax - 66f, panelRect.width - 144f, 46f);
@@ -1102,6 +1116,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         PlayerPrefs.SetInt(HighestUnlockedStageKey, StageConfigs[_highestUnlockedStageIndex].Number);
         PlayerPrefs.Save();
+    }
+
+    private void ResetStageProgress()
+    {
+        _highestUnlockedStageIndex = 0;
+        _currentStageIndex = 0;
+        SaveStageProgress();
+        CloseStageSelect();
+        RestartGame();
+    }
+
+    private void UnlockAllStagesForPlaytest()
+    {
+        _highestUnlockedStageIndex = StageConfigs.Length - 1;
+        SaveStageProgress();
     }
 
     private void UnlockNextStage()
