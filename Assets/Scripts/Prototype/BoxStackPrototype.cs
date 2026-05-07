@@ -335,14 +335,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         EnsureHudStyles();
 
+        Rect safeArea = GetSafeGuiArea();
         float topY = GetHudTopY();
-        float barWidth = Screen.width - (HudHorizontalPadding * 2f);
-        var barRect = new Rect(HudHorizontalPadding, topY, barWidth, HudBarHeight);
+        float barWidth = safeArea.width - (HudHorizontalPadding * 2f);
+        var barRect = new Rect(safeArea.x + HudHorizontalPadding, topY, barWidth, HudBarHeight);
         GUI.Box(new Rect(barRect.x, barRect.y + 2f, barRect.width, barRect.height), GUIContent.none, _hudPillShadowStyle);
         GUI.Box(barRect, GUIContent.none, _hudPillStyle);
 
-        float leftWidth = Mathf.Clamp(Screen.width * 0.27f, 126f, 176f);
-        float rightWidth = Mathf.Clamp(Screen.width * 0.18f, 72f, 104f);
+        float leftWidth = Mathf.Clamp(safeArea.width * 0.27f, 126f, 176f);
+        float rightWidth = Mathf.Clamp(safeArea.width * 0.18f, 72f, 104f);
         var labelRect = new Rect(barRect.x + 28f, barRect.y + 10f, leftWidth, 22f);
         var countRect = new Rect(barRect.x + 76f, barRect.y + 14f, leftWidth - 44f, 38f);
         var statusRect = new Rect(barRect.xMax - rightWidth - 22f, barRect.y + 16f, rightWidth, 36f);
@@ -519,7 +520,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void DrawUndoSkillButton(Rect barRect)
     {
-        float buttonWidth = Mathf.Clamp(Screen.width * 0.24f, 92f, 122f);
+        float buttonWidth = Mathf.Clamp(barRect.width * 0.24f, 92f, 122f);
         var buttonRect = new Rect(
             barRect.xMax - buttonWidth - 22f,
             barRect.yMax + 10f,
@@ -546,14 +547,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = previousColor;
 
-        float panelWidth = Mathf.Max(300f, Mathf.Min(420f, Screen.width - 36f));
-        float panelHeight = Mathf.Max(430f, Mathf.Min(560f, Screen.height - GetHudTopY() - HudBarHeight - 48f));
+        Rect safeArea = GetSafeGuiArea();
+        float panelWidth = Mathf.Clamp(safeArea.width - 36f, 280f, 420f);
+        float panelHeight = Mathf.Clamp(safeArea.yMax - GetHudTopY() - HudBarHeight - 48f, 430f, 560f);
         float panelY = Mathf.Clamp(
             GetHudTopY() + HudBarHeight + 20f,
-            18f,
-            Screen.height - panelHeight - 18f);
+            safeArea.y + 18f,
+            safeArea.yMax - panelHeight - 18f);
         var panelRect = new Rect(
-            (Screen.width - panelWidth) * 0.5f,
+            safeArea.x + ((safeArea.width - panelWidth) * 0.5f),
             panelY,
             panelWidth,
             panelHeight);
@@ -693,15 +695,16 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = previousColor;
 
-        float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, Screen.width - 48f));
+        Rect safeArea = GetSafeGuiArea();
+        float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, safeArea.width - 48f));
         float desiredPanelHeight = canRescue ? ResultPanelHeight + 88f : hasRescueStatus ? ResultPanelHeight + 34f : ResultPanelHeight;
-        float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, Screen.height - 160f));
+        float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, safeArea.height - 120f));
         float panelY = Mathf.Clamp(
-            Mathf.Max(GetHudTopY() + HudBarHeight + 28f, (Screen.height - panelHeight) * 0.5f),
-            24f,
-            Screen.height - panelHeight - 24f);
+            Mathf.Max(GetHudTopY() + HudBarHeight + 28f, safeArea.y + ((safeArea.height - panelHeight) * 0.5f)),
+            safeArea.y + 24f,
+            safeArea.yMax - panelHeight - 24f);
         var panelRect = new Rect(
-            (Screen.width - panelWidth) * 0.5f,
+            safeArea.x + ((safeArea.width - panelWidth) * 0.5f),
             panelY,
             panelWidth,
             panelHeight);
@@ -922,9 +925,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private static float GetHudTopY()
     {
+        Rect safeArea = GetSafeGuiArea();
+        return Mathf.Max(HudTopY, safeArea.y + 12f);
+    }
+
+    private static Rect GetSafeGuiArea()
+    {
         Rect safeArea = Screen.safeArea;
-        float topInset = Screen.height - safeArea.yMax;
-        return Mathf.Max(HudTopY, topInset + 12f);
+        if (safeArea.width <= 0f || safeArea.height <= 0f)
+        {
+            return new Rect(0f, 0f, Screen.width, Screen.height);
+        }
+
+        return new Rect(safeArea.x, Screen.height - safeArea.yMax, safeArea.width, safeArea.height);
     }
 
     private static Texture2D CreateRoundedRectTexture(Color fill, Color border, int borderSize = 2)
