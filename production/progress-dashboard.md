@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-06
+Last updated: 2026-05-08
 
 ## Next Immediate Action
 
-Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `전체 해금` still appear for playtest speed, while the code path hides them in non-development user builds.
+Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visible, then check whether lower-box sliding is reduced.
 
 ## Prototype / Playtest History
 
@@ -46,6 +46,14 @@ Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `
 - 2026-05-06: Failure detection now also checks delayed stack collapse during normal play and drop resolution, so gravity-driven collapse can show the fail popup immediately.
 - 2026-05-06: Runtime `PhysicsMaterial2D` added to parcel boxes and the floor with `friction = 1.2`, `bounciness = 0` to reduce unwanted sliding while keeping gravity collapse.
 - 2026-05-06: Stage select progress test controls are now limited to Editor/development builds so reset/unlock helpers do not appear in normal user builds.
+- 2026-05-06: Editor check confirmed stage select progress controls remain visible for playtesting; HUD, stage select, and result popup layout now use `Screen.safeArea` converted into IMGUI coordinates.
+- 2026-05-07: AIT/WebGL browser testing found two blockers: Unity-launched Dev Server cannot find `pnpm`, and WebGL cannot load prototype PNGs through the Editor-only `AssetDatabase` fallback. Details and workaround are in `docs/workflow/ait-webgl-testing-notes.md`.
+- 2026-05-07: Prototype PNGs were copied into `Assets/Resources/Prototype/...`, and the runtime loader now falls back from `Resources.Load<Sprite>` to `Resources.Load<Texture2D>` so WebGL builds can include parcel and floor sprites.
+- 2026-05-07: After rebuilding AIT/WebGL, PC browser testing confirmed that parcel and conveyor/floor images now appear correctly.
+- 2026-05-07: `AIT > Dev Server > Start Server` now works from the Unity menu after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor.
+- 2026-05-08: Phone browser can reach the PC AIT Dev Server on the LAN (`172.30.1.14:5173`).
+- 2026-05-08: Lower-box sliding felt too strong on phone WebGL, so parcel friction was raised to `2.4` and Rigidbody2D damping was raised to `linearDamping = 0.6`, `angularDamping = 0.8` for the next build.
+- 2026-05-08: A small `B001` build marker was added below the top-right HUD area so phone tests can confirm a fresh WebGL build is loaded.
 
 ## Current Decisions
 
@@ -72,6 +80,10 @@ Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `
 - Ad/free rescue use should not reduce clear rewards or visible stage progress, because that could discourage players from watching an ad.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
+- Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
+- WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
+- The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
+- Use a tiny in-game build marker (`B001`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -80,12 +92,15 @@ Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `
 - Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - What bottom padding feels best on the target portrait app-in-app viewport?
+- Does the safe-area-aware IMGUI layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
+- Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
+- Does the phone browser load the AIT/WebGL build reliably through the PC LAN IP?
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does `friction = 1.2` reduce the unwanted slide without making the stack feel glued together?
+- Does `friction = 2.4` plus stronger damping reduce the unwanted slide without making the stack feel glued together?
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
@@ -99,6 +114,9 @@ Verify the stage select overlay in Editor Play. Confirm `진행 초기화` and `
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
+- Safe area is handled in the prototype IMGUI layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
+- AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
+- WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
