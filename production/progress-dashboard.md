@@ -4,7 +4,7 @@ Last updated: 2026-05-08
 
 ## Next Immediate Action
 
-Rebuild WebGL and test the `B004` phone build with one free failure rescue per stage and no mock reward-ad rescue.
+Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce impact-driven sideways slide while upper boxes can still rotate, tip, or collapse naturally.
 
 ## Prototype / Playtest History
 
@@ -58,6 +58,10 @@ Rebuild WebGL and test the `B004` phone build with one free failure rescue per s
 - 2026-05-08: WebGL Korean text fallback was fixed by adding `NotoSansKR-VF.ttf` under `Assets/Resources/Prototype/Fonts/`, applying it to the prototype `OnGUI` styles, and bumping the build marker to `B002`.
 - 2026-05-08: Phone WebGL testing still showed the bottom box sliding too easily, so floor contact now uses a separate `PhysicsMaterial2D` with `friction = 6.0` while parcel contact stays at `friction = 2.4`; the build marker is now `B003`.
 - 2026-05-08: Failure rescue was narrowed to one free restore per stage for the next phone test; the mock reward-ad restore is disabled and the build marker is now `B004`.
+- 2026-05-08: The first settled box now anchors its X position and rotation after landing so stack pressure cannot slide the foundation sideways; the build marker is now `B005`.
+- 2026-05-08: Settled-box anchoring now freezes X position for every placed box after landing, while only the first foundation box also freezes rotation; the build marker is now `B006`.
+- 2026-05-08: Settled-box anchoring made towers too stable, so the anchor logic was removed and parcel/floor friction were both raised to `8.0` for the `B007` test.
+- 2026-05-08: Phone testing still showed impact-driven lower-box sliding, so falling boxes now temporarily use `gravityScale = 1.1` with a `4.5` fall-speed cap before returning to settled `gravityScale = 1.6`; the build marker is now `B008`.
 
 ## Current Decisions
 
@@ -77,6 +81,7 @@ Rebuild WebGL and test the `B004` phone build with one free failure rescue per s
 - First game UI direction is Toss Minimal: a compact top bar with progress feedback plus a central success/fail result popup for run completion.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
+- Use high friction plus softened falling-box impact rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 - Later-stage difficulty should first be tested with one free fail-popup rescue before reintroducing any reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
@@ -86,7 +91,7 @@ Rebuild WebGL and test the `B004` phone build with one free failure rescue per s
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B004`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B008`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -104,7 +109,7 @@ Rebuild WebGL and test the `B004` phone build with one free failure rescue per s
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does floor-only `friction = 6.0` stop the bottom box from sliding without making the stack feel glued together?
+- Does softened falling-box impact reduce sideways sliding enough without making the whole stack feel floaty?
 - Does one free rescue make stages 10+ feel fair without removing too much challenge?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
@@ -122,6 +127,7 @@ Rebuild WebGL and test the `B004` phone build with one free failure rescue per s
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
+- Softened falling-box impact may reduce slide at the cost of making drops feel less weighty, so B008 needs phone playtest judgment before committing to the direction.
 - Snapshot-based rescue should feel fair, but even one free rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.

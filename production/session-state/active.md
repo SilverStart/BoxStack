@@ -1,7 +1,7 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Test free-only failure rescue on B004
+Task: Test softened-drop physics on B008
 <!-- /STATUS -->
 
 # Active Session State
@@ -17,9 +17,9 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 - Name: BoxStack playable prototype
 - State: Core 2D stacking system validated as good enough for the next prototype phase.
 - Goal: Turn the validated timing-based parcel-box stacking loop into a Toss app-in-app style 2D/2.5D vertical slice using AI-generated PNG assets.
-- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, PlayerPrefs-based highest-stage unlock persistence, Editor/development-build-only progress test controls (`진행 초기화`, `전체 해금`), mobile safe-area-aware IMGUI layout, a free-only failure rescue policy with one free restore per stage, user-facing fail-popup rescue copy (`한 번 되돌릴 수 있어요`, `복구권 1회 남음`, `바로 이어하기`), runtime parcel contact material (`friction = 2.4`, `bounciness = 0`), separate floor contact material (`friction = 6.0`, `bounciness = 0`), stronger damping (`linearDamping = 0.6`, `angularDamping = 0.8`), and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately, including delayed gravity collapse while playing or resolving a drop. After the stage target count is stacked, the stack must survive a 5-second validation window before success. Box `gravityScale` is currently `1.6` after lowering it to reduce excessive movement in lower boxes. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
+- Current implementation: `Assets/Scripts/Prototype/BoxStackPrototype.cs` auto-bootstraps an orthographic camera, 2D floor, `Rigidbody2D`/`BoxCollider2D` stacking, input, win/fail state, Toss Minimal top HUD, success/fail result popup, 20 hardcoded fixed-clear stages, stage select overlay, stage-clear next-stage flow, PlayerPrefs-based highest-stage unlock persistence, Editor/development-build-only progress test controls (`진행 초기화`, `전체 해금`), mobile safe-area-aware IMGUI layout, a free-only failure rescue policy with one free restore per stage, user-facing fail-popup rescue copy (`한 번 되돌릴 수 있어요`, `복구권 1회 남음`, `바로 이어하기`), high-friction parcel and floor contact materials (`friction = 8.0`, `bounciness = 0`), softened falling-box impact (`dropping gravityScale = 1.1`, fall-speed cap `4.5`, settled gravityScale = `1.6`), stronger damping (`linearDamping = 0.6`, `angularDamping = 0.8`), and rotation-locked vertical camera follow in `SampleScene`. Clear requires boxes to stay in a single vertical column, using the first placed box as the center-x reference; any box that settles outside tolerance fails immediately, including delayed gravity collapse while playing or resolving a drop. After the stage target count is stacked, the stack must survive a 5-second validation window before success. The camera minimum y is derived from the floor bottom plus orthographic size with a small bottom padding, so the view does not drift below the conveyor/floor baseline. Imported parcel PNGs are scaled and collided by visible alpha bounds so transparent padding does not create floating gaps.
 - Asset pipeline: Prototype art brief exists at `design/assets/boxstack-prototype-art-brief.md`; first AI-generated parcel PNG set is in `Assets/Art/Prototype/Parcel/`, and a logistics center background is in `Assets/Art/Prototype/Backgrounds/logistics_center_bg_01.png`. WebGL-build-included copies now live under `Assets/Resources/Prototype/...` for `Resources.Load`. The logistics center background is currently disabled for readability testing; the prototype uses a parcel-brown solid camera background instead. Runtime placeholders still cover missing parcel assets.
-- UI exploration: Four HUD mockup variants were generated in `design/ui/hud-variants/`; variant 01 Toss Minimal is now applied to the prototype HUD for playtest. Result popup is currently an `OnGUI` prototype overlay with restart by button release or `R`. WebGL Korean text fallback now uses `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` applied to prototype GUI styles. A tiny `B004` prototype build marker is shown below the top-right HUD area so mobile WebGL rebuild/caching can be checked quickly.
+- UI exploration: Four HUD mockup variants were generated in `design/ui/hud-variants/`; variant 01 Toss Minimal is now applied to the prototype HUD for playtest. Result popup is currently an `OnGUI` prototype overlay with restart by button release or `R`. WebGL Korean text fallback now uses `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` applied to prototype GUI styles. A tiny `B008` prototype build marker is shown below the top-right HUD area so mobile WebGL rebuild/caching can be checked quickly.
 - Stage plan: A 20-stage fixed-clear difficulty plan is recorded at `design/quick-specs/20-stage-difficulty-plan-2026-05-04.md` and now wired into the prototype as hardcoded `StageConfig` data. Stage navigation is available during Editor Play with previous/next keyboard controls within the unlocked range, and tapping/clicking the HUD stage label opens a simple 20-stage select overlay where locked stages are disabled. After playtesting, stages 10+ feel significantly harder, so the prototype now tests a stage-limited failure rescue undo instead of lowering the difficulty table. Main mode should use fixed box-count clears; infinite stacking is deferred as a later challenge-mode experiment.
 - Unity editor control: Unity CLI Connector is installed and verified. See `docs/workflow/unity-cli-connector.md`; use it for live Editor C# inspection, asset refresh, Play/Stop, console reads, and screenshots when Unity is already open.
 - AIT/WebGL test notes: `docs/workflow/ait-webgl-testing-notes.md` records the current Dev Server and WebGL visual mismatch diagnosis. Browser testing confirmed that the copied `Assets/Resources/Prototype/...` sprites now make parcel and conveyor/floor images appear correctly after rebuilding. `AIT > Dev Server > Start Server` now works after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor. Phone LAN access works from `172.30.1.40` to the PC Dev Server at `172.30.1.14:5173`.
@@ -28,7 +28,7 @@ Casual game, prototype-first. Skip heavy GDD/ADR/review workflow unless explicit
 
 ## Next Action
 
-Rebuild WebGL and test the `B004` phone build with only one free failure rescue per stage. Check whether stages 10+ still feel fair enough without the mock reward-ad rescue.
+Rebuild WebGL and test the `B008` phone build. Check whether softened drops reduce impact-driven sideways sliding while still allowing natural center-of-mass collapse.
 
 ## Open Questions
 
@@ -46,7 +46,7 @@ Rebuild WebGL and test the `B004` phone build with only one free failure rescue 
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does floor-only `friction = 6.0` stop the bottom box from sliding without making the stack feel glued together?
+- Does softened falling-box impact reduce sideways sliding enough without making the whole stack feel floaty?
 - Does one free rescue make stages 10+ feel fair without removing too much challenge?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
@@ -64,7 +64,8 @@ Rebuild WebGL and test the `B004` phone build with only one free failure rescue 
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
-- Snapshot-based rescue should feel fair, but it may feel too powerful if it removes all risk from hard stages.
+- Softened falling-box impact may reduce slide at the cost of making drops feel less weighty, so B008 needs phone playtest judgment before committing to the direction.
+- Snapshot-based rescue should feel fair, but even one free rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue can make failure feel monetized too early if the base difficulty is not already perceived as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.

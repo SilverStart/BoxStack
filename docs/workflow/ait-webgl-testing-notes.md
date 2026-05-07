@@ -126,14 +126,14 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 - Korean HUD, stage select, result popup, and rescue button text is visible in WebGL.
 - Stages 1, 5, 10, 15, and 20 are playable enough to judge difficulty.
 - No obvious freezes, browser crashes, or severe frame drops during stack collapse.
-- The small build marker below the top-right HUD area shows the expected value (`B004` for the current prototype build marker).
+- The small build marker below the top-right HUD area shows the expected value (`B008` for the current prototype build marker).
 
 ## Build Marker
 
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current value is:
 
 ```text
-B004
+B008
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build.
@@ -146,19 +146,23 @@ Remaining verification:
 
 1. Rebuild WebGL.
 2. Open the browser build and confirm Korean text appears in all prototype UI states.
-3. Confirm the build marker shows `B004`, not `B003`.
+3. Confirm the build marker shows `B008`, not `B007`.
 
 ## Current Physics Tuning To Retest
 
-The latest phone test reported that the bottom box still slides sideways too easily. The next WebGL build should verify:
+The latest phone tests found that high friction helps, but falling-box impact still pushes the lower stack too hard. The next WebGL build keeps high friction, softens the active drop, and should verify:
 
-- parcel `PhysicsMaterial2D.friction = 2.4`
-- floor `PhysicsMaterial2D.friction = 6.0`
+- parcel `PhysicsMaterial2D.friction = 8.0`
+- floor `PhysicsMaterial2D.friction = 8.0`
+- no settled-box X/rotation constraints are applied
 - `PhysicsMaterial2D.bounciness = 0`
+- dropping boxes temporarily use `gravityScale = 1.1`
+- dropping fall speed is capped at `4.5`
+- settled boxes use `gravityScale = 1.6`
 - `Rigidbody2D.linearDamping = 0.6`
 - `Rigidbody2D.angularDamping = 0.8`
 
-Expected result: bottom-box sliding should be reduced, while upper boxes still shift/collapse naturally when badly stacked.
+Expected result: impact-driven sideways sliding should be reduced, while towers can still rotate/tip/collapse when badly stacked.
 
 ## UI Finding
 
@@ -187,4 +191,4 @@ Recent checkpoint commits:
 
 ## Next Suggested Task
 
-Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B004` is visible, then retest whether one free failure rescue per stage feels fair enough without the mock reward-ad rescue.
+Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B008` is visible, then retest whether softened drops reduce unfair impact sliding without making the whole stack feel floaty.

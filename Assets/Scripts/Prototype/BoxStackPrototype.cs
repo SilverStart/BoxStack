@@ -23,7 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 4;
+    private const int PrototypeBuildNumber = 8;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -32,9 +32,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float BoxSize = 1.0f;
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
-    private const float ParcelFriction = 2.4f;
-    private const float FloorFriction = 6.0f;
+    private const float ParcelFriction = 8.0f;
+    private const float FloorFriction = 8.0f;
     private const float ParcelBounciness = 0f;
+    private const float SettledGravityScale = 1.6f;
+    private const float DroppingGravityScale = 1.1f;
+    private const float MaxDroppingFallSpeed = 4.5f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
     private const float StackLineTolerance = 0.75f;
@@ -334,6 +337,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         UpdateCamera();
+    }
+
+    private void FixedUpdate()
+    {
+        if (_state == PrototypeState.ResolvingDrop)
+        {
+            ClampDroppingBoxFallSpeed();
+        }
     }
 
     private void OnGUI()
@@ -1401,7 +1412,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var body = box.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
-        body.gravityScale = 1.6f;
+        body.gravityScale = SettledGravityScale;
         body.mass = 1f;
         body.linearDamping = 0.6f;
         body.angularDamping = 0.8f;
@@ -1500,12 +1511,33 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var body = _activeBox.GetComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Dynamic;
+        body.gravityScale = DroppingGravityScale;
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
         StartCoroutine(ResolveDrop(_activeBox));
         _droppingBox = _activeBox;
         _activeBox = null;
+    }
+
+    private void ClampDroppingBoxFallSpeed()
+    {
+        if (_droppingBox == null)
+        {
+            return;
+        }
+
+        var body = _droppingBox.GetComponent<Rigidbody2D>();
+        if (body == null)
+        {
+            return;
+        }
+
+        Vector2 velocity = body.linearVelocity;
+        if (velocity.y < -MaxDroppingFallSpeed)
+        {
+            body.linearVelocity = new Vector2(velocity.x, -MaxDroppingFallSpeed);
+        }
     }
 
     private IEnumerator ResolveDrop(GameObject droppedBox)
@@ -1522,6 +1554,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
         if (renderer != null && IsPlaceholderSprite(renderer.sprite))
         {
             renderer.color = _placedTint;
+        }
+
+        var body = droppedBox.GetComponent<Rigidbody2D>();
+        if (body != null)
+        {
+            body.gravityScale = SettledGravityScale;
         }
 
         _placedBoxes.Add(droppedBox);
