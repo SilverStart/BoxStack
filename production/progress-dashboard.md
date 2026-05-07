@@ -4,7 +4,7 @@ Last updated: 2026-05-08
 
 ## Next Immediate Action
 
-Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visible, then check whether lower-box sliding is reduced.
+Rebuild WebGL and retest on the phone. Confirm `B002` is visible, Korean UI text renders, then check whether lower-box sliding is reduced.
 
 ## Prototype / Playtest History
 
@@ -54,6 +54,8 @@ Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visi
 - 2026-05-08: Phone browser can reach the PC AIT Dev Server on the LAN (`172.30.1.14:5173`).
 - 2026-05-08: Lower-box sliding felt too strong on phone WebGL, so parcel friction was raised to `2.4` and Rigidbody2D damping was raised to `linearDamping = 0.6`, `angularDamping = 0.8` for the next build.
 - 2026-05-08: A small `B001` build marker was added below the top-right HUD area so phone tests can confirm a fresh WebGL build is loaded.
+- 2026-05-08: Changes were split into focused commits through `94a6549 AIT 웹GL 빌드 설정 정리`; the worktree was clean immediately after the commit checkpoint.
+- 2026-05-08: WebGL Korean text fallback was fixed by adding `NotoSansKR-VF.ttf` under `Assets/Resources/Prototype/Fonts/`, applying it to the prototype `OnGUI` styles, and bumping the build marker to `B002`.
 
 ## Current Decisions
 
@@ -83,7 +85,7 @@ Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visi
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B001`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B002`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -95,6 +97,7 @@ Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visi
 - Does the safe-area-aware IMGUI layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
 - Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
 - Does the phone browser load the AIT/WebGL build reliably through the PC LAN IP?
+- Does the WebGL build render Korean text correctly across HUD, stage select, result popup, and rescue button states?
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
@@ -114,6 +117,7 @@ Rebuild WebGL and retest the physics tuning on the phone. Confirm `B001` is visi
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
+- The prototype now includes a full Korean font in `Resources`, which is acceptable for fast WebGL validation but adds build weight until UI/font handling is replaced or subsetted.
 - Safe area is handled in the prototype IMGUI layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.

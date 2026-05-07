@@ -21,8 +21,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string ParcelResourceFolder = "Prototype/Parcel";
     private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
+    private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 1;
+    private const int PrototypeBuildNumber = 2;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -63,6 +64,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Sprite _backgroundSprite;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private GameObject _background;
+    private Font _prototypeFont;
     private GUIStyle _hudPillStyle;
     private GUIStyle _hudPillShadowStyle;
     private GUIStyle _hudProgressTrackStyle;
@@ -364,6 +366,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             wordWrap = false,
             normal = { textColor = labelColor }
         };
+        ApplyPrototypeFont(labelStyle);
         SetTextColorStates(labelStyle, labelColor);
 
         int countFontSize = GetHudFontSize("88 / 88", countRect.width);
@@ -377,12 +380,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
             wordWrap = false,
             normal = { textColor = countColor }
         };
+        ApplyPrototypeFont(countStyle);
         SetTextColorStates(countStyle, countColor);
 
         var statusStyle = new GUIStyle(labelStyle)
         {
             alignment = TextAnchor.MiddleCenter
         };
+        ApplyPrototypeFont(statusStyle);
         SetTextColorStates(statusStyle, labelColor);
 
         GUI.Label(labelRect, GetStageLabel(), labelStyle);
@@ -445,7 +450,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return $"ST {CurrentStage.Number:00}";
     }
 
-    private static int GetHudFontSize(string text, float maxWidth)
+    private int GetHudFontSize(string text, float maxWidth)
     {
         var content = new GUIContent(text);
         var measuringStyle = new GUIStyle(GUI.skin.label)
@@ -453,6 +458,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Bold,
             wordWrap = false
         };
+        ApplyPrototypeFont(measuringStyle);
 
         for (int fontSize = HudMaxFontSize; fontSize > HudMinFontSize; fontSize -= 2)
         {
@@ -483,6 +489,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
         if (_hudPillStyle != null)
         {
             return;
+        }
+
+        _prototypeFont = Resources.Load<Font>(KoreanFontResourcePath);
+        if (_prototypeFont != null)
+        {
+            GUI.skin.font = _prototypeFont;
         }
 
         _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.73f, 0.52f, 0.28f, 0.72f), 4);
@@ -543,7 +555,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.enabled = previousEnabled;
     }
 
-    private static void DrawPrototypeBuildNumber(Rect anchorRect)
+    private void DrawPrototypeBuildNumber(Rect anchorRect)
     {
         var buildStyle = new GUIStyle(GUI.skin.label)
         {
@@ -551,6 +563,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontSize = 12,
             fontStyle = FontStyle.Bold
         };
+        ApplyPrototypeFont(buildStyle);
         SetTextColorStates(buildStyle, new Color(0.20f, 0.16f, 0.12f, 0.45f));
 
         var buildRect = new Rect(anchorRect.xMax - 76f, anchorRect.yMax + 6f, 64f, 20f);
@@ -588,6 +601,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Bold,
             normal = { textColor = titleColor }
         };
+        ApplyPrototypeFont(titleStyle);
         SetTextColorStates(titleStyle, titleColor);
 
         Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
@@ -599,6 +613,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Normal,
             normal = { textColor = bodyColor }
         };
+        ApplyPrototypeFont(bodyStyle);
         SetTextColorStates(bodyStyle, bodyColor);
 
         var normalStageButtonStyle = new GUIStyle(_hudPillStyle)
@@ -609,6 +624,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Bold,
             wordWrap = true
         };
+        ApplyPrototypeFont(normalStageButtonStyle);
         SetTextColorStates(normalStageButtonStyle, new Color(0.18f, 0.14f, 0.10f));
 
         var selectedStageButtonStyle = new GUIStyle(_resultButtonStyle)
@@ -619,6 +635,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Bold,
             wordWrap = true
         };
+        ApplyPrototypeFont(selectedStageButtonStyle);
         SetTextColorStates(selectedStageButtonStyle, Color.white);
 
         var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 20f, panelRect.width - 48f, 32f);
@@ -737,6 +754,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             fontStyle = FontStyle.Bold,
             normal = { textColor = titleColor }
         };
+        ApplyPrototypeFont(titleStyle);
         SetTextColorStates(titleStyle, titleColor);
 
         Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
@@ -749,6 +767,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             wordWrap = true,
             normal = { textColor = bodyColor }
         };
+        ApplyPrototypeFont(bodyStyle);
         SetTextColorStates(bodyStyle, bodyColor);
 
         Color rescueStatusColor = _rescueAdInProgress
@@ -765,6 +784,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             wordWrap = true,
             normal = { textColor = rescueStatusColor }
         };
+        ApplyPrototypeFont(rescueStatusStyle);
         SetTextColorStates(rescueStatusStyle, rescueStatusColor);
 
         var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
@@ -931,13 +951,25 @@ public sealed class BoxStackPrototype : MonoBehaviour
         GUI.color = previousColor;
     }
 
-    private static GUIStyle CreateHudBoxStyle(Texture2D texture, int sliceBorder = 24)
+    private GUIStyle CreateHudBoxStyle(Texture2D texture, int sliceBorder = 24)
     {
-        return new GUIStyle
+        var style = new GUIStyle
         {
             normal = { background = texture },
             border = new RectOffset(sliceBorder, sliceBorder, sliceBorder, sliceBorder)
         };
+        ApplyPrototypeFont(style);
+        return style;
+    }
+
+    private void ApplyPrototypeFont(GUIStyle style)
+    {
+        if (_prototypeFont == null)
+        {
+            return;
+        }
+
+        style.font = _prototypeFont;
     }
 
     private static float GetHudTopY()

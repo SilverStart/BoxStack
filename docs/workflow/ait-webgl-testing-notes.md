@@ -9,6 +9,7 @@ This note captures the current Apps in Toss / Unity WebGL test findings so a new
 - Resolved: `AIT > Dev Server > Start Server` now launches the local Vite server after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor.
 - Resolved: In the PC browser, parcel and conveyor/floor images now match the intended prototype assets after copying build-included Resources sprites and rebuilding AIT/WebGL.
 - Resolved: phone browser can reach the PC AIT Dev Server on the same LAN.
+- Pending verification: the prototype now includes a Korean-capable `NotoSansKR-VF` font under `Assets/Resources/Prototype/Fonts/` and applies it to the IMGUI styles, so WebGL Korean text should render instead of disappearing.
 - Remaining: phone browser testing is still needed for real portrait layout, touch input, safe area, WebGL performance, and the latest physics tuning.
 
 ## Dev Server Finding
@@ -122,19 +123,30 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 - Tap-to-drop input works reliably.
 - Stage label opens stage select; locked stages stay disabled.
 - Restart, free rescue, and mock reward-ad rescue buttons respond to touch.
+- Korean HUD, stage select, result popup, and rescue button text is visible in WebGL.
 - Stages 1, 5, 10, 15, and 20 are playable enough to judge difficulty.
 - No obvious freezes, browser crashes, or severe frame drops during stack collapse.
-- The small build marker below the top-right HUD area shows the expected value (`B001` for the current prototype build marker).
+- The small build marker below the top-right HUD area shows the expected value (`B002` for the current prototype build marker).
 
 ## Build Marker
 
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current value is:
 
 ```text
-B001
+B002
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build.
+
+## WebGL Korean Font Fix
+
+`OnGUI` text can lose Korean glyphs in WebGL if the build relies on Unity's default runtime font. The current prototype includes `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` and loads it with `Resources.Load<Font>("Prototype/Fonts/NotoSansKR-VF")`, then applies it to HUD, stage select, result popup, rescue buttons, and the build marker styles.
+
+Remaining verification:
+
+1. Rebuild WebGL.
+2. Open the browser build and confirm Korean text appears in all prototype UI states.
+3. Confirm the build marker shows `B002`, not `B001`.
 
 ## Current Physics Tuning To Retest
 
@@ -157,24 +169,21 @@ The current HUD, stage select, and result popup are still Unity `OnGUI` prototyp
 - safe area behavior
 - layout clipping
 
-Recent uncommitted code added `Screen.safeArea` conversion for IMGUI placement, but this still needs browser/device playtest. For production-like UI, plan to migrate from `OnGUI` to a runtime UI layer such as UGUI or UI Toolkit after the remaining gameplay/progression prototype checks.
+Committed prototype code now uses `Screen.safeArea` conversion for IMGUI placement, but this still needs browser/device playtest. For production-like UI, plan to migrate from `OnGUI` to a runtime UI layer such as UGUI or UI Toolkit after the remaining gameplay/progression prototype checks.
 
 ## Current Worktree Note
 
-As of this note, there are uncommitted changes from safe-area layout work and Unity/AIT/WebGL generated metadata/settings. Do not revert them blindly; inspect before committing or splitting commits.
+As of the commit checkpoint on 2026-05-08, the related changes were split into focused commits and the worktree was clean immediately afterward.
 
-Likely intentional current code/doc changes:
+Recent checkpoint commits:
 
-- `Assets/Scripts/Prototype/BoxStackPrototype.cs`
-- `production/session-state/active.md`
-- `production/progress-dashboard.md`
-
-Likely Unity/AIT generated or import-setting changes observed:
-
-- parcel/background `.png.meta` files
-- URP/global/project settings
-- `Assets/WebGLTemplates.meta`
+- `8aa7158 웹GL 프로토타입 리소스 로딩 수정`
+- `daeb9f4 모바일 안전 영역에 맞춰 프로토타입 UI 보정`
+- `0884502 박스 미끄러짐 완화 물리값 조정`
+- `b0e12b0 프로토타입 빌드 번호 표시 추가`
+- `16e0c1c AIT 웹GL 테스트 절차 기록`
+- `94a6549 AIT 웹GL 빌드 설정 정리`
 
 ## Next Suggested Task
 
-Run the phone browser smoke test using the PC LAN IP from the AIT Dev Server output, then record the result in `production/session-state/active.md` and `production/progress-dashboard.md`.
+Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B002` is visible, confirm Korean UI text renders, then retest whether the latest physics tuning reduces lower-box sliding without making the stack feel glued.
