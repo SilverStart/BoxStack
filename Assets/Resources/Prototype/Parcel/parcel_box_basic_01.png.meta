@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: b4d5921a7f9c4609bcb0b53e2d7fe7e3
+guid: 360b607377a74a948997bb2f29584c65
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -21,7 +21,7 @@ TextureImporter:
     heightScale: 0.25
     normalMapFilter: 0
     flipGreenChannel: 0
-  isReadable: 0
+  isReadable: 1
   streamingMipmaps: 0
   streamingMipmapsPriority: 0
   vTOnly: 0
@@ -126,7 +126,7 @@ TextureImporter:
     customData:
     physicsShape: []
     bones: []
-    spriteID: 4e3d8f9c3f575f3e9d2f345678900003
+    spriteID: d1f61ee8e43549ea8a6f16029d33e998
     internalID: 0
     vertices: []
     indices:

@@ -1730,6 +1730,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return sprite;
         }
 
+        Texture2D resourceTexture = Resources.Load<Texture2D>($"{resourceFolder}/{assetName}");
+        if (resourceTexture != null)
+        {
+            return CreateRuntimeSprite(assetName, resourceTexture);
+        }
+
 #if UNITY_EDITOR
         string assetPath = $"{assetFolder}/{assetName}.png";
         string absolutePath = Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length));
@@ -1744,7 +1750,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
             if (ImageConversion.LoadImage(fileTexture, bytes))
             {
-                return Sprite.Create(fileTexture, new Rect(0f, 0f, fileTexture.width, fileTexture.height), new Vector2(0.5f, 0.5f), fileTexture.width);
+                return CreateRuntimeSprite(assetName, fileTexture);
             }
         }
 
@@ -1757,13 +1763,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
         Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
         if (texture != null)
         {
-            return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
+            return CreateRuntimeSprite(assetName, texture);
         }
 
         return null;
 #else
         return null;
 #endif
+    }
+
+    private static Sprite CreateRuntimeSprite(string assetName, Texture2D texture)
+    {
+        texture.name = assetName;
+        return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
     }
 
     private void CreateBackground()
