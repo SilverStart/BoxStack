@@ -126,14 +126,14 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 - Korean HUD, stage select, result popup, and rescue button text is visible in WebGL.
 - Stages 1, 5, 10, 15, and 20 are playable enough to judge difficulty.
 - No obvious freezes, browser crashes, or severe frame drops during stack collapse.
-- The small build marker below the top-right HUD area shows the expected value (`B002` for the current prototype build marker).
+- The small build marker below the top-right HUD area shows the expected value (`B003` for the current prototype build marker).
 
 ## Build Marker
 
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current value is:
 
 ```text
-B002
+B003
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build.
@@ -146,18 +146,19 @@ Remaining verification:
 
 1. Rebuild WebGL.
 2. Open the browser build and confirm Korean text appears in all prototype UI states.
-3. Confirm the build marker shows `B002`, not `B001`.
+3. Confirm the build marker shows `B003`, not `B002`.
 
 ## Current Physics Tuning To Retest
 
-The latest phone test reported that lower boxes still slide sideways too easily. The next WebGL build should verify:
+The latest phone test reported that the bottom box still slides sideways too easily. The next WebGL build should verify:
 
-- `PhysicsMaterial2D.friction = 2.4`
+- parcel `PhysicsMaterial2D.friction = 2.4`
+- floor `PhysicsMaterial2D.friction = 6.0`
 - `PhysicsMaterial2D.bounciness = 0`
 - `Rigidbody2D.linearDamping = 0.6`
 - `Rigidbody2D.angularDamping = 0.8`
 
-Expected result: lower-box sliding should be reduced, while badly stacked towers can still collapse.
+Expected result: bottom-box sliding should be reduced, while upper boxes still shift/collapse naturally when badly stacked.
 
 ## UI Finding
 
@@ -186,4 +187,4 @@ Recent checkpoint commits:
 
 ## Next Suggested Task
 
-Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B002` is visible, confirm Korean UI text renders, then retest whether the latest physics tuning reduces lower-box sliding without making the stack feel glued.
+Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B003` is visible, then retest whether floor-only friction reduces bottom-box sliding without making the stack feel glued.

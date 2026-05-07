@@ -23,7 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 2;
+    private const int PrototypeBuildNumber = 3;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -33,6 +33,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
     private const float ParcelFriction = 2.4f;
+    private const float FloorFriction = 6.0f;
     private const float ParcelBounciness = 0f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
@@ -63,6 +64,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Sprite _floorSprite;
     private Sprite _backgroundSprite;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
+    private PhysicsMaterial2D _floorPhysicsMaterial;
     private GameObject _background;
     private Font _prototypeFont;
     private GUIStyle _hudPillStyle;
@@ -1088,7 +1090,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var collider = floor.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(6.2f, FloorHeight);
-        collider.sharedMaterial = _parcelPhysicsMaterial;
+        collider.sharedMaterial = _floorPhysicsMaterial;
 
         UpdateMinimumCameraY();
     }
@@ -1413,6 +1415,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _parcelPhysicsMaterial = new PhysicsMaterial2D("Prototype Parcel Friction")
         {
             friction = ParcelFriction,
+            bounciness = ParcelBounciness
+        };
+        _floorPhysicsMaterial = new PhysicsMaterial2D("Prototype Floor Friction")
+        {
+            friction = FloorFriction,
             bounciness = ParcelBounciness
         };
     }

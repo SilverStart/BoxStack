@@ -4,7 +4,7 @@ Last updated: 2026-05-08
 
 ## Next Immediate Action
 
-Rebuild WebGL and retest on the phone. Confirm `B002` is visible, Korean UI text renders, then check whether lower-box sliding is reduced.
+Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whether the floor-only `friction = 6.0` reduces bottom-box sliding without making the stack feel glued.
 
 ## Prototype / Playtest History
 
@@ -56,6 +56,7 @@ Rebuild WebGL and retest on the phone. Confirm `B002` is visible, Korean UI text
 - 2026-05-08: A small `B001` build marker was added below the top-right HUD area so phone tests can confirm a fresh WebGL build is loaded.
 - 2026-05-08: Changes were split into focused commits through `94a6549 AIT 웹GL 빌드 설정 정리`; the worktree was clean immediately after the commit checkpoint.
 - 2026-05-08: WebGL Korean text fallback was fixed by adding `NotoSansKR-VF.ttf` under `Assets/Resources/Prototype/Fonts/`, applying it to the prototype `OnGUI` styles, and bumping the build marker to `B002`.
+- 2026-05-08: Phone WebGL testing still showed the bottom box sliding too easily, so floor contact now uses a separate `PhysicsMaterial2D` with `friction = 6.0` while parcel contact stays at `friction = 2.4`; the build marker is now `B003`.
 
 ## Current Decisions
 
@@ -85,7 +86,7 @@ Rebuild WebGL and retest on the phone. Confirm `B002` is visible, Korean UI text
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B002`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B003`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -103,7 +104,7 @@ Rebuild WebGL and retest on the phone. Confirm `B002` is visible, Korean UI text
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does `friction = 2.4` plus stronger damping reduce the unwanted slide without making the stack feel glued together?
+- Does floor-only `friction = 6.0` stop the bottom box from sliding without making the stack feel glued together?
 - Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
 - Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
