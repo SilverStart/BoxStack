@@ -22,6 +22,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
+    private const int PrototypeBuildNumber = 1;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -397,10 +398,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
         if (_state == PrototypeState.StageSelect)
         {
             DrawStageSelectOverlay();
+            DrawPrototypeBuildNumber(barRect);
             return;
         }
 
         DrawResultPopup();
+        DrawPrototypeBuildNumber(barRect);
     }
 
     private void DrawHudProgress(Rect rect, float progress)
@@ -538,6 +541,20 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         GUI.enabled = previousEnabled;
+    }
+
+    private static void DrawPrototypeBuildNumber(Rect anchorRect)
+    {
+        var buildStyle = new GUIStyle(GUI.skin.label)
+        {
+            alignment = TextAnchor.MiddleRight,
+            fontSize = 12,
+            fontStyle = FontStyle.Bold
+        };
+        SetTextColorStates(buildStyle, new Color(0.20f, 0.16f, 0.12f, 0.45f));
+
+        var buildRect = new Rect(anchorRect.xMax - 76f, anchorRect.yMax + 6f, 64f, 20f);
+        GUI.Label(buildRect, $"B{PrototypeBuildNumber:000}", buildStyle);
     }
 
     private void DrawStageSelectOverlay()
