@@ -4,7 +4,7 @@ Last updated: 2026-05-08
 
 ## Next Immediate Action
 
-Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whether the floor-only `friction = 6.0` reduces bottom-box sliding without making the stack feel glued.
+Rebuild WebGL and test the `B004` phone build with one free failure rescue per stage and no mock reward-ad rescue.
 
 ## Prototype / Playtest History
 
@@ -57,6 +57,7 @@ Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whe
 - 2026-05-08: Changes were split into focused commits through `94a6549 AIT 웹GL 빌드 설정 정리`; the worktree was clean immediately after the commit checkpoint.
 - 2026-05-08: WebGL Korean text fallback was fixed by adding `NotoSansKR-VF.ttf` under `Assets/Resources/Prototype/Fonts/`, applying it to the prototype `OnGUI` styles, and bumping the build marker to `B002`.
 - 2026-05-08: Phone WebGL testing still showed the bottom box sliding too easily, so floor contact now uses a separate `PhysicsMaterial2D` with `friction = 6.0` while parcel contact stays at `friction = 2.4`; the build marker is now `B003`.
+- 2026-05-08: Failure rescue was narrowed to one free restore per stage for the next phone test; the mock reward-ad restore is disabled and the build marker is now `B004`.
 
 ## Current Decisions
 
@@ -77,16 +78,15 @@ Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whe
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- Later-stage difficulty should first be tested with a free-first fail-popup rescue, because it softens difficulty before introducing the reward-ad recovery prompt.
-- Actual ad SDK integration is deferred; current prototype only tests the UX timing and player expectation with a mock confirmation delay.
-- The fail-popup rescue state should use short user-facing copy while distinguishing free continuation from reward-ad continuation.
-- Ad/free rescue use should not reduce clear rewards or visible stage progress, because that could discourage players from watching an ad.
+- Later-stage difficulty should first be tested with one free fail-popup rescue before reintroducing any reward-ad recovery prompt.
+- Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
+- The fail-popup rescue state should use short user-facing copy focused on the one free continuation.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B003`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B004`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -105,8 +105,7 @@ Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whe
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does floor-only `friction = 6.0` stop the bottom box from sliding without making the stack feel glued together?
-- Does one free rescue plus one mock reward-ad rescue make stages 10+ feel fair without removing too much challenge?
-- Does the mock reward-ad confirmation delay feel natural, or does it interrupt retry flow too much?
+- Does one free rescue make stages 10+ feel fair without removing too much challenge?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
@@ -123,8 +122,8 @@ Rebuild WebGL and retest on the phone. Confirm `B003` is visible, then check whe
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
-- Snapshot-based rescue should feel fair, but one free plus one ad rescue may be too forgiving if it removes too much risk from hard stages.
-- Reward-style rescue can still feel monetized too early if the second failure prompt appears before the player accepts the stage as fair.
+- Snapshot-based rescue should feel fair, but even one free rescue may be too forgiving if it removes too much risk from hard stages.
+- Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
 - Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.

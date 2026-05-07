@@ -23,7 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 3;
+    private const int PrototypeBuildNumber = 4;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -50,7 +50,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float HudBarHeight = 68f;
     private const float HudProgressHeight = 14f;
     private const int FreeRescuesPerStage = 1;
-    private const int AdRescuesPerStage = 1;
+    private const int AdRescuesPerStage = 0;
     private const float ResultPanelMaxWidth = 360f;
     private const float ResultPanelHeight = 260f;
 

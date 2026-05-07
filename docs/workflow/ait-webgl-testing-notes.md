@@ -122,18 +122,18 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 - Parcel boxes and the conveyor/floor use the intended image assets, not placeholder rectangles.
 - Tap-to-drop input works reliably.
 - Stage label opens stage select; locked stages stay disabled.
-- Restart, free rescue, and mock reward-ad rescue buttons respond to touch.
+- Restart and free rescue buttons respond to touch.
 - Korean HUD, stage select, result popup, and rescue button text is visible in WebGL.
 - Stages 1, 5, 10, 15, and 20 are playable enough to judge difficulty.
 - No obvious freezes, browser crashes, or severe frame drops during stack collapse.
-- The small build marker below the top-right HUD area shows the expected value (`B003` for the current prototype build marker).
+- The small build marker below the top-right HUD area shows the expected value (`B004` for the current prototype build marker).
 
 ## Build Marker
 
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current value is:
 
 ```text
-B003
+B004
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build.
@@ -146,7 +146,7 @@ Remaining verification:
 
 1. Rebuild WebGL.
 2. Open the browser build and confirm Korean text appears in all prototype UI states.
-3. Confirm the build marker shows `B003`, not `B002`.
+3. Confirm the build marker shows `B004`, not `B003`.
 
 ## Current Physics Tuning To Retest
 
@@ -187,4 +187,4 @@ Recent checkpoint commits:
 
 ## Next Suggested Task
 
-Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B003` is visible, then retest whether floor-only friction reduces bottom-box sliding without making the stack feel glued.
+Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B004` is visible, then retest whether one free failure rescue per stage feels fair enough without the mock reward-ad rescue.
