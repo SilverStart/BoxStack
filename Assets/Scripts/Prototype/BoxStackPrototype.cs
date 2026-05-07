@@ -30,7 +30,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float BoxSize = 1.0f;
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
-    private const float ParcelFriction = 1.2f;
+    private const float ParcelFriction = 2.4f;
     private const float ParcelBounciness = 0f;
     private const float LostHeight = -4.0f;
     private const float LostHorizontalDistance = 4.0f;
@@ -1352,8 +1352,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         body.bodyType = RigidbodyType2D.Kinematic;
         body.gravityScale = 1.6f;
         body.mass = 1f;
-        body.linearDamping = 0.25f;
-        body.angularDamping = 0.4f;
+        body.linearDamping = 0.6f;
+        body.angularDamping = 0.8f;
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         return box;
