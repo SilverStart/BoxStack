@@ -112,5 +112,6 @@ InitTestScene*.unity*
 ait-build/
 webgl/
 Assets/WebGLTemplates/
+Assets/WebGLTemplates.meta
 Assets/StreamingAssets/build_info
 Assets/StreamingAssets/build_info.meta
