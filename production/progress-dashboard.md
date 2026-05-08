@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-08
+Last updated: 2026-05-09
 
 ## Next Immediate Action
 
-Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce impact-driven sideways slide while upper boxes can still rotate, tip, or collapse naturally.
+Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-clamped-speed-stages.md` to confirm all box shapes stay inside the visible screen and later-stage movement speed still feels appropriately fast on stages `1`, `5`, `10`, `15`, and `20`. Recheck movement feel, difficulty fairness, one-free-rescue usefulness, and immediate collapse detection.
 
 ## Prototype / Playtest History
 
@@ -62,6 +62,13 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - 2026-05-08: Settled-box anchoring now freezes X position for every placed box after landing, while only the first foundation box also freezes rotation; the build marker is now `B006`.
 - 2026-05-08: Settled-box anchoring made towers too stable, so the anchor logic was removed and parcel/floor friction were both raised to `8.0` for the `B007` test.
 - 2026-05-08: Phone testing still showed impact-driven lower-box sliding, so falling boxes now temporarily use `gravityScale = 1.1` with a `4.5` fall-speed cap before returning to settled `gravityScale = 1.6`; the build marker is now `B008`.
+- 2026-05-08: Phone testing judged the `B008` softened-drop tuning "just right", and the change was committed as `ceba02c 낙하 충격 완화로 박스 밀림 조정`.
+- 2026-05-09: Pre-drop horizontal movement changed from eased sine motion to constant-speed endpoint reversal; the build marker is now `B009`.
+- 2026-05-09: Pre-drop horizontal movement now starts at screen center and moves right first while keeping the B009 constant-speed endpoint reversal; the build marker is now `B010`.
+- 2026-05-09: Pre-drop movement range is now clamped to the visible camera width so higher-stage range multipliers cannot push boxes outside the screen; the build marker is now `B011`.
+- 2026-05-09: B011 phone testing confirmed boxes now stay inside the screen, but stage 20 movement felt slower because the screen clamp also shortened the effective movement speed.
+- 2026-05-09: Screen-clamped movement now compensates speed against the unclamped stage range, so later stages keep their intended speed feel while staying visible; the build marker is now `B012`.
+- 2026-05-09: The representative-stage playtest checklist was updated at `production/qa/playtests/playtest-2026-05-09-b012-screen-clamped-speed-stages.md` for stages 1, 5, 10, 15, and 20.
 
 ## Current Decisions
 
@@ -69,7 +76,7 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - Keep planning lightweight: active state plus dashboard, no heavy GDD/ADR/review workflow by default.
 - Record playtest outcomes briefly in this dashboard and `production/session-state/active.md`.
 - Target launch context is Toss app-in-app, so prototype direction favors lightweight 2D/2.5D sprites over modeled 3D assets.
-- Current prototype uses timing-based drops, runtime placeholder parcel sprites, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
+- Current prototype uses timing-based screen-clamped centered constant-speed drops, runtime placeholder parcel sprites, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
 - Next asset direction is AI-generated 2D PNGs with clear silhouettes, visible contact edges, transparent backgrounds, and mobile-readable parcel details.
 - Expected prototype sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
@@ -81,7 +88,8 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - First game UI direction is Toss Minimal: a compact top bar with progress feedback plus a central success/fail result popup for run completion.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
-- Use high friction plus softened falling-box impact rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
+- Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
+- Use the approved `B008` high-friction plus softened falling-box impact baseline rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
 - Later-stage difficulty should first be tested with one free fail-popup rescue before reintroducing any reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
@@ -91,7 +99,7 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B008`, then increment manually) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B012`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -107,9 +115,10 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
+- Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does softened falling-box impact reduce sideways sliding enough without making the whole stack feel floaty?
+- Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
 - Does one free rescue make stages 10+ feel fair without removing too much challenge?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
@@ -127,7 +136,8 @@ Rebuild WebGL and test the `B008` phone build. Confirm softened drops reduce imp
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
-- Softened falling-box impact may reduce slide at the cost of making drops feel less weighty, so B008 needs phone playtest judgment before committing to the direction.
+- Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
+- Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - Snapshot-based rescue should feel fair, but even one free rescue may be too forgiving if it removes too much risk from hard stages.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.

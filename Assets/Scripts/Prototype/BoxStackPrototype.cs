@@ -23,13 +23,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 8;
+    private const int PrototypeBuildNumber = 12;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BaseMoveRange = 2.45f;
     private const float BaseMoveSpeed = 1.85f;
     private const float BoxSize = 1.0f;
+    private const float MoveRangeScreenPadding = 0.12f;
     private const float DropSettleSeconds = 1.0f;
     private const float ClearValidationSeconds = 5.0f;
     private const float ParcelFriction = 8.0f;
@@ -231,6 +232,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
     }
 
     private float CurrentMoveRange
+    {
+        get
+        {
+            return Mathf.Min(CurrentStageMoveRange, GetScreenSafeMoveRange());
+        }
+    }
+
+    private float CurrentStageMoveRange
     {
         get { return BaseMoveRange * CurrentStage.RangeMultiplier; }
     }
@@ -1389,7 +1398,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _moveStartedAt = Time.time;
 
         _activeBox = CreatePrototypeBox($"Prototype Parcel Box {_placedBoxes.Count + 1}", _activeTint);
-        _activeBox.transform.position = new Vector3(-CurrentMoveRange, _spawnHeight, 0f);
+        _activeBox.transform.position = new Vector3(0f, _spawnHeight, 0f);
     }
 
     private GameObject CreatePrototypeBox(string boxName, Color tint)
@@ -1443,8 +1452,43 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         float elapsed = Time.time - _moveStartedAt;
-        float x = Mathf.Sin(elapsed * CurrentMoveSpeed) * CurrentMoveRange;
+        float moveRange = CurrentMoveRange;
+        if (moveRange <= 0f)
+        {
+            _activeBox.transform.position = new Vector3(0f, _spawnHeight, 0f);
+            return;
+        }
+
+        float rangeSpeedCompensation = CurrentStageMoveRange / moveRange;
+        float cyclePosition = Mathf.Repeat(
+            (elapsed * CurrentMoveSpeed * rangeSpeedCompensation / (2f * Mathf.PI)) + 0.25f,
+            1f);
+        float normalizedX = cyclePosition < 0.5f
+            ? -1f + (cyclePosition * 4f)
+            : 3f - (cyclePosition * 4f);
+        float x = normalizedX * moveRange;
         _activeBox.transform.position = new Vector3(x, _spawnHeight, 0f);
+    }
+
+    private float GetScreenSafeMoveRange()
+    {
+        if (_camera == null)
+        {
+            return BaseMoveRange;
+        }
+
+        float cameraHalfWidth = _camera.orthographicSize * _camera.aspect;
+        return Mathf.Max(0f, cameraHalfWidth - GetActiveBoxHalfWidth() - MoveRangeScreenPadding);
+    }
+
+    private float GetActiveBoxHalfWidth()
+    {
+        if (_activeBox != null && _activeBox.TryGetComponent(out BoxCollider2D collider))
+        {
+            return collider.size.x * Mathf.Abs(_activeBox.transform.lossyScale.x) * 0.5f;
+        }
+
+        return BoxSize * 0.5f;
     }
 
     private void UpdateCamera()
