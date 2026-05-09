@@ -4,7 +4,7 @@ Last updated: 2026-05-10
 
 ## Next Immediate Action
 
-Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013 behavior: the build marker shows `B014`, stages still list 1-20, movement/physics/undo feel unchanged, and no console errors appear. After that, decide whether to create a real `Resources/Prototype/BoxStackPrototypeConfig` asset for inspector tuning or move next to the UI layer replacement.
+Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, stage select, and result popup out of runtime `OnGUI` into a production-like Unity UI layer while preserving B014 behavior and mobile safe-area placement.
 
 ## Prototype / Playtest History
 
@@ -73,6 +73,8 @@ Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013
 - 2026-05-10: Undo direction changed from fail-popup rescue to a one-use HUD undo button available during active play/drop/clear validation; the fail popup no longer offers continuation rescue, and the build marker is now `B013`.
 - 2026-05-10: B013 phone testing confirmed the separate HUD undo button is the better recovery direction for later stages, and the change was committed as `12692f8 되돌리기 버튼 방식으로 변경`.
 - 2026-05-10: Productization step 1 started: stage/tuning defaults moved behind `BoxStackPrototypeConfig`, with `BoxStackPrototype` loading a future `Resources/Prototype/BoxStackPrototypeConfig` asset when present and falling back to the approved B013 values otherwise. The build marker is now `B014`.
+- 2026-05-10: `Assets/Resources/Prototype/BoxStackPrototypeConfig.asset` was created with the approved B013/B014 stage and tuning values. Editor Play confirmed `Resources.Load` finds the asset, runtime config loading is active, stage count remains 20, and Unity console errors/warnings are 0.
+- 2026-05-10: B014 WebGL was rebuilt through AIT, copied into `ait-build/public`, served from `http://localhost:5173/index.html`, and smoke-tested in PC Chrome mobile viewport. The canvas loaded, the HUD showed Korean text plus `B014`, parcel/conveyor art rendered, and tap-to-drop advanced the counter to `1 / 4`. Phone LAN URL for manual spot testing is `http://172.30.1.14:5173/index.html`.
 
 ## Current Decisions
 
@@ -94,12 +96,12 @@ Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
 - Use the approved `B008` high-friction plus softened falling-box impact baseline rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
-- Stage implementation uses `BoxStackPrototypeConfig` fallback data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- `BoxStackPrototypeConfig` is now the first productization boundary for stage and tuning data; no checked-in config asset exists yet, so B014 still falls back to the approved B013 values.
+- Stage implementation uses `Assets/Resources/Prototype/BoxStackPrototypeConfig.asset`, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
+- `BoxStackPrototypeConfig` is now the first productization boundary for stage and tuning data; the checked-in config asset carries the approved B013/B014 values, while code fallback remains as a safety net.
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- The next productization pass should keep B013/B014 behavior unchanged while deciding whether to create a real config asset or move to UI layer replacement.
+- The next productization pass is UI replacement: preserve the accepted Toss Minimal HUD behavior while moving away from prototype `OnGUI`.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
@@ -116,7 +118,7 @@ Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013
 - What bottom padding feels best on the target portrait app-in-app viewport?
 - Does the safe-area-aware IMGUI layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
 - Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
-- Does the phone browser load the AIT/WebGL build reliably through the PC LAN IP?
+- Does the phone browser load the latest B014 AIT/WebGL build reliably through the PC LAN IP?
 - Does the WebGL build render Korean text correctly across HUD, stage select, result popup, and rescue button states?
 - Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
@@ -126,7 +128,6 @@ Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
-- Should B014 create a real `Resources/Prototype/BoxStackPrototypeConfig` asset now, or keep the code fallback until tuning stabilizes a bit more?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
 ## Risks
@@ -145,7 +146,7 @@ Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
-- The new config boundary should be smoke-tested once in Unity/WebGL because there is not yet a checked-in config asset exercising the `Resources.Load` path.
+- The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is still useful for real device safe-area, touch feel, and performance.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
