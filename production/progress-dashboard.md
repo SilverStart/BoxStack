@@ -4,7 +4,7 @@ Last updated: 2026-05-10
 
 ## Next Immediate Action
 
-Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appears, then test stages `10`, `15`, and `20` with the HUD undo button: place a visibly bad box, tap undo before the fail popup, and confirm the latest dropped/active box is removed without the tap also dropping another box. Also confirm the fail popup no longer presents a continuation rescue path.
+Smoke-test B014 in Editor or WebGL to confirm the config fallback preserves B013 behavior: the build marker shows `B014`, stages still list 1-20, movement/physics/undo feel unchanged, and no console errors appear. After that, decide whether to create a real `Resources/Prototype/BoxStackPrototypeConfig` asset for inspector tuning or move next to the UI layer replacement.
 
 ## Prototype / Playtest History
 
@@ -71,6 +71,8 @@ Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appea
 - 2026-05-09: The representative-stage playtest checklist was updated at `production/qa/playtests/playtest-2026-05-09-b012-screen-clamped-speed-stages.md` for stages 1, 5, 10, 15, and 20.
 - 2026-05-10: B012 WebGL was rebuilt through `AIT/Dev Server/Start Server`; `webgl/Build` and `ait-build/public/Build` were refreshed at 03:51, HTTP `200 OK` was confirmed on `localhost:5173`, and the phone test URL is `http://172.30.1.14:5173/index.html`.
 - 2026-05-10: Undo direction changed from fail-popup rescue to a one-use HUD undo button available during active play/drop/clear validation; the fail popup no longer offers continuation rescue, and the build marker is now `B013`.
+- 2026-05-10: B013 phone testing confirmed the separate HUD undo button is the better recovery direction for later stages, and the change was committed as `12692f8 되돌리기 버튼 방식으로 변경`.
+- 2026-05-10: Productization step 1 started: stage/tuning defaults moved behind `BoxStackPrototypeConfig`, with `BoxStackPrototype` loading a future `Resources/Prototype/BoxStackPrototypeConfig` asset when present and falling back to the approved B013 values otherwise. The build marker is now `B014`.
 
 ## Current Decisions
 
@@ -92,16 +94,18 @@ Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appea
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
 - Use the approved `B008` high-friction plus softened falling-box impact baseline rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
-- Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- Later-stage difficulty should now be tested with one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
+- Stage implementation uses `BoxStackPrototypeConfig` fallback data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
+- `BoxStackPrototypeConfig` is now the first productization boundary for stage and tuning data; no checked-in config asset exists yet, so B014 still falls back to the approved B013 values.
+- Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
+- The next productization pass should keep B013/B014 behavior unchanged while deciding whether to create a real config asset or move to UI layer replacement.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B013`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B014`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -121,8 +125,8 @@ Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appea
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
-- Does the one-use HUD undo button make stages 10+ feel fair without fighting already-collapsing physics?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
+- Should B014 create a real `Resources/Prototype/BoxStackPrototypeConfig` asset now, or keep the code fallback until tuning stabilizes a bit more?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
 ## Risks
@@ -132,7 +136,7 @@ Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appea
 - Visual polish may hide physics readability issues if box silhouettes and contact edges are not kept clear.
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
-- Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer.
+- Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer after the current gameplay/config boundary is cleaner.
 - The prototype now includes a full Korean font in `Resources`, which is acceptable for fast WebGL validation but adds build weight until UI/font handling is replaced or subsetted.
 - Safe area is handled in the prototype IMGUI layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
@@ -140,7 +144,8 @@ Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appea
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
-- HUD undo should feel like a timely correction tool, but the button may need repositioning if it competes with drop input or crowds the top HUD on small screens.
+- HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
+- The new config boundary should be smoke-tested once in Unity/WebGL because there is not yet a checked-in config asset exercising the `Resources.Load` path.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.

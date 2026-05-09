@@ -1,6 +1,7 @@
 # Coding Standards
 
 - All game code must include doc comments on public APIs
+- 코드에 작성하는 모든 주석과 public API doc comment 본문은 한글로 작성한다.
 - Every system must have a corresponding architecture decision record in `docs/architecture/`
 - Gameplay values must be data-driven (external config), never hardcoded
 - All public methods must be unit-testable (dependency injection over singletons)

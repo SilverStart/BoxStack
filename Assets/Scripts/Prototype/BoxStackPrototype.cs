@@ -1,6 +1,6 @@
-// PROTOTYPE - NOT FOR PRODUCTION
-// Question: Does a 2D/2.5D parcel-box stacking loop fit the Toss app-in-app concept and AI PNG asset pipeline?
-// Date: 2026-05-02
+// 프로토타입 - 제품 코드로 사용하지 않음
+// 질문: 2D/2.5D 택배 박스 쌓기 루프가 Toss 앱인앱 콘셉트와 AI PNG 에셋 파이프라인에 맞는가?
+// 날짜: 2026-05-02
 
 using System.Collections;
 using System.Collections.Generic;
@@ -22,26 +22,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
+    private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 13;
+    private const int PrototypeBuildNumber = 14;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
-    private const float BaseMoveRange = 2.45f;
-    private const float BaseMoveSpeed = 1.85f;
     private const float BoxSize = 1.0f;
-    private const float MoveRangeScreenPadding = 0.12f;
-    private const float DropSettleSeconds = 1.0f;
-    private const float ClearValidationSeconds = 5.0f;
-    private const float ParcelFriction = 8.0f;
-    private const float FloorFriction = 8.0f;
-    private const float ParcelBounciness = 0f;
-    private const float SettledGravityScale = 1.6f;
-    private const float DroppingGravityScale = 1.1f;
-    private const float MaxDroppingFallSpeed = 4.5f;
-    private const float LostHeight = -4.0f;
-    private const float LostHorizontalDistance = 4.0f;
-    private const float StackLineTolerance = 0.75f;
     private const float CameraYOffset = 2.2f;
     private const float CameraInitialY = 2.5f;
     private const float CameraBottomPadding = 0.25f;
@@ -53,8 +40,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float HudTopY = 18f;
     private const float HudBarHeight = 68f;
     private const float HudProgressHeight = 14f;
-    private const int FreeRescuesPerStage = 1;
-    private const int AdRescuesPerStage = 0;
     private const float ResultPanelMaxWidth = 360f;
     private const float ResultPanelHeight = 260f;
 
@@ -67,6 +52,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Camera _camera;
     private Sprite _floorSprite;
     private Sprite _backgroundSprite;
+    private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
     private GameObject _background;
@@ -146,24 +132,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         public Vector2 WorldSize;
     }
 
-    private struct StageConfig
-    {
-        public StageConfig(int number, int targetBoxes, string boxSequence, float speedMultiplier, float rangeMultiplier)
-        {
-            Number = number;
-            TargetBoxes = targetBoxes;
-            BoxSequence = boxSequence;
-            SpeedMultiplier = speedMultiplier;
-            RangeMultiplier = rangeMultiplier;
-        }
-
-        public int Number;
-        public int TargetBoxes;
-        public string BoxSequence;
-        public float SpeedMultiplier;
-        public float RangeMultiplier;
-    }
-
     private struct BoxSnapshot
     {
         public BoxSnapshot(GameObject box, Vector3 position, Quaternion rotation, RigidbodyType2D bodyType, Vector2 linearVelocity, float angularVelocity, bool simulated)
@@ -193,38 +161,44 @@ public sealed class BoxStackPrototype : MonoBehaviour
         new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
     };
 
-    private static readonly StageConfig[] StageConfigs =
-    {
-        new StageConfig(1, 4, "BBBB", 0.75f, 0.75f),
-        new StageConfig(2, 5, "BBBBB", 0.80f, 0.80f),
-        new StageConfig(3, 6, "BBWBBB", 0.85f, 0.85f),
-        new StageConfig(4, 6, "BTBBWB", 0.90f, 0.90f),
-        new StageConfig(5, 7, "BBWBTBB", 0.95f, 0.95f),
-        new StageConfig(6, 7, "WBBTBBW", 1.00f, 1.00f),
-        new StageConfig(7, 8, "BBTBWBBB", 1.00f, 1.00f),
-        new StageConfig(8, 8, "WBTBBWBT", 1.05f, 1.00f),
-        new StageConfig(9, 8, "BTTBWBBW", 1.05f, 1.05f),
-        new StageConfig(10, 9, "BBWTBBWBB", 1.10f, 1.05f),
-        new StageConfig(11, 9, "WTBBTBWBB", 1.10f, 1.10f),
-        new StageConfig(12, 9, "BWBTWBTBB", 1.15f, 1.10f),
-        new StageConfig(13, 10, "BBTWBTBWBB", 1.15f, 1.15f),
-        new StageConfig(14, 10, "WBTBTWBBTB", 1.20f, 1.15f),
-        new StageConfig(15, 10, "BTWBBTWTBB", 1.20f, 1.20f),
-        new StageConfig(16, 11, "WBBTWBTBWBB", 1.25f, 1.20f),
-        new StageConfig(17, 11, "BTBWTBBWTBB", 1.25f, 1.25f),
-        new StageConfig(18, 12, "BWTBBWTBTWBB", 1.30f, 1.25f),
-        new StageConfig(19, 12, "WTBTWBBTWBTB", 1.35f, 1.30f),
-        new StageConfig(20, 12, "BTWTBWTBWTBB", 1.40f, 1.30f)
-    };
-
     private static readonly Color ParcelBrownBackgroundColor = new Color(0.70f, 0.56f, 0.38f);
 
-    private StageConfig CurrentStage
+    private BoxStackPrototypeConfig.TuningSettings Tuning
     {
         get
         {
-            return StageConfigs[Mathf.Clamp(_currentStageIndex, 0, StageConfigs.Length - 1)];
+            return _prototypeConfig != null
+                ? _prototypeConfig.Tuning
+                : BoxStackPrototypeConfig.GetDefaultTuning();
         }
+    }
+
+    private int StageCount
+    {
+        get
+        {
+            return _prototypeConfig != null
+                ? _prototypeConfig.StageCount
+                : BoxStackPrototypeConfig.DefaultStageCount;
+        }
+    }
+
+    private BoxStackPrototypeConfig.StageSettings CurrentStage
+    {
+        get
+        {
+            return GetStage(_currentStageIndex);
+        }
+    }
+
+    private BoxStackPrototypeConfig.StageSettings GetStage(int stageIndex)
+    {
+        if (_prototypeConfig != null)
+        {
+            return _prototypeConfig.GetStage(stageIndex);
+        }
+
+        return BoxStackPrototypeConfig.GetDefaultStage(stageIndex);
     }
 
     private int CurrentTargetBoxes
@@ -242,12 +216,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private float CurrentStageMoveRange
     {
-        get { return BaseMoveRange * CurrentStage.RangeMultiplier; }
+        get { return Tuning.BaseMoveRange * CurrentStage.RangeMultiplier; }
     }
 
     private float CurrentMoveSpeed
     {
-        get { return BaseMoveSpeed * CurrentStage.SpeedMultiplier; }
+        get { return Tuning.BaseMoveSpeed * CurrentStage.SpeedMultiplier; }
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -263,6 +237,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void Start()
     {
+        LoadPrototypeConfig();
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
         _camera = EnsureCamera();
@@ -274,6 +249,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         CreateFloor();
         LoadStageProgress();
         RestartGame();
+    }
+
+    private void LoadPrototypeConfig()
+    {
+        _prototypeConfig = Resources.Load<BoxStackPrototypeConfig>(PrototypeConfigResourcePath);
     }
 
     private void Update()
@@ -681,9 +661,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         float cellWidth = (gridWidth - (gap * (columns - 1))) / columns;
         float cellHeight = Mathf.Clamp((panelRect.height - 246f - (gap * 4f)) / 5f, 38f, 54f);
 
-        for (int i = 0; i < StageConfigs.Length; i++)
+        for (int i = 0; i < StageCount; i++)
         {
-            StageConfig stage = StageConfigs[i];
+            BoxStackPrototypeConfig.StageSettings stage = GetStage(i);
             bool unlocked = IsStageUnlocked(i);
             int column = i % columns;
             int row = i / columns;
@@ -1151,8 +1131,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
-        _freeRescuesRemaining = FreeRescuesPerStage;
-        _adRescuesRemaining = AdRescuesPerStage;
+        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
+        _freeRescuesRemaining = tuning.FreeRescuesPerStage;
+        _adRescuesRemaining = tuning.AdRescuesPerStage;
         _hasRescueSnapshot = false;
         _rescueAdInProgress = false;
         _attempts++;
@@ -1175,7 +1156,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void SelectStage(int stageIndex)
     {
-        stageIndex = Mathf.Clamp(stageIndex, 0, StageConfigs.Length - 1);
+        stageIndex = Mathf.Clamp(stageIndex, 0, StageCount - 1);
         if (!IsStageUnlocked(stageIndex))
         {
             return;
@@ -1217,7 +1198,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool HasNextStage()
     {
-        return _currentStageIndex < StageConfigs.Length - 1;
+        return _currentStageIndex < StageCount - 1;
     }
 
     private bool IsStageUnlocked(int stageIndex)
@@ -1228,13 +1209,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void LoadStageProgress()
     {
         int unlockedStageNumber = PlayerPrefs.GetInt(HighestUnlockedStageKey, 1);
-        _highestUnlockedStageIndex = Mathf.Clamp(unlockedStageNumber - 1, 0, StageConfigs.Length - 1);
+        _highestUnlockedStageIndex = Mathf.Clamp(unlockedStageNumber - 1, 0, StageCount - 1);
         _currentStageIndex = Mathf.Clamp(_currentStageIndex, 0, _highestUnlockedStageIndex);
     }
 
     private void SaveStageProgress()
     {
-        PlayerPrefs.SetInt(HighestUnlockedStageKey, StageConfigs[_highestUnlockedStageIndex].Number);
+        PlayerPrefs.SetInt(HighestUnlockedStageKey, GetStage(_highestUnlockedStageIndex).Number);
         PlayerPrefs.Save();
     }
 
@@ -1249,7 +1230,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void UnlockAllStagesForPlaytest()
     {
-        _highestUnlockedStageIndex = StageConfigs.Length - 1;
+        _highestUnlockedStageIndex = StageCount - 1;
         SaveStageProgress();
     }
 
@@ -1260,7 +1241,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _highestUnlockedStageIndex = Mathf.Clamp(_currentStageIndex + 1, 0, StageConfigs.Length - 1);
+        _highestUnlockedStageIndex = Mathf.Clamp(_currentStageIndex + 1, 0, StageCount - 1);
         SaveStageProgress();
     }
 
@@ -1427,10 +1408,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var body = box.AddComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Kinematic;
-        body.gravityScale = SettledGravityScale;
+        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
+        body.gravityScale = tuning.SettledGravityScale;
         body.mass = 1f;
-        body.linearDamping = 0.6f;
-        body.angularDamping = 0.8f;
+        body.linearDamping = tuning.LinearDamping;
+        body.angularDamping = tuning.AngularDamping;
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         return box;
@@ -1438,15 +1420,16 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void CreatePhysicsMaterials()
     {
+        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
         _parcelPhysicsMaterial = new PhysicsMaterial2D("Prototype Parcel Friction")
         {
-            friction = ParcelFriction,
-            bounciness = ParcelBounciness
+            friction = tuning.ParcelFriction,
+            bounciness = tuning.ParcelBounciness
         };
         _floorPhysicsMaterial = new PhysicsMaterial2D("Prototype Floor Friction")
         {
-            friction = FloorFriction,
-            bounciness = ParcelBounciness
+            friction = tuning.FloorFriction,
+            bounciness = tuning.ParcelBounciness
         };
     }
 
@@ -1480,11 +1463,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_camera == null)
         {
-            return BaseMoveRange;
+            return Tuning.BaseMoveRange;
         }
 
         float cameraHalfWidth = _camera.orthographicSize * _camera.aspect;
-        return Mathf.Max(0f, cameraHalfWidth - GetActiveBoxHalfWidth() - MoveRangeScreenPadding);
+        return Mathf.Max(0f, cameraHalfWidth - GetActiveBoxHalfWidth() - Tuning.MoveRangeScreenPadding);
     }
 
     private float GetActiveBoxHalfWidth()
@@ -1561,7 +1544,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var body = _activeBox.GetComponent<Rigidbody2D>();
         body.bodyType = RigidbodyType2D.Dynamic;
-        body.gravityScale = DroppingGravityScale;
+        body.gravityScale = Tuning.DroppingGravityScale;
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
@@ -1584,15 +1567,16 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         Vector2 velocity = body.linearVelocity;
-        if (velocity.y < -MaxDroppingFallSpeed)
+        float maxDroppingFallSpeed = Tuning.MaxDroppingFallSpeed;
+        if (velocity.y < -maxDroppingFallSpeed)
         {
-            body.linearVelocity = new Vector2(velocity.x, -MaxDroppingFallSpeed);
+            body.linearVelocity = new Vector2(velocity.x, -maxDroppingFallSpeed);
         }
     }
 
     private IEnumerator ResolveDrop(GameObject droppedBox)
     {
-        yield return new WaitForSeconds(DropSettleSeconds);
+        yield return new WaitForSeconds(Tuning.DropSettleSeconds);
 
         if (droppedBox == null || BoxIsLost(droppedBox))
         {
@@ -1609,7 +1593,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         var body = droppedBox.GetComponent<Rigidbody2D>();
         if (body != null)
         {
-            body.gravityScale = SettledGravityScale;
+            body.gravityScale = Tuning.SettledGravityScale;
         }
 
         _placedBoxes.Add(droppedBox);
@@ -1636,7 +1620,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         _state = PrototypeState.ValidatingClear;
         _statusText = "VERIFYING";
-        _clearValidationEndTime = Time.time + ClearValidationSeconds;
+        _clearValidationEndTime = Time.time + Tuning.ClearValidationSeconds;
     }
 
     private void UpdateClearValidation()
@@ -1773,7 +1757,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         for (int i = 1; i < _placedBoxes.Count; i++)
         {
             GameObject box = _placedBoxes[i];
-            if (box == null || Mathf.Abs(box.transform.position.x - referenceX) > StackLineTolerance)
+            if (box == null || Mathf.Abs(box.transform.position.x - referenceX) > Tuning.StackLineTolerance)
             {
                 return false;
             }
@@ -1782,7 +1766,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return true;
     }
 
-    private static bool BoxIsLost(GameObject box)
+    private bool BoxIsLost(GameObject box)
     {
         if (box == null)
         {
@@ -1790,7 +1774,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         Vector3 position = box.transform.position;
-        return position.y < LostHeight || Mathf.Abs(position.x) > LostHorizontalDistance;
+        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
+        return position.y < tuning.LostHeight || Mathf.Abs(position.x) > tuning.LostHorizontalDistance;
     }
 
     private void LoadPrototypeSprites()
