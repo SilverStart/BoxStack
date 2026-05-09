@@ -23,7 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 12;
+    private const int PrototypeBuildNumber = 13;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -98,6 +98,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _cameraVelocityY;
     private float _clearValidationEndTime;
     private float _timeScaleBeforeStageSelect = 1f;
+    private Rect _undoButtonRect = Rect.zero;
     private int _attempts;
     private int _currentStageIndex;
     private int _highestUnlockedStageIndex;
@@ -306,7 +307,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (UndoPressed() && UseFreeFailureRescue())
+        if (UndoPressed() && UndoLastPlacedBox())
         {
             return;
         }
@@ -429,6 +430,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
+        DrawUndoSkillButton(barRect);
         DrawResultPopup();
         DrawPrototypeBuildNumber(barRect);
     }
@@ -557,9 +559,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void DrawUndoSkillButton(Rect barRect)
     {
+        if (IsResultState())
+        {
+            _undoButtonRect = Rect.zero;
+            return;
+        }
+
         float buttonWidth = Mathf.Clamp(barRect.width * 0.24f, 92f, 122f);
-        var buttonRect = new Rect(
-            barRect.xMax - buttonWidth - 22f,
+        _undoButtonRect = new Rect(
+            barRect.x + 22f,
             barRect.yMax + 10f,
             buttonWidth,
             42f);
@@ -569,7 +577,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         bool previousEnabled = GUI.enabled;
         GUI.enabled = canUse;
-        if (GUI.Button(buttonRect, label, buttonStyle))
+        if (GUI.Button(_undoButtonRect, label, buttonStyle))
         {
             UndoLastPlacedBox();
         }
@@ -740,7 +748,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         bool won = _state == PrototypeState.Won;
         bool hasNextStage = won && HasNextStage();
         bool canRescue = !won && CanUseFailureRescue();
-        bool hasRescueStatus = !won;
+        bool hasRescueStatus = false;
         string title = won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패";
         string body = GetResultBody(won);
         string rescueStatus = hasRescueStatus ? GetRescueStatusLabel() : string.Empty;
@@ -1258,34 +1266,32 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool CanUseUndoSkill()
     {
-        return CanUseFreeFailureRescue();
+        return _hasRescueSnapshot
+            && _freeRescuesRemaining > 0
+            && !_rescueAdInProgress
+            && (_state == PrototypeState.Playing
+                || _state == PrototypeState.ResolvingDrop
+                || _state == PrototypeState.ValidatingClear);
     }
 
-    private void UndoLastPlacedBox()
+    private bool UndoLastPlacedBox()
     {
-        UseFreeFailureRescue();
+        return UseFreeFailureRescue();
     }
 
     private bool CanUseFailureRescue()
     {
-        return _state == PrototypeState.Failed
-            && GetTotalRescuesRemaining() > 0
-            && _hasRescueSnapshot;
+        return false;
     }
 
     private bool CanUseFreeFailureRescue()
     {
-        return _state == PrototypeState.Failed
-            && _freeRescuesRemaining > 0
-            && _hasRescueSnapshot;
+        return CanUseUndoSkill();
     }
 
     private bool CanUseAdFailureRescue()
     {
-        return _state == PrototypeState.Failed
-            && _freeRescuesRemaining <= 0
-            && _adRescuesRemaining > 0
-            && _hasRescueSnapshot;
+        return false;
     }
 
     private int GetTotalRescuesRemaining()
@@ -1373,7 +1379,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _hasRescueSnapshot = false;
         _clearValidationEndTime = 0f;
         _state = PrototypeState.Playing;
-        _statusText = "RESCUED";
+        _statusText = "UNDO";
         _cameraVelocityY = 0f;
         SpawnNextBox();
         return true;
@@ -2127,16 +2133,46 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
     }
 
-    private static bool DropPressed()
+    private bool DropPressed()
     {
 #if ENABLE_INPUT_SYSTEM
+        if (Mouse.current != null
+            && Mouse.current.leftButton.wasPressedThisFrame
+            && IsPointerInsideUndoButton(Mouse.current.position.ReadValue()))
+        {
+            return false;
+        }
+
+        if (Touchscreen.current != null
+            && Touchscreen.current.primaryTouch.press.wasPressedThisFrame
+            && IsPointerInsideUndoButton(Touchscreen.current.primaryTouch.position.ReadValue()))
+        {
+            return false;
+        }
+
         bool keyboard = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         bool mouse = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
         bool touch = Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame;
         return keyboard || mouse || touch;
 #else
+        if (Input.GetMouseButtonDown(0) && IsPointerInsideUndoButton(Input.mousePosition))
+        {
+            return false;
+        }
+
         return Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0);
 #endif
+    }
+
+    private bool IsPointerInsideUndoButton(Vector2 screenPosition)
+    {
+        if (_undoButtonRect.width <= 0f || _undoButtonRect.height <= 0f)
+        {
+            return false;
+        }
+
+        var guiPosition = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
+        return _undoButtonRect.Contains(guiPosition);
     }
 
     private static bool RestartPressed()

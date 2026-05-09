@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-09
+Last updated: 2026-05-10
 
 ## Next Immediate Action
 
-Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-clamped-speed-stages.md` to confirm all box shapes stay inside the visible screen and later-stage movement speed still feels appropriately fast on stages `1`, `5`, `10`, `15`, and `20`. Recheck movement feel, difficulty fairness, one-free-rescue usefulness, and immediate collapse detection.
+Rebuild and phone-test the B013 WebGL prototype. Confirm the `B013` marker appears, then test stages `10`, `15`, and `20` with the HUD undo button: place a visibly bad box, tap undo before the fail popup, and confirm the latest dropped/active box is removed without the tap also dropping another box. Also confirm the fail popup no longer presents a continuation rescue path.
 
 ## Prototype / Playtest History
 
@@ -69,6 +69,8 @@ Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-c
 - 2026-05-09: B011 phone testing confirmed boxes now stay inside the screen, but stage 20 movement felt slower because the screen clamp also shortened the effective movement speed.
 - 2026-05-09: Screen-clamped movement now compensates speed against the unclamped stage range, so later stages keep their intended speed feel while staying visible; the build marker is now `B012`.
 - 2026-05-09: The representative-stage playtest checklist was updated at `production/qa/playtests/playtest-2026-05-09-b012-screen-clamped-speed-stages.md` for stages 1, 5, 10, 15, and 20.
+- 2026-05-10: B012 WebGL was rebuilt through `AIT/Dev Server/Start Server`; `webgl/Build` and `ait-build/public/Build` were refreshed at 03:51, HTTP `200 OK` was confirmed on `localhost:5173`, and the phone test URL is `http://172.30.1.14:5173/index.html`.
+- 2026-05-10: Undo direction changed from fail-popup rescue to a one-use HUD undo button available during active play/drop/clear validation; the fail popup no longer offers continuation rescue, and the build marker is now `B013`.
 
 ## Current Decisions
 
@@ -91,15 +93,15 @@ Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-c
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
 - Use the approved `B008` high-friction plus softened falling-box impact baseline rather than X-axis constraints to reduce sideways slide, because constraints made towers too stable.
 - Stage implementation uses hardcoded prototype `StageConfig` data, a HUD-opened stage select overlay, and a result-popup next-stage flow; playtest stages 1, 5, 10, 15, and 20 before tuning the full run.
-- Later-stage difficulty should first be tested with one free fail-popup rescue before reintroducing any reward-ad recovery prompt.
+- Later-stage difficulty should now be tested with one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
-- The fail-popup rescue state should use short user-facing copy focused on the one free continuation.
+- The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B012`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B013`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -119,7 +121,7 @@ Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-c
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
-- Does one free rescue make stages 10+ feel fair without removing too much challenge?
+- Does the one-use HUD undo button make stages 10+ feel fair without fighting already-collapsing physics?
 - Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
@@ -138,7 +140,7 @@ Rebuild WebGL and use `production/qa/playtests/playtest-2026-05-09-b012-screen-c
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
-- Snapshot-based rescue should feel fair, but even one free rescue may be too forgiving if it removes too much risk from hard stages.
+- HUD undo should feel like a timely correction tool, but the button may need repositioning if it competes with drop input or crowds the top HUD on small screens.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
