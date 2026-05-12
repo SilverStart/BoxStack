@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-Prepare a small approved implementation plan for the Delivery Arcade HUD pass before editing code: replace the full-width Toss Minimal top bar with compact stage/undo badges, add a side delivery progress rail, add central landing feedback, and restyle the result popup while preserving gameplay, stage select, undo behavior, safe-area handling, and input blocking.
+Run manual Unity Editor Game view validation for the B016 Delivery Arcade HUD. Check first-screen read, stage badge opening stage select, undo ticket behavior, right-side rail visibility through several drops, feedback toast placement, result card actions, and overlay input blocking. WebGL/mobile testing is deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -78,6 +78,8 @@ Prepare a small approved implementation plan for the Delivery Arcade HUD pass be
 - 2026-05-10: B015 UI replacement pass moved the Toss Minimal HUD, HUD undo button, stage select overlay, result popup, safe-area placement, runtime theme, and Korean font assignment into `BoxStackPrototypeUi` using UI Toolkit. The unused legacy IMGUI drawing path was removed from `BoxStackPrototype.cs`. `dotnet build` passed with 0 warnings/errors; Editor Play confirmed `UIDocument` creation, B015 HUD, stage select sizing, result popup sizing, and overlay input blocking. Unity still emits one known `PanelSettings` theme warning from runtime panel creation, but the theme resource loads and the UI renders correctly.
 - 2026-05-10: Development validation policy changed: use Unity Editor Play Mode for normal UI/gameplay iteration, and reserve AIT/WebGL plus phone browser builds for milestone browser/device spot checks because WebGL build time is too expensive for every development loop.
 - 2026-05-13: UI direction research found the current Toss Minimal HUD reads too much like a normal app header. A/B/C mockup directions were generated and archived at `design/ui/mockups/boxstack-ui-directions-2026-05-13.png`; Direction A, Delivery Arcade, was selected as the next HUD direction and specified in `design/ui/boxstack-delivery-arcade-hud-spec-2026-05-13.md`.
+- 2026-05-13: Delivery Arcade HUD implementation plan was approved for the next pass: replace the full-width Toss Minimal top bar with compact stage/undo badges, add a right-side delivery progress rail, add simple Korean central feedback, and restyle the result popup while preserving gameplay, stage select, undo, safe-area, and input-blocking behavior.
+- 2026-05-13: B016 Delivery Arcade HUD first pass implemented: compact shipping-label stage badge, top-right undo ticket, right-side delivery progress rail, central Korean feedback toast, and delivery-styled result card. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector on port `8090` confirmed Editor Play starts, one `UIDocument` exists, and the UI tree contains `B016`, the delivery-label stage badge, placed/target count, undo ticket, and stage select text. Connector screenshots did not capture UI Toolkit reliably, so manual visual validation is still pending.
 
 ## Current Decisions
 
@@ -94,7 +96,7 @@ Prepare a small approved implementation plan for the Delivery Arcade HUD pass be
 - Background direction is a bright 2D parcel logistics center with a calm central play lane, not a full 3D modeled warehouse.
 - Current background test uses a parcel-brown solid color because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B015 Toss Minimal, but the next approved UI direction is Delivery Arcade: compact shipping-label stage badge, undo ticket, side delivery progress rail, central landing feedback, and delivery-styled result cards while preserving the clean Toss app-in-app tone.
+- Current implemented UI is B016 Delivery Arcade first pass: compact shipping-label stage badge, undo ticket, side delivery progress rail, central landing feedback, and delivery-styled result cards while preserving the clean Toss app-in-app tone.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -104,14 +106,16 @@ Prepare a small approved implementation plan for the Delivery Arcade HUD pass be
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- The current productization pass is B015 UI Toolkit manual verification: preserve the accepted Toss Minimal HUD behavior, then commit the new runtime UI layer if the Editor Play feel is accepted.
+- The current productization pass is B016 Delivery Arcade manual verification: accept or adjust the new HUD in Editor Play before committing.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
+- Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
+- B016 Delivery Arcade code pass is implemented and structurally verified through Unity CLI Connector; it should be accepted or adjusted through manual Editor Game view validation before any commit or WebGL spot check.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B015`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 

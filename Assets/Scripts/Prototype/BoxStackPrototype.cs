@@ -24,7 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 15;
+    private const int PrototypeBuildNumber = 16;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -368,6 +368,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             CurrentTargetBoxes,
             _placedBoxes.Count / (float)CurrentTargetBoxes,
             GetHudStatusLabel(),
+            GetHudFeedbackLabel(),
             _state == PrototypeState.StageSelect,
             CanUseUndoSkill(),
             GetTotalRescuesRemaining(),
@@ -416,7 +417,24 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private string GetStageLabel()
     {
-        return $"ST {CurrentStage.Number:00}";
+        return $"{CurrentStage.Number}단계";
+    }
+
+    private string GetHudFeedbackLabel()
+    {
+        switch (_state)
+        {
+            case PrototypeState.ResolvingDrop:
+                return "좋아요";
+            case PrototypeState.ValidatingClear:
+                return "조심!";
+            case PrototypeState.Won:
+                return "배송 완료";
+            case PrototypeState.Failed:
+                return "적재 실패";
+        }
+
+        return _statusText == "UNDO" ? "되돌렸어요" : string.Empty;
     }
 
     private static bool ShouldShowProgressTestControls()
