@@ -1,4 +1,4 @@
-// 프로토타입 - 제품 코드로 사용하지 않음
+﻿// 프로토타입 - 제품 코드로 사용하지 않음
 // 질문: 2D/2.5D 택배 박스 쌓기 루프가 Toss 앱인앱 콘셉트와 AI PNG 에셋 파이프라인에 맞는가?
 // 날짜: 2026-05-02
 
@@ -24,7 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 14;
+    private const int PrototypeBuildNumber = 15;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -34,15 +34,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float CameraBottomPadding = 0.25f;
     private const float FloorY = -0.65f;
     private const float FloorHeight = 0.35f;
-    private const int HudMaxFontSize = 28;
-    private const int HudMinFontSize = 18;
-    private const float HudHorizontalPadding = 24f;
-    private const float HudTopY = 18f;
-    private const float HudBarHeight = 68f;
-    private const float HudProgressHeight = 14f;
-    private const float ResultPanelMaxWidth = 360f;
-    private const float ResultPanelHeight = 260f;
-
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
     private readonly List<BoxSnapshot> _rescueSnapshot = new List<BoxSnapshot>();
@@ -56,24 +47,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
     private GameObject _background;
+    private BoxStackPrototypeUi _prototypeUi;
     private Font _prototypeFont;
-    private GUIStyle _hudPillStyle;
-    private GUIStyle _hudPillShadowStyle;
-    private GUIStyle _hudProgressTrackStyle;
-    private GUIStyle _hudProgressFillStyle;
-    private GUIStyle _resultPanelStyle;
-    private GUIStyle _resultButtonStyle;
-    private GUIStyle _undoButtonStyle;
-    private GUIStyle _undoButtonDisabledStyle;
-    private Texture2D _hudPillTexture;
-    private Texture2D _hudPillShadowTexture;
-    private Texture2D _hudProgressTrackTexture;
-    private Texture2D _hudProgressFillTexture;
-    private Texture2D _hudProgressCapTexture;
-    private Texture2D _resultPanelTexture;
-    private Texture2D _resultButtonTexture;
-    private Texture2D _undoButtonTexture;
-    private Texture2D _undoButtonDisabledTexture;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private PrototypeState _state;
@@ -84,7 +59,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _cameraVelocityY;
     private float _clearValidationEndTime;
     private float _timeScaleBeforeStageSelect = 1f;
-    private Rect _undoButtonRect = Rect.zero;
     private int _attempts;
     private int _currentStageIndex;
     private int _highestUnlockedStageIndex;
@@ -248,6 +222,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         CreateFloor();
         LoadStageProgress();
+        EnsurePrototypeUi();
         RestartGame();
     }
 
@@ -337,97 +312,87 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
     }
 
-    private void OnGUI()
+    private void LateUpdate()
     {
-        EnsureHudStyles();
-
-        Rect safeArea = GetSafeGuiArea();
-        float topY = GetHudTopY();
-        float barWidth = safeArea.width - (HudHorizontalPadding * 2f);
-        var barRect = new Rect(safeArea.x + HudHorizontalPadding, topY, barWidth, HudBarHeight);
-        GUI.Box(new Rect(barRect.x, barRect.y + 2f, barRect.width, barRect.height), GUIContent.none, _hudPillShadowStyle);
-        GUI.Box(barRect, GUIContent.none, _hudPillStyle);
-
-        float leftWidth = Mathf.Clamp(safeArea.width * 0.27f, 126f, 176f);
-        float rightWidth = Mathf.Clamp(safeArea.width * 0.18f, 72f, 104f);
-        var labelRect = new Rect(barRect.x + 28f, barRect.y + 10f, leftWidth, 22f);
-        var countRect = new Rect(barRect.x + 76f, barRect.y + 14f, leftWidth - 44f, 38f);
-        var statusRect = new Rect(barRect.xMax - rightWidth - 22f, barRect.y + 16f, rightWidth, 36f);
-        var progressRect = new Rect(
-            barRect.x + leftWidth + 62f,
-            barRect.y + ((HudBarHeight - HudProgressHeight) * 0.5f),
-            Mathf.Max(44f, barWidth - leftWidth - rightWidth - 112f),
-            HudProgressHeight);
-
-        Color labelColor = new Color(0.37f, 0.42f, 0.49f, 0.92f);
-        var labelStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleLeft,
-            clipping = TextClipping.Clip,
-            fontSize = 18,
-            fontStyle = FontStyle.Normal,
-            wordWrap = false,
-            normal = { textColor = labelColor }
-        };
-        ApplyPrototypeFont(labelStyle);
-        SetTextColorStates(labelStyle, labelColor);
-
-        int countFontSize = GetHudFontSize("88 / 88", countRect.width);
-        Color countColor = new Color(0.11f, 0.13f, 0.16f);
-        var countStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleLeft,
-            clipping = TextClipping.Clip,
-            fontSize = countFontSize,
-            fontStyle = FontStyle.Bold,
-            wordWrap = false,
-            normal = { textColor = countColor }
-        };
-        ApplyPrototypeFont(countStyle);
-        SetTextColorStates(countStyle, countColor);
-
-        var statusStyle = new GUIStyle(labelStyle)
-        {
-            alignment = TextAnchor.MiddleCenter
-        };
-        ApplyPrototypeFont(statusStyle);
-        SetTextColorStates(statusStyle, labelColor);
-
-        GUI.Label(labelRect, GetStageLabel(), labelStyle);
-        if (GUI.Button(labelRect, GUIContent.none, labelStyle))
-        {
-            OpenStageSelect();
-        }
-
-        GUI.Label(countRect, $"{_placedBoxes.Count} / {CurrentTargetBoxes}", countStyle);
-        DrawHudProgress(progressRect, _placedBoxes.Count / (float)CurrentTargetBoxes);
-        GUI.Label(statusRect, GetHudStatusLabel(), statusStyle);
-
-        if (_state == PrototypeState.StageSelect)
-        {
-            DrawStageSelectOverlay();
-            DrawPrototypeBuildNumber(barRect);
-            return;
-        }
-
-        DrawUndoSkillButton(barRect);
-        DrawResultPopup();
-        DrawPrototypeBuildNumber(barRect);
+        RefreshPrototypeUi();
     }
 
-    private void DrawHudProgress(Rect rect, float progress)
+    private void EnsurePrototypeUi()
     {
-        DrawHudCapsule(rect, new Color(0.90f, 0.78f, 0.58f, 0.75f));
-
-        float fillWidth = rect.width * Mathf.Clamp01(progress);
-        if (fillWidth <= 0.5f)
+        if (_prototypeUi != null)
         {
             return;
         }
 
-        fillWidth = Mathf.Max(rect.height, fillWidth);
-        var fillRect = new Rect(rect.x, rect.y, fillWidth, rect.height);
-        DrawHudCapsule(fillRect, new Color(0.58f, 0.38f, 0.18f, 0.95f));
+        _prototypeFont = Resources.Load<Font>(KoreanFontResourcePath);
+
+        var uiObject = new GameObject("BoxStack Prototype UI");
+        uiObject.transform.SetParent(transform, false);
+        _prototypeUi = uiObject.AddComponent<BoxStackPrototypeUi>();
+        _prototypeUi.Initialize(
+            _prototypeFont,
+            OpenStageSelect,
+            HandleUndoButton,
+            SelectStage,
+            CloseStageSelect,
+            ResetStageProgress,
+            UnlockAllStagesForPlaytest,
+            HandleCurrentResultButton);
+    }
+
+    private void RefreshPrototypeUi()
+    {
+        if (_prototypeUi == null)
+        {
+            return;
+        }
+
+        bool won = _state == PrototypeState.Won;
+        bool resultVisible = IsResultState();
+        bool hasNextStage = won && HasNextStage();
+        var stages = new BoxStackPrototypeUi.StageButtonState[StageCount];
+        for (int i = 0; i < StageCount; i++)
+        {
+            BoxStackPrototypeConfig.StageSettings stage = GetStage(i);
+            stages[i] = new BoxStackPrototypeUi.StageButtonState(
+                stage.Number,
+                stage.TargetBoxes,
+                IsStageUnlocked(i),
+                i == _currentStageIndex);
+        }
+
+        _prototypeUi.Refresh(new BoxStackPrototypeUi.UiState(
+            PrototypeBuildNumber,
+            GetStageLabel(),
+            _placedBoxes.Count,
+            CurrentTargetBoxes,
+            _placedBoxes.Count / (float)CurrentTargetBoxes,
+            GetHudStatusLabel(),
+            _state == PrototypeState.StageSelect,
+            CanUseUndoSkill(),
+            GetTotalRescuesRemaining(),
+            resultVisible,
+            resultVisible ? won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패" : string.Empty,
+            resultVisible ? GetResultBody(won) : string.Empty,
+            resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
+            ShouldShowProgressTestControls(),
+            stages));
+    }
+
+    private void HandleCurrentResultButton()
+    {
+        if (!IsResultState())
+        {
+            return;
+        }
+
+        bool won = _state == PrototypeState.Won;
+        HandleResultButton(won, won && HasNextStage());
+    }
+
+    private void HandleUndoButton()
+    {
+        UndoLastPlacedBox();
     }
 
     private string GetHudStatusLabel()
@@ -454,394 +419,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return $"ST {CurrentStage.Number:00}";
     }
 
-    private int GetHudFontSize(string text, float maxWidth)
-    {
-        var content = new GUIContent(text);
-        var measuringStyle = new GUIStyle(GUI.skin.label)
-        {
-            fontStyle = FontStyle.Bold,
-            wordWrap = false
-        };
-        ApplyPrototypeFont(measuringStyle);
-
-        for (int fontSize = HudMaxFontSize; fontSize > HudMinFontSize; fontSize -= 2)
-        {
-            measuringStyle.fontSize = fontSize;
-            if (measuringStyle.CalcSize(content).x <= maxWidth)
-            {
-                return fontSize;
-            }
-        }
-
-        return HudMinFontSize;
-    }
-
-    private static void SetTextColorStates(GUIStyle style, Color color)
-    {
-        style.normal.textColor = color;
-        style.hover.textColor = color;
-        style.active.textColor = color;
-        style.focused.textColor = color;
-        style.onNormal.textColor = color;
-        style.onHover.textColor = color;
-        style.onActive.textColor = color;
-        style.onFocused.textColor = color;
-    }
-
-    private void EnsureHudStyles()
-    {
-        if (_hudPillStyle != null)
-        {
-            return;
-        }
-
-        _prototypeFont = Resources.Load<Font>(KoreanFontResourcePath);
-        if (_prototypeFont != null)
-        {
-            GUI.skin.font = _prototypeFont;
-        }
-
-        _hudPillTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.86f), new Color(0.73f, 0.52f, 0.28f, 0.72f), 4);
-        _hudPillShadowTexture = CreateRoundedRectTexture(new Color(0.04f, 0.06f, 0.08f, 0.22f), new Color(0f, 0f, 0f, 0f));
-        _hudProgressTrackTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.58f), new Color(0.12f, 0.18f, 0.22f, 0.18f));
-        _hudProgressFillTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.92f), new Color(1f, 1f, 1f, 0.2f));
-        _hudProgressCapTexture = CreateCircleTexture(Color.white);
-        _resultPanelTexture = CreateRoundedRectTexture(new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.58f), 4);
-        _resultButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.96f), new Color(1f, 1f, 1f, 0.2f));
-        _undoButtonTexture = CreateRoundedRectTexture(new Color(0.58f, 0.38f, 0.18f, 0.94f), new Color(1f, 1f, 1f, 0.18f), 3);
-        _undoButtonDisabledTexture = CreateRoundedRectTexture(new Color(0.55f, 0.48f, 0.38f, 0.56f), new Color(1f, 1f, 1f, 0.12f), 3);
-
-        _hudPillStyle = CreateHudBoxStyle(_hudPillTexture);
-        _hudPillShadowStyle = CreateHudBoxStyle(_hudPillShadowTexture);
-        _hudProgressTrackStyle = CreateHudBoxStyle(_hudProgressTrackTexture);
-        _hudProgressFillStyle = CreateHudBoxStyle(_hudProgressFillTexture);
-        _resultPanelStyle = CreateHudBoxStyle(_resultPanelTexture);
-        _resultButtonStyle = CreateHudBoxStyle(_resultButtonTexture, 24);
-        _resultButtonStyle.alignment = TextAnchor.MiddleCenter;
-        _resultButtonStyle.fontStyle = FontStyle.Bold;
-        _resultButtonStyle.fontSize = 20;
-        _resultButtonStyle.normal.textColor = Color.white;
-        _resultButtonStyle.hover.textColor = Color.white;
-        _resultButtonStyle.active.textColor = Color.white;
-
-        _undoButtonStyle = CreateHudBoxStyle(_undoButtonTexture, 18);
-        _undoButtonStyle.alignment = TextAnchor.MiddleCenter;
-        _undoButtonStyle.fontStyle = FontStyle.Bold;
-        _undoButtonStyle.fontSize = 15;
-        SetTextColorStates(_undoButtonStyle, Color.white);
-
-        _undoButtonDisabledStyle = CreateHudBoxStyle(_undoButtonDisabledTexture, 18);
-        _undoButtonDisabledStyle.alignment = TextAnchor.MiddleCenter;
-        _undoButtonDisabledStyle.fontStyle = FontStyle.Bold;
-        _undoButtonDisabledStyle.fontSize = 15;
-        SetTextColorStates(_undoButtonDisabledStyle, new Color(1f, 1f, 1f, 0.62f));
-    }
-
-    private void DrawUndoSkillButton(Rect barRect)
-    {
-        if (IsResultState())
-        {
-            _undoButtonRect = Rect.zero;
-            return;
-        }
-
-        float buttonWidth = Mathf.Clamp(barRect.width * 0.24f, 92f, 122f);
-        _undoButtonRect = new Rect(
-            barRect.x + 22f,
-            barRect.yMax + 10f,
-            buttonWidth,
-            42f);
-        bool canUse = CanUseUndoSkill();
-        GUIStyle buttonStyle = canUse ? _undoButtonStyle : _undoButtonDisabledStyle;
-        string label = $"되돌리기 {GetTotalRescuesRemaining()}";
-
-        bool previousEnabled = GUI.enabled;
-        GUI.enabled = canUse;
-        if (GUI.Button(_undoButtonRect, label, buttonStyle))
-        {
-            UndoLastPlacedBox();
-        }
-
-        GUI.enabled = previousEnabled;
-    }
-
-    private void DrawPrototypeBuildNumber(Rect anchorRect)
-    {
-        var buildStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleRight,
-            fontSize = 12,
-            fontStyle = FontStyle.Bold
-        };
-        ApplyPrototypeFont(buildStyle);
-        SetTextColorStates(buildStyle, new Color(0.20f, 0.16f, 0.12f, 0.45f));
-
-        var buildRect = new Rect(anchorRect.xMax - 76f, anchorRect.yMax + 6f, 64f, 20f);
-        GUI.Label(buildRect, $"B{PrototypeBuildNumber:000}", buildStyle);
-    }
-
-    private void DrawStageSelectOverlay()
-    {
-        Color previousColor = GUI.color;
-        GUI.color = new Color(0f, 0f, 0f, 0.28f);
-        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = previousColor;
-
-        Rect safeArea = GetSafeGuiArea();
-        float panelWidth = Mathf.Clamp(safeArea.width - 36f, 280f, 420f);
-        float panelHeight = Mathf.Clamp(safeArea.yMax - GetHudTopY() - HudBarHeight - 48f, 430f, 560f);
-        float panelY = Mathf.Clamp(
-            GetHudTopY() + HudBarHeight + 20f,
-            safeArea.y + 18f,
-            safeArea.yMax - panelHeight - 18f);
-        var panelRect = new Rect(
-            safeArea.x + ((safeArea.width - panelWidth) * 0.5f),
-            panelY,
-            panelWidth,
-            panelHeight);
-
-        GUI.Box(panelRect, GUIContent.none, _resultPanelStyle);
-
-        Color titleColor = new Color(0.09f, 0.11f, 0.14f);
-        var titleStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 24,
-            fontStyle = FontStyle.Bold,
-            normal = { textColor = titleColor }
-        };
-        ApplyPrototypeFont(titleStyle);
-        SetTextColorStates(titleStyle, titleColor);
-
-        Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
-        var bodyStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 14,
-            fontStyle = FontStyle.Normal,
-            normal = { textColor = bodyColor }
-        };
-        ApplyPrototypeFont(bodyStyle);
-        SetTextColorStates(bodyStyle, bodyColor);
-
-        var normalStageButtonStyle = new GUIStyle(_hudPillStyle)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 14,
-            fontStyle = FontStyle.Bold,
-            wordWrap = true
-        };
-        ApplyPrototypeFont(normalStageButtonStyle);
-        SetTextColorStates(normalStageButtonStyle, new Color(0.18f, 0.14f, 0.10f));
-
-        var selectedStageButtonStyle = new GUIStyle(_resultButtonStyle)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 14,
-            fontStyle = FontStyle.Bold,
-            wordWrap = true
-        };
-        ApplyPrototypeFont(selectedStageButtonStyle);
-        SetTextColorStates(selectedStageButtonStyle, Color.white);
-
-        var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 20f, panelRect.width - 48f, 32f);
-        var bodyRect = new Rect(panelRect.x + 24f, panelRect.y + 54f, panelRect.width - 48f, 22f);
-        GUI.Label(titleRect, "스테이지 선택", titleStyle);
-        GUI.Label(bodyRect, "배송 루트", bodyStyle);
-
-        const int columns = 4;
-        const float gap = 8f;
-        float gridX = panelRect.x + 24f;
-        float gridY = panelRect.y + 92f;
-        float gridWidth = panelRect.width - 48f;
-        float cellWidth = (gridWidth - (gap * (columns - 1))) / columns;
-        float cellHeight = Mathf.Clamp((panelRect.height - 246f - (gap * 4f)) / 5f, 38f, 54f);
-
-        for (int i = 0; i < StageCount; i++)
-        {
-            BoxStackPrototypeConfig.StageSettings stage = GetStage(i);
-            bool unlocked = IsStageUnlocked(i);
-            int column = i % columns;
-            int row = i / columns;
-            var cellRect = new Rect(
-                gridX + (column * (cellWidth + gap)),
-                gridY + (row * (cellHeight + gap)),
-                cellWidth,
-                cellHeight);
-
-            GUIStyle cellStyle = !unlocked
-                ? _undoButtonDisabledStyle
-                : i == _currentStageIndex
-                    ? selectedStageButtonStyle
-                    : normalStageButtonStyle;
-            string label = unlocked ? $"ST {stage.Number:00}\n{stage.TargetBoxes}개" : $"ST {stage.Number:00}\n잠김";
-            bool previousEnabled = GUI.enabled;
-            GUI.enabled = unlocked;
-            if (GUI.Button(cellRect, label, cellStyle))
-            {
-                SelectStage(i);
-            }
-
-            GUI.enabled = previousEnabled;
-        }
-
-        if (ShouldShowProgressTestControls())
-        {
-            float helperY = panelRect.yMax - 112f;
-            float helperWidth = (gridWidth - gap) * 0.5f;
-            var resetRect = new Rect(gridX, helperY, helperWidth, 34f);
-            var unlockRect = new Rect(gridX + helperWidth + gap, helperY, helperWidth, 34f);
-            if (GUI.Button(resetRect, "진행 초기화", _undoButtonStyle))
-            {
-                ResetStageProgress();
-            }
-
-            if (GUI.Button(unlockRect, "전체 해금", _undoButtonStyle))
-            {
-                UnlockAllStagesForPlaytest();
-            }
-        }
-
-        var closeRect = new Rect(panelRect.x + 72f, panelRect.yMax - 66f, panelRect.width - 144f, 46f);
-        if (GUI.Button(closeRect, "닫기", _resultButtonStyle))
-        {
-            CloseStageSelect();
-        }
-    }
-
     private static bool ShouldShowProgressTestControls()
     {
         return Application.isEditor || Debug.isDebugBuild;
-    }
-
-    private void DrawResultPopup()
-    {
-        if (!IsResultState())
-        {
-            return;
-        }
-
-        bool won = _state == PrototypeState.Won;
-        bool hasNextStage = won && HasNextStage();
-        bool canRescue = !won && CanUseFailureRescue();
-        bool hasRescueStatus = false;
-        string title = won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패";
-        string body = GetResultBody(won);
-        string rescueStatus = hasRescueStatus ? GetRescueStatusLabel() : string.Empty;
-        string hint = GetResultButtonLabel(won, hasNextStage);
-
-        Color previousColor = GUI.color;
-        GUI.color = new Color(0f, 0f, 0f, 0.28f);
-        GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), Texture2D.whiteTexture);
-        GUI.color = previousColor;
-
-        Rect safeArea = GetSafeGuiArea();
-        float panelWidth = Mathf.Max(240f, Mathf.Min(ResultPanelMaxWidth, safeArea.width - 48f));
-        float desiredPanelHeight = canRescue ? ResultPanelHeight + 88f : hasRescueStatus ? ResultPanelHeight + 34f : ResultPanelHeight;
-        float panelHeight = Mathf.Max(220f, Mathf.Min(desiredPanelHeight, safeArea.height - 120f));
-        float panelY = Mathf.Clamp(
-            Mathf.Max(GetHudTopY() + HudBarHeight + 28f, safeArea.y + ((safeArea.height - panelHeight) * 0.5f)),
-            safeArea.y + 24f,
-            safeArea.yMax - panelHeight - 24f);
-        var panelRect = new Rect(
-            safeArea.x + ((safeArea.width - panelWidth) * 0.5f),
-            panelY,
-            panelWidth,
-            panelHeight);
-
-        GUI.Box(panelRect, GUIContent.none, _resultPanelStyle);
-
-        Color titleColor = new Color(0.09f, 0.11f, 0.14f);
-        var titleStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = Mathf.Clamp(Mathf.RoundToInt(Screen.width * 0.065f), 26, 34),
-            fontStyle = FontStyle.Bold,
-            normal = { textColor = titleColor }
-        };
-        ApplyPrototypeFont(titleStyle);
-        SetTextColorStates(titleStyle, titleColor);
-
-        Color bodyColor = new Color(0.38f, 0.43f, 0.50f);
-        var bodyStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 18,
-            fontStyle = FontStyle.Normal,
-            wordWrap = true,
-            normal = { textColor = bodyColor }
-        };
-        ApplyPrototypeFont(bodyStyle);
-        SetTextColorStates(bodyStyle, bodyColor);
-
-        Color rescueStatusColor = _rescueAdInProgress
-            ? new Color(0.58f, 0.38f, 0.18f)
-            : canRescue
-                ? new Color(0.30f, 0.23f, 0.16f)
-                : new Color(0.55f, 0.45f, 0.36f);
-        var rescueStatusStyle = new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            clipping = TextClipping.Clip,
-            fontSize = 15,
-            fontStyle = FontStyle.Bold,
-            wordWrap = true,
-            normal = { textColor = rescueStatusColor }
-        };
-        ApplyPrototypeFont(rescueStatusStyle);
-        SetTextColorStates(rescueStatusStyle, rescueStatusColor);
-
-        var titleRect = new Rect(panelRect.x + 24f, panelRect.y + 38f, panelRect.width - 48f, 42f);
-        var bodyRect = new Rect(panelRect.x + 32f, panelRect.y + 96f, panelRect.width - 64f, 52f);
-        var buttonRect = new Rect(panelRect.x + 54f, panelRect.yMax - 78f, panelRect.width - 108f, 54f);
-        var rescueStatusRect = new Rect(panelRect.x + 32f, panelRect.y + 152f, panelRect.width - 64f, 34f);
-
-        GUI.Label(titleRect, title, titleStyle);
-        GUI.Label(bodyRect, body, bodyStyle);
-        if (hasRescueStatus)
-        {
-            GUI.Label(rescueStatusRect, rescueStatus, rescueStatusStyle);
-        }
-
-        if (canRescue)
-        {
-            var rescueRect = new Rect(buttonRect.x, panelRect.yMax - 140f, buttonRect.width, 52f);
-            var retryRect = new Rect(buttonRect.x, panelRect.yMax - 78f, buttonRect.width, 50f);
-
-            bool previousEnabled = GUI.enabled;
-            GUI.enabled = !_rescueAdInProgress;
-            string rescueLabel = GetRescueButtonLabel();
-            if (GUI.Button(rescueRect, rescueLabel, _resultButtonStyle))
-            {
-                if (CanUseFreeFailureRescue())
-                {
-                    UseFreeFailureRescue();
-                }
-                else
-                {
-                    StartCoroutine(MockRewardAdAndRescue());
-                }
-            }
-
-            GUI.enabled = previousEnabled;
-            if (GUI.Button(retryRect, hint, _resultButtonStyle))
-            {
-                HandleResultButton(won, hasNextStage);
-            }
-
-            return;
-        }
-
-        if (GUI.Button(buttonRect, hint, _resultButtonStyle))
-        {
-            HandleResultButton(won, hasNextStage);
-        }
     }
 
     private bool IsResultState()
@@ -889,23 +469,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return hasNextStage ? "다음 스테이지" : "처음부터";
     }
 
-    private string GetRescueStatusLabel()
-    {
-        if (_rescueAdInProgress)
-        {
-            return "광고 확인 중...";
-        }
-
-        if (CanUseFailureRescue())
-        {
-            return CanUseFreeFailureRescue()
-                ? $"복구권 {_freeRescuesRemaining}회 남음"
-                : $"광고 복구 {_adRescuesRemaining}회 가능";
-        }
-
-        return "이번 스테이지 복구권 사용 완료";
-    }
-
     private string GetFailureRescueBody()
     {
         if (_rescueAdInProgress)
@@ -914,16 +477,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         return CanUseFreeFailureRescue() ? "한 번 되돌릴 수 있어요" : "광고 보고 한 번 더 이어갈 수 있어요";
-    }
-
-    private string GetRescueButtonLabel()
-    {
-        if (_rescueAdInProgress)
-        {
-            return "광고 확인 중...";
-        }
-
-        return CanUseFreeFailureRescue() ? "바로 이어하기" : "광고 보고 이어하기";
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)
@@ -940,128 +493,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         RestartGame();
-    }
-
-    private void DrawHudCapsule(Rect rect, Color color)
-    {
-        if (rect.width <= 0f || rect.height <= 0f)
-        {
-            return;
-        }
-
-        Color previousColor = GUI.color;
-        GUI.color = color;
-
-        float capSize = rect.height;
-        float centerWidth = Mathf.Max(0f, rect.width - capSize);
-        GUI.DrawTexture(new Rect(rect.x + (capSize * 0.5f), rect.y, centerWidth, rect.height), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(rect.x, rect.y, capSize, capSize), _hudProgressCapTexture);
-        GUI.DrawTexture(new Rect(rect.xMax - capSize, rect.y, capSize, capSize), _hudProgressCapTexture);
-
-        GUI.color = previousColor;
-    }
-
-    private GUIStyle CreateHudBoxStyle(Texture2D texture, int sliceBorder = 24)
-    {
-        var style = new GUIStyle
-        {
-            normal = { background = texture },
-            border = new RectOffset(sliceBorder, sliceBorder, sliceBorder, sliceBorder)
-        };
-        ApplyPrototypeFont(style);
-        return style;
-    }
-
-    private void ApplyPrototypeFont(GUIStyle style)
-    {
-        if (_prototypeFont == null)
-        {
-            return;
-        }
-
-        style.font = _prototypeFont;
-    }
-
-    private static float GetHudTopY()
-    {
-        Rect safeArea = GetSafeGuiArea();
-        return Mathf.Max(HudTopY, safeArea.y + 12f);
-    }
-
-    private static Rect GetSafeGuiArea()
-    {
-        Rect safeArea = Screen.safeArea;
-        if (safeArea.width <= 0f || safeArea.height <= 0f)
-        {
-            return new Rect(0f, 0f, Screen.width, Screen.height);
-        }
-
-        return new Rect(safeArea.x, Screen.height - safeArea.yMax, safeArea.width, safeArea.height);
-    }
-
-    private static Texture2D CreateRoundedRectTexture(Color fill, Color border, int borderSize = 2)
-    {
-        const int size = 64;
-        const int radius = 28;
-        borderSize = Mathf.Clamp(borderSize, 1, radius - 1);
-        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
-        {
-            filterMode = FilterMode.Bilinear,
-            wrapMode = TextureWrapMode.Clamp
-        };
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                bool insideOuter = PixelInsideRoundedRect(x, y, size, size, radius);
-                bool insideInner = PixelInsideRoundedRect(x - borderSize, y - borderSize, size - (borderSize * 2), size - (borderSize * 2), radius - borderSize);
-                texture.SetPixel(x, y, insideOuter ? insideInner ? fill : border : Color.clear);
-            }
-        }
-
-        texture.Apply();
-        return texture;
-    }
-
-    private static Texture2D CreateCircleTexture(Color color)
-    {
-        const int size = 32;
-        const float radius = size * 0.5f;
-        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
-        {
-            filterMode = FilterMode.Bilinear,
-            wrapMode = TextureWrapMode.Clamp
-        };
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                float dx = (x + 0.5f) - radius;
-                float dy = (y + 0.5f) - radius;
-                texture.SetPixel(x, y, (dx * dx) + (dy * dy) <= radius * radius ? color : Color.clear);
-            }
-        }
-
-        texture.Apply();
-        return texture;
-    }
-
-    private static bool PixelInsideRoundedRect(int x, int y, int width, int height, int radius)
-    {
-        if (width <= 0 || height <= 0)
-        {
-            return false;
-        }
-
-        float px = x + 0.5f;
-        float py = y + 0.5f;
-        float nearestX = Mathf.Clamp(px, radius, width - radius);
-        float nearestY = Mathf.Clamp(py, radius, height - radius);
-        float dx = px - nearestX;
-        float dy = py - nearestY;
-        return (dx * dx) + (dy * dy) <= radius * radius;
     }
 
     private static Camera EnsureCamera()
@@ -1140,6 +571,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
+        RefreshPrototypeUi();
     }
 
     private void ChangeStage(int direction)
@@ -1183,6 +615,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _timeScaleBeforeStageSelect = Time.timeScale;
         Time.timeScale = 0f;
         _state = PrototypeState.StageSelect;
+        RefreshPrototypeUi();
     }
 
     private void CloseStageSelect()
@@ -1194,6 +627,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         Time.timeScale = _timeScaleBeforeStageSelect <= 0f ? 1f : _timeScaleBeforeStageSelect;
         _state = _stateBeforeStageSelect;
+        RefreshPrototypeUi();
     }
 
     private bool HasNextStage()
@@ -1232,6 +666,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         _highestUnlockedStageIndex = StageCount - 1;
         SaveStageProgress();
+        RefreshPrototypeUi();
     }
 
     private void UnlockNextStage()
@@ -1363,6 +798,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _statusText = "UNDO";
         _cameraVelocityY = 0f;
         SpawnNextBox();
+        RefreshPrototypeUi();
         return true;
     }
 
@@ -1704,6 +1140,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _droppingBox = null;
         FreezePlacedBoxPhysics();
+        RefreshPrototypeUi();
     }
 
     private void FreezePlacedBoxPhysics()
@@ -2123,14 +1560,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
 #if ENABLE_INPUT_SYSTEM
         if (Mouse.current != null
             && Mouse.current.leftButton.wasPressedThisFrame
-            && IsPointerInsideUndoButton(Mouse.current.position.ReadValue()))
+            && IsPointerInsideBlockingUi(Mouse.current.position.ReadValue()))
         {
             return false;
         }
 
         if (Touchscreen.current != null
             && Touchscreen.current.primaryTouch.press.wasPressedThisFrame
-            && IsPointerInsideUndoButton(Touchscreen.current.primaryTouch.position.ReadValue()))
+            && IsPointerInsideBlockingUi(Touchscreen.current.primaryTouch.position.ReadValue()))
         {
             return false;
         }
@@ -2140,7 +1577,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         bool touch = Touchscreen.current != null && Touchscreen.current.primaryTouch.press.wasPressedThisFrame;
         return keyboard || mouse || touch;
 #else
-        if (Input.GetMouseButtonDown(0) && IsPointerInsideUndoButton(Input.mousePosition))
+        if (Input.GetMouseButtonDown(0) && IsPointerInsideBlockingUi(Input.mousePosition))
         {
             return false;
         }
@@ -2149,15 +1586,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
 #endif
     }
 
-    private bool IsPointerInsideUndoButton(Vector2 screenPosition)
+    private bool IsPointerInsideBlockingUi(Vector2 screenPosition)
     {
-        if (_undoButtonRect.width <= 0f || _undoButtonRect.height <= 0f)
-        {
-            return false;
-        }
-
-        var guiPosition = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
-        return _undoButtonRect.Contains(guiPosition);
+        return _prototypeUi != null && _prototypeUi.ContainsBlockingScreenPoint(screenPosition);
     }
 
     private static bool RestartPressed()

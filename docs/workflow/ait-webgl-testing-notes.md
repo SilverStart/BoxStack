@@ -1,16 +1,20 @@
 # AIT WebGL Testing Notes
 
-Date: 2026-05-07
+Date: 2026-05-10
 
 This note captures the current Apps in Toss / Unity WebGL test findings so a new session can continue without rediscovering them.
+
+## Development Validation Policy
+
+Use Unity Editor Play Mode for normal UI/gameplay iteration. AIT/WebGL builds are too slow for every development loop, so reserve them for milestone browser/device spot checks such as WebGL-only asset loading, Korean font rendering, phone safe area, touch behavior, and cache/build-marker verification.
 
 ## Current Symptom
 
 - Resolved: `AIT > Dev Server > Start Server` now launches the local Vite server after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor.
 - Resolved: In the PC browser, parcel and conveyor/floor images now match the intended prototype assets after copying build-included Resources sprites and rebuilding AIT/WebGL.
 - Resolved: phone browser can reach the PC AIT Dev Server on the same LAN.
-- Pending verification: the prototype now includes a Korean-capable `NotoSansKR-VF` font under `Assets/Resources/Prototype/Fonts/` and applies it to the IMGUI styles, so WebGL Korean text should render instead of disappearing.
-- Remaining: phone browser testing is still needed for real portrait layout, touch input, safe area, WebGL performance, and the latest physics tuning.
+- Resolved in PC browser smoke: the prototype includes a Korean-capable `NotoSansKR-VF` font under `Assets/Resources/Prototype/Fonts/`, and B014 WebGL rendered Korean HUD text.
+- Remaining milestone spot check: phone browser testing is still useful for real portrait layout, touch input, safe area, WebGL performance, and cache/build-marker verification.
 
 ## Dev Server Finding
 
@@ -191,4 +195,4 @@ Recent checkpoint commits:
 
 ## Next Suggested Task
 
-Rebuild WebGL, open the phone browser through the PC LAN IP, confirm `B008` is visible, then retest whether softened drops reduce unfair impact sliding without making the whole stack feel floaty.
+For normal development, validate B015 UI Toolkit behavior in Unity Editor Play Mode first. Rebuild WebGL only at the next milestone browser/device checkpoint, then open the phone browser through the PC LAN IP and confirm the current build marker is visible.

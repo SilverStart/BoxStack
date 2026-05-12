@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-10
+Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, stage select, and result popup out of runtime `OnGUI` into a production-like Unity UI layer while preserving B014 behavior and mobile safe-area placement.
+Prepare a small approved implementation plan for the Delivery Arcade HUD pass before editing code: replace the full-width Toss Minimal top bar with compact stage/undo badges, add a side delivery progress rail, add central landing feedback, and restyle the result popup while preserving gameplay, stage select, undo behavior, safe-area handling, and input blocking.
 
 ## Prototype / Playtest History
 
@@ -75,6 +75,9 @@ Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, sta
 - 2026-05-10: Productization step 1 started: stage/tuning defaults moved behind `BoxStackPrototypeConfig`, with `BoxStackPrototype` loading a future `Resources/Prototype/BoxStackPrototypeConfig` asset when present and falling back to the approved B013 values otherwise. The build marker is now `B014`.
 - 2026-05-10: `Assets/Resources/Prototype/BoxStackPrototypeConfig.asset` was created with the approved B013/B014 stage and tuning values. Editor Play confirmed `Resources.Load` finds the asset, runtime config loading is active, stage count remains 20, and Unity console errors/warnings are 0.
 - 2026-05-10: B014 WebGL was rebuilt through AIT, copied into `ait-build/public`, served from `http://localhost:5173/index.html`, and smoke-tested in PC Chrome mobile viewport. The canvas loaded, the HUD showed Korean text plus `B014`, parcel/conveyor art rendered, and tap-to-drop advanced the counter to `1 / 4`. Phone LAN URL for manual spot testing is `http://172.30.1.14:5173/index.html`.
+- 2026-05-10: B015 UI replacement pass moved the Toss Minimal HUD, HUD undo button, stage select overlay, result popup, safe-area placement, runtime theme, and Korean font assignment into `BoxStackPrototypeUi` using UI Toolkit. The unused legacy IMGUI drawing path was removed from `BoxStackPrototype.cs`. `dotnet build` passed with 0 warnings/errors; Editor Play confirmed `UIDocument` creation, B015 HUD, stage select sizing, result popup sizing, and overlay input blocking. Unity still emits one known `PanelSettings` theme warning from runtime panel creation, but the theme resource loads and the UI renders correctly.
+- 2026-05-10: Development validation policy changed: use Unity Editor Play Mode for normal UI/gameplay iteration, and reserve AIT/WebGL plus phone browser builds for milestone browser/device spot checks because WebGL build time is too expensive for every development loop.
+- 2026-05-13: UI direction research found the current Toss Minimal HUD reads too much like a normal app header. A/B/C mockup directions were generated and archived at `design/ui/mockups/boxstack-ui-directions-2026-05-13.png`; Direction A, Delivery Arcade, was selected as the next HUD direction and specified in `design/ui/boxstack-delivery-arcade-hud-spec-2026-05-13.md`.
 
 ## Current Decisions
 
@@ -91,7 +94,7 @@ Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, sta
 - Background direction is a bright 2D parcel logistics center with a calm central play lane, not a full 3D modeled warehouse.
 - Current background test uses a parcel-brown solid color because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- First game UI direction is Toss Minimal: a compact top bar with progress feedback plus a central success/fail result popup for run completion.
+- Current implemented UI is B015 Toss Minimal, but the next approved UI direction is Delivery Arcade: compact shipping-label stage badge, undo ticket, side delivery progress rail, central landing feedback, and delivery-styled result cards while preserving the clean Toss app-in-app tone.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -101,13 +104,14 @@ Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, sta
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- The next productization pass is UI replacement: preserve the accepted Toss Minimal HUD behavior while moving away from prototype `OnGUI`.
+- The current productization pass is B015 UI Toolkit manual verification: preserve the accepted Toss Minimal HUD behavior, then commit the new runtime UI layer if the Editor Play feel is accepted.
+- The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
-- Prototype IMGUI layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
+- Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B014`, then increment manually when code changes again) during mobile WebGL tests to distinguish a fresh build from a cached old build.
+- Use a tiny in-game build marker (`B015`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
 
 ## Open Questions
 
@@ -116,11 +120,13 @@ Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, sta
 - Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - What bottom padding feels best on the target portrait app-in-app viewport?
-- Does the safe-area-aware IMGUI layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
+- Does the safe-area-aware UI Toolkit layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
 - Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
-- Does the phone browser load the latest B014 AIT/WebGL build reliably through the PC LAN IP?
-- Does the WebGL build render Korean text correctly across HUD, stage select, result popup, and rescue button states?
-- Does the top pill HUD feel Toss-app-like enough, or does it need to be quieter?
+- At the next milestone WebGL checkpoint, does the phone browser load the latest AIT/WebGL build reliably through the PC LAN IP?
+- At the next milestone WebGL checkpoint, does the WebGL build render Korean text correctly across HUD, stage select, result popup, and undo button states?
+- For the Delivery Arcade pass, should the delivery progress rail live on the left or right side of the target phone viewport?
+- Should the next HUD playtest use Korean-only UI copy, English arcade feedback, or a mixed prototype copy set?
+- Should the first landing feedback use generic messages only, or wait for an actual placement-quality scoring signal?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
@@ -137,16 +143,18 @@ Begin the UI layer replacement pass: move the Toss Minimal HUD, undo button, sta
 - Visual polish may hide physics readability issues if box silhouettes and contact edges are not kept clear.
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
-- Runtime `OnGUI` HUD is still prototype-only; production UI should move to a proper Unity UI layer after the current gameplay/config boundary is cleaner.
+- B015 removed the legacy IMGUI drawing path from `BoxStackPrototype.cs`; remaining disabled fail-rescue/ad-rescue code should be reviewed separately so UI cleanup does not silently change recovery rules.
+- Runtime-created UI Toolkit `PanelSettings` emits one known theme warning even though `BoxStackRuntimeTheme` loads and renders correctly; consider replacing runtime-created PanelSettings with a checked-in asset if zero-warning Play Mode is required.
 - The prototype now includes a full Korean font in `Resources`, which is acceptable for fast WebGL validation but adds build weight until UI/font handling is replaced or subsetted.
-- Safe area is handled in the prototype IMGUI layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
+- Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
-- The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is still useful for real device safe-area, touch feel, and performance.
+- Delivery Arcade should fix the app-like UI read, but it could become too busy or ad-game-like if feedback badges, side rail, and result stamps are all pushed too strongly in the first pass.
+- The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is now a milestone spot check for real device safe-area, touch feel, and performance rather than the default development loop.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
