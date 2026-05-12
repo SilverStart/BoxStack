@@ -24,7 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 16;
+    private const int PrototypeBuildNumber = 17;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -36,7 +36,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float FloorHeight = 0.35f;
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
-    private readonly List<BoxSnapshot> _rescueSnapshot = new List<BoxSnapshot>();
+    private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
 
     private GameObject _activeBox;
     private GameObject _droppingBox;
@@ -62,10 +62,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _attempts;
     private int _currentStageIndex;
     private int _highestUnlockedStageIndex;
-    private int _freeRescuesRemaining;
-    private int _adRescuesRemaining;
-    private bool _hasRescueSnapshot;
-    private bool _rescueAdInProgress;
+    private int _undosRemaining;
+    private bool _hasUndoSnapshot;
     private string _statusText = "READY";
 
     private enum PrototypeState
@@ -371,7 +369,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             GetHudFeedbackLabel(),
             _state == PrototypeState.StageSelect,
             CanUseUndoSkill(),
-            GetTotalRescuesRemaining(),
+            GetUndosRemaining(),
             resultVisible,
             resultVisible ? won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패" : string.Empty,
             resultVisible ? GetResultBody(won) : string.Empty,
@@ -461,17 +459,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (_statusText == "STACK CROOKED")
         {
-            if (CanUseFailureRescue())
-            {
-                return GetFailureRescueBody();
-            }
-
             return "한 줄로 쌓이지 않았어요";
-        }
-
-        if (CanUseFailureRescue())
-        {
-            return GetFailureRescueBody();
         }
 
         return "박스가 떨어졌어요";
@@ -485,16 +473,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         return hasNextStage ? "다음 스테이지" : "처음부터";
-    }
-
-    private string GetFailureRescueBody()
-    {
-        if (_rescueAdInProgress)
-        {
-            return "광고 확인 후 방금 전으로 돌아가요";
-        }
-
-        return CanUseFreeFailureRescue() ? "한 번 되돌릴 수 있어요" : "광고 보고 한 번 더 이어갈 수 있어요";
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)
@@ -575,16 +553,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _placedBoxes.Clear();
-        _rescueSnapshot.Clear();
+        _undoSnapshot.Clear();
         _activeBox = null;
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
         BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
-        _freeRescuesRemaining = tuning.FreeRescuesPerStage;
-        _adRescuesRemaining = tuning.AdRescuesPerStage;
-        _hasRescueSnapshot = false;
-        _rescueAdInProgress = false;
+        _undosRemaining = tuning.FreeRescuesPerStage;
+        _hasUndoSnapshot = false;
         _attempts++;
         _state = PrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -700,9 +676,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool CanUseUndoSkill()
     {
-        return _hasRescueSnapshot
-            && _freeRescuesRemaining > 0
-            && !_rescueAdInProgress
+        return _hasUndoSnapshot
+            && _undosRemaining > 0
             && (_state == PrototypeState.Playing
                 || _state == PrototypeState.ResolvingDrop
                 || _state == PrototypeState.ValidatingClear);
@@ -710,55 +685,23 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool UndoLastPlacedBox()
     {
-        return UseFreeFailureRescue();
-    }
-
-    private bool CanUseFailureRescue()
-    {
-        return false;
-    }
-
-    private bool CanUseFreeFailureRescue()
-    {
-        return CanUseUndoSkill();
-    }
-
-    private bool CanUseAdFailureRescue()
-    {
-        return false;
-    }
-
-    private int GetTotalRescuesRemaining()
-    {
-        return _freeRescuesRemaining + _adRescuesRemaining;
-    }
-
-    private bool UseFreeFailureRescue()
-    {
-        if (!CanUseFreeFailureRescue())
+        if (!CanUseUndoSkill())
         {
             return false;
         }
 
-        _freeRescuesRemaining--;
-        return RestoreFailureRescueSnapshot();
+        _undosRemaining--;
+        return RestoreUndoSnapshot();
     }
 
-    private bool UseAdFailureRescue()
+    private int GetUndosRemaining()
     {
-        if (!CanUseAdFailureRescue())
-        {
-            return false;
-        }
-
-        _adRescuesRemaining--;
-        return RestoreFailureRescueSnapshot();
+        return _undosRemaining;
     }
 
-    private bool RestoreFailureRescueSnapshot()
+    private bool RestoreUndoSnapshot()
     {
         StopAllCoroutines();
-        _rescueAdInProgress = false;
 
         if (_activeBox != null)
         {
@@ -773,7 +716,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _droppingBox = null;
 
-        for (int i = _placedBoxes.Count - 1; i >= _rescueSnapshot.Count; i--)
+        for (int i = _placedBoxes.Count - 1; i >= _undoSnapshot.Count; i--)
         {
             GameObject extraBox = _placedBoxes[i];
             _placedBoxes.RemoveAt(i);
@@ -783,9 +726,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < _rescueSnapshot.Count; i++)
+        for (int i = 0; i < _undoSnapshot.Count; i++)
         {
-            BoxSnapshot snapshot = _rescueSnapshot[i];
+            BoxSnapshot snapshot = _undoSnapshot[i];
             if (snapshot.Box == null)
             {
                 continue;
@@ -809,8 +752,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             }
         }
 
-        _rescueSnapshot.Clear();
-        _hasRescueSnapshot = false;
+        _undoSnapshot.Clear();
+        _hasUndoSnapshot = false;
         _clearValidationEndTime = 0f;
         _state = PrototypeState.Playing;
         _statusText = "UNDO";
@@ -818,19 +761,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         SpawnNextBox();
         RefreshPrototypeUi();
         return true;
-    }
-
-    private IEnumerator MockRewardAdAndRescue()
-    {
-        if (_rescueAdInProgress || !CanUseAdFailureRescue())
-        {
-            yield break;
-        }
-
-        _rescueAdInProgress = true;
-        yield return new WaitForSecondsRealtime(0.65f);
-
-        UseAdFailureRescue();
     }
 
     private void SpawnNextBox()
@@ -992,7 +922,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        CaptureRescueSnapshot();
+        CaptureUndoSnapshot();
         _state = PrototypeState.ResolvingDrop;
         _statusText = "DROP";
 
@@ -1099,9 +1029,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
         EndRun(true, "STACK COMPLETE");
     }
 
-    private void CaptureRescueSnapshot()
+    private void CaptureUndoSnapshot()
     {
-        _rescueSnapshot.Clear();
+        _undoSnapshot.Clear();
 
         for (int i = 0; i < _placedBoxes.Count; i++)
         {
@@ -1114,11 +1044,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
             var body = box.GetComponent<Rigidbody2D>();
             if (body == null)
             {
-                _rescueSnapshot.Add(new BoxSnapshot(box, box.transform.position, box.transform.rotation, RigidbodyType2D.Dynamic, Vector2.zero, 0f, true));
+                _undoSnapshot.Add(new BoxSnapshot(box, box.transform.position, box.transform.rotation, RigidbodyType2D.Dynamic, Vector2.zero, 0f, true));
                 continue;
             }
 
-            _rescueSnapshot.Add(new BoxSnapshot(
+            _undoSnapshot.Add(new BoxSnapshot(
                 box,
                 box.transform.position,
                 box.transform.rotation,
@@ -1128,7 +1058,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 body.simulated));
         }
 
-        _hasRescueSnapshot = true;
+        _hasUndoSnapshot = true;
     }
 
     private void EndRun(bool won, string status)
