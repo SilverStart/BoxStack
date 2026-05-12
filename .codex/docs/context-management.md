@@ -7,6 +7,23 @@ Context is the most critical resource in a Claude Code session. Manage it active
 **The file is the memory, not the conversation.** Conversations are ephemeral and
 will be compacted or lost. Files on disk persist across compactions and session crashes.
 
+### Instruction Usage Log
+
+Maintain `production/instruction-usage-log.md` as a lightweight record of which
+project instructions, skill files, and imported harness guidance are actually
+read and used during work.
+
+Update the log when an agent reads or considers instructions beyond the usual
+top-level project context:
+
+- Mark instructions as **Applied** when they changed a decision, edit, test, or
+  response.
+- Mark instructions as **Referenced** when they were read for orientation only.
+- Mark instructions or skills as **Not used** when they were considered but
+  skipped, with a short reason.
+- Add a future-harness note such as **Keep**, **Trim**, **Merge**, **Retire**, or
+  **Watch** so the useful parts can be carried into the next project.
+
 ### Session State File
 
 Maintain `production/session-state/active.md` as a living checkpoint. Update it
@@ -89,6 +106,7 @@ When context is compacted, preserve the following in the summary:
 - Active sprint tasks and their current status
 - Agent invocations and their outcomes (success/failure/blocked)
 - Test results (pass/fail counts, specific failures)
+- Instruction usage log updates made during the session
 - Unresolved blockers or questions awaiting user input
 - The current task and what step we are on
 - Which sections of the current document are written to file vs. still in progress
