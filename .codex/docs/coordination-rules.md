@@ -71,3 +71,9 @@ When an orchestration skill spawns multiple independent agents:
 2. Collect all results before proceeding to dependent phases
 3. If any agent is BLOCKED, surface it immediately — do not silently skip
 4. Always produce a partial report if some agents complete and others block
+
+## Temporary Verification Artifacts
+
+Temporary artifact cleanup is a model-neutral project rule. Follow
+`docs/workflow/ai-agent-operating-rules.md` so Codex, Claude Code, Gemini, and
+other agents share the same behavior.

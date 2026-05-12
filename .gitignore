@@ -115,3 +115,9 @@ Assets/WebGLTemplates/
 Assets/WebGLTemplates.meta
 Assets/StreamingAssets/build_info
 Assets/StreamingAssets/build_info.meta
+
+# 검증/테스트 중 생성되는 임시 산출물
+.tmp/
+Screenshots/
+Assets/Resources/PerformanceTestRun*.json
+Assets/Resources/PerformanceTestRun*.json.meta

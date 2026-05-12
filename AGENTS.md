@@ -41,6 +41,10 @@ Expected Unity project roots:
 
 @.codex/docs/coordination-rules.md
 
+## AI Agent Operating Rules
+
+@docs/workflow/ai-agent-operating-rules.md
+
 ## Collaboration Protocol
 
 User-driven collaboration, not autonomous execution.
