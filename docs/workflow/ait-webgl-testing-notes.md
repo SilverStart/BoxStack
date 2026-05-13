@@ -1,19 +1,21 @@
 # AIT WebGL Testing Notes
 
-Date: 2026-05-10
+Last updated: 2026-05-13
 
-This note captures the current Apps in Toss / Unity WebGL test findings so a new session can continue without rediscovering them.
+This note captures the current Apps in Toss / Unity WebGL findings so a new session can continue without rediscovering the same issues.
 
 ## Development Validation Policy
 
-Use Unity Editor Play Mode for normal UI/gameplay iteration. AIT/WebGL builds are too slow for every development loop, so reserve them for milestone browser/device spot checks such as WebGL-only asset loading, Korean font rendering, phone safe area, touch behavior, and cache/build-marker verification.
+Use Unity Editor Play Mode for normal UI/gameplay iteration. AIT/WebGL builds are too slow for every development loop, so reserve them for milestone browser/device spot checks such as WebGL-only asset loading, Korean font rendering, phone safe area, touch behavior, performance, and cache/build-marker verification.
 
-## Current Symptom
+## Current Status
 
-- Resolved: `AIT > Dev Server > Start Server` now launches the local Vite server after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor.
-- Resolved: In the PC browser, parcel and conveyor/floor images now match the intended prototype assets after copying build-included Resources sprites and rebuilding AIT/WebGL.
+- Resolved: `AIT > Dev Server > Start Server` launches the local Vite server after adding the AIT embedded pnpm folder to Windows `PATH` and fully restarting Unity Hub/Editor.
 - Resolved: phone browser can reach the PC AIT Dev Server on the same LAN.
-- Resolved in PC browser smoke: the prototype includes a Korean-capable `NotoSansKR-VF` font under `Assets/Resources/Prototype/Fonts/`, and B014 WebGL rendered Korean HUD text.
+- Resolved in PC browser smoke: build-included `Assets/Resources/Prototype/...` sprites make parcel and conveyor/floor images appear correctly.
+- Resolved in PC browser smoke: `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` renders Korean HUD text in WebGL.
+- Current runtime UI: UI Toolkit through `BoxStackPrototypeUi`, with `BoxStackPanelSettings` and `BoxStackRuntimeTheme` loaded from `Assets/Resources/Prototype/Ui/`.
+- Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
 - Remaining milestone spot check: phone browser testing is still useful for real portrait layout, touch input, safe area, WebGL performance, and cache/build-marker verification.
 
 ## Dev Server Finding
@@ -24,7 +26,7 @@ The AIT Unity menu runs this from `ait-build`:
 pnpm vite --host
 ```
 
-The Unity-launched process failed because `pnpm` was not on PATH:
+The Unity-launched process previously failed because `pnpm` was not on `PATH`:
 
 ```text
 Command failed with exit code 1: pnpm vite --host
@@ -77,39 +79,40 @@ If the page works briefly and then connection is refused, re-check whether port 
 Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue
 ```
 
-## WebGL Visual Mismatch Finding
+## WebGL Visual Asset Finding
 
-The current prototype loads sprites with this priority:
+The current prototype loads gameplay sprites through `BoxStackPrototypeAssetLoader` with this priority:
 
-1. `Resources.Load<Sprite>("Prototype/Parcel/...")`
-2. Editor-only `AssetDatabase.LoadAssetAtPath(...)`
-3. Runtime placeholder/solid sprite fallback
+1. `Resources.Load<Sprite>("Prototype/...")`
+2. `Resources.Load<Texture2D>("Prototype/...")`, then runtime Sprite creation
+3. Editor-only source PNG fallback through `AssetDatabase` or file loading
+4. Runtime placeholder/solid sprite fallback
 
-The actual PNG files currently live under:
+The WebGL-compatible prototype copies live under:
+
+```text
+Assets/Resources/Prototype/Parcel/
+Assets/Resources/Prototype/Backgrounds/
+Assets/Resources/Prototype/Fonts/
+Assets/Resources/Prototype/Ui/
+```
+
+The original source art still lives under:
 
 ```text
 Assets/Art/Prototype/Parcel/
 Assets/Art/Prototype/Backgrounds/
 ```
 
-At the time of diagnosis there was no `Assets/Resources/Prototype/Parcel/` folder. That meant:
-
-- Editor Play can find PNGs through `AssetDatabase`.
-- WebGL builds cannot use `AssetDatabase`.
-- WebGL falls back to generated placeholder/solid sprites, so parcel boxes and the conveyor/floor can look wrong.
-
-Applied prototype fix:
-
-- Prototype PNGs were copied into `Assets/Resources/Prototype/Parcel/` and `Assets/Resources/Prototype/Backgrounds/`.
-- `BoxStackPrototype.LoadPrototypeSprite()` now tries `Resources.Load<Sprite>()` first, then `Resources.Load<Texture2D>()`, before using the Editor-only `AssetDatabase` fallback.
-
 Verification:
 
 - 2026-05-07: After rebuilding AIT/WebGL, PC browser testing confirmed that parcel and conveyor/floor images appear correctly.
+- 2026-05-10: B014 PC browser smoke confirmed Korean text, parcel/conveyor art, and tap-to-drop behavior.
+- 2026-05-13: B022 Editor Play verification confirmed `BoxStackPrototypeAssetLoader` loads config, Korean font, floor sprite, and 3 box visuals.
 
 Remaining verification:
 
-1. Retest on a phone browser using the PC LAN IP.
+1. Retest on a phone browser using the PC LAN IP at the next milestone checkpoint.
 
 ## Phone Browser Smoke Test Checklist
 
@@ -122,39 +125,53 @@ http://172.30.1.14:5173/index.html
 The phone must be on the same network as the PC. Do not use `localhost` on the phone.
 
 - Page loads without connection refused, timeout, or infinite loading.
-- Portrait layout keeps the top HUD, stage select, and result popup inside the visible safe area.
+- Portrait layout keeps the HUD, stage select, result popup, and undo button inside the visible safe area.
+- UI Toolkit labels render Korean text in HUD, stage select, result popup, and undo states.
 - Parcel boxes and the conveyor/floor use the intended image assets, not placeholder rectangles.
 - Tap-to-drop input works reliably.
 - Stage label opens stage select; locked stages stay disabled.
-- Restart and free rescue buttons respond to touch.
-- Korean HUD, stage select, result popup, and rescue button text is visible in WebGL.
+- `진행 초기화` and `전체 해금` appear only in Editor/development builds.
+- Restart, stage select, and undo buttons respond to touch.
 - Stages 1, 5, 10, 15, and 20 are playable enough to judge difficulty.
 - No obvious freezes, browser crashes, or severe frame drops during stack collapse.
-- The small build marker below the top-right HUD area shows the expected value (`B008` for the current prototype build marker).
+- The small build marker below the top-right HUD area shows the expected value for the runtime build being tested.
 
 ## Build Marker
 
-`BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current value is:
+`BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current runtime marker after the latest C# change is:
 
 ```text
-B008
+B022
 ```
 
-When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build.
+When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build. Documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## WebGL Korean Font Fix
 
-`OnGUI` text can lose Korean glyphs in WebGL if the build relies on Unity's default runtime font. The current prototype includes `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` and loads it with `Resources.Load<Font>("Prototype/Fonts/NotoSansKR-VF")`, then applies it to HUD, stage select, result popup, rescue buttons, and the build marker styles.
+WebGL text can lose Korean glyphs if the build relies on Unity's default runtime font. The current prototype includes:
 
-Remaining verification:
+```text
+Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf
+```
+
+`BoxStackPrototypeAssetLoader` loads it with:
+
+```text
+Resources.Load<Font>("Prototype/Fonts/NotoSansKR-VF")
+```
+
+`BoxStackPrototypeUi` then applies it to UI Toolkit text through the runtime UI layer.
+
+Remaining milestone verification:
 
 1. Rebuild WebGL.
-2. Open the browser build and confirm Korean text appears in all prototype UI states.
-3. Confirm the build marker shows `B008`, not `B007`.
+2. Open the browser build.
+3. Confirm Korean text appears in HUD, stage select, result popup, undo button, and build marker states.
+4. Confirm the build marker matches the expected runtime marker for that test build.
 
 ## Current Physics Tuning To Retest
 
-The latest phone tests found that high friction helps, but falling-box impact still pushes the lower stack too hard. The next WebGL build keeps high friction, softens the active drop, and should verify:
+The approved B008 physics baseline remains current:
 
 - parcel `PhysicsMaterial2D.friction = 8.0`
 - floor `PhysicsMaterial2D.friction = 8.0`
@@ -170,29 +187,25 @@ Expected result: impact-driven sideways sliding should be reduced, while towers 
 
 ## UI Finding
 
-The current HUD, stage select, and result popup are still Unity `OnGUI` prototype UI. `OnGUI` is useful for fast iteration, but WebGL/mobile can show differences in:
+The current HUD, stage select, result popup, and undo button are runtime UI Toolkit, not `OnGUI`/IMGUI. `BoxStackPrototypeUi` owns layout, safe-area placement, input blocking, Korean font assignment, result popup, stage select, and the Delivery Arcade HUD structure.
 
-- font rendering
-- DPI scaling
-- touch hit areas
-- safe area behavior
-- layout clipping
+Current UI resources:
 
-Committed prototype code now uses `Screen.safeArea` conversion for IMGUI placement, but this still needs browser/device playtest. For production-like UI, plan to migrate from `OnGUI` to a runtime UI layer such as UGUI or UI Toolkit after the remaining gameplay/progression prototype checks.
+- `Assets/Resources/Prototype/Ui/BoxStackPanelSettings.asset`
+- `Assets/Resources/Prototype/Ui/BoxStackRuntimeTheme.tss`
+- `design/ui/delivery-arcade-assets/`
+
+The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype skin. It is committed for review, but it is not wired into the runtime UI yet.
 
 ## Current Worktree Note
 
-As of the commit checkpoint on 2026-05-08, the related changes were split into focused commits and the worktree was clean immediately afterward.
-
-Recent checkpoint commits:
-
-- `8aa7158 웹GL 프로토타입 리소스 로딩 수정`
-- `daeb9f4 모바일 안전 영역에 맞춰 프로토타입 UI 보정`
-- `0884502 박스 미끄러짐 완화 물리값 조정`
-- `b0e12b0 프로토타입 빌드 번호 표시 추가`
-- `16e0c1c AIT 웹GL 테스트 절차 기록`
-- `94a6549 AIT 웹GL 빌드 설정 정리`
+As of `cd85880 Delivery Arcade UI 리소스 초안 추가`, the Delivery Arcade UI PNG mini pack exists under `design/ui/delivery-arcade-assets/`. The latest runtime C# structure checkpoint is `c3e0c92 B022 프로토타입 에셋 로딩 경계 분리`.
 
 ## Next Suggested Task
 
-For normal development, validate B015 UI Toolkit behavior in Unity Editor Play Mode first. Rebuild WebGL only at the next milestone browser/device checkpoint, then open the phone browser through the PC LAN IP and confirm the current build marker is visible.
+For normal development, continue using Unity Editor Play Mode. The next runtime-facing task should be either:
+
+1. Apply or intentionally defer the `design/ui/delivery-arcade-assets/` PNG skin in `BoxStackPrototypeUi`.
+2. Continue productization by extracting another small boundary from `BoxStackPrototype.cs`.
+
+Rebuild WebGL only at the next milestone browser/device checkpoint.

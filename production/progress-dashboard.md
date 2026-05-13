@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-B022 prototype asset loading boundary is implemented and verified without gameplay feel changes. Next checkpoint is user review/commit of the structure slice, then continue with the next small productization step. WebGL/mobile testing remains deferred to the next milestone spot check.
+Documentation is being synced after the committed B022 asset-loading boundary and committed Delivery Arcade UI PNG mini pack. Next runtime-facing checkpoint is to choose between applying the Delivery Arcade PNG skin to `BoxStackPrototypeUi` or continuing another small productization split from `BoxStackPrototype.cs`. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -93,6 +93,9 @@ B022 prototype asset loading boundary is implemented and verified without gamepl
 - 2026-05-13: B020 representative playtest was accepted as good enough to proceed without immediate HUD, movement, physics, undo, or difficulty tuning changes.
 - 2026-05-13: B021 stage progress storage boundary implemented: `BoxStackStageProgressStore` now wraps highest-unlocked-stage PlayerPrefs access so later App-in-Toss storage replacement has a clear seam. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification confirmed reset saves stage 1, unlock-all saves stage 20, stage 15 selection still works, one `UIDocument` exists, and `B021` appears.
 - 2026-05-13: B022 prototype asset loading boundary implemented: `BoxStackPrototypeAssetLoader` now owns prototype config, Korean font, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation. `BoxStackPrototype` delegates those loading details to the loader while preserving gameplay, UI layout, physics, stage tuning, undo, and persistence behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification confirmed loader type `BoxStackPrototypeAssetLoader`, config loaded, Korean font `NotoSansKR-VF` loaded, floor sprite `parcel_stack_base_01` loaded, 3 box visuals loaded, one `UIDocument` exists, and UI labels include `B022`.
+- 2026-05-13: B022 asset-loading boundary was accepted and committed as `c3e0c92 B022 프로토타입 에셋 로딩 경계 분리`.
+- 2026-05-13: Delivery Arcade UI PNG mini pack was committed as `cd85880 Delivery Arcade UI 리소스 초안 추가` under `design/ui/delivery-arcade-assets/`. These are sidecar design assets for later UI Toolkit skinning and are not wired into runtime UI yet.
+- 2026-05-13: Documentation sync updated `docs/workflow/ait-webgl-testing-notes.md` away from stale B008/B014/OnGUI language to the current B022 asset loader, UI Toolkit runtime layer, Korean font path, and milestone-only WebGL validation policy.
 
 ## Current Decisions
 
@@ -120,6 +123,7 @@ B022 prototype asset loading boundary is implemented and verified without gamepl
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
 - B020 fixes the stage select unlock/test button hit-test issue and is now committed; automated structure checks pass and the user accepted the current feel. B021 preserves that baseline while moving stage progress storage behind a small replacement boundary; B022 preserves it again while moving prototype asset loading behind a small replacement boundary.
+- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed design reference, but the runtime UI still uses the B016/B022 UI Toolkit layout and styling.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -129,6 +133,7 @@ B022 prototype asset loading boundary is implemented and verified without gamepl
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
 - Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- The current runtime build marker is `B022`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 
@@ -144,6 +149,7 @@ B022 prototype asset loading boundary is implemented and verified without gamepl
 - For the Delivery Arcade pass, should the delivery progress rail live on the left or right side of the target phone viewport?
 - Should the next HUD playtest use Korean-only UI copy, English arcade feedback, or a mixed prototype copy set?
 - Should the first landing feedback use generic messages only, or wait for an actual placement-quality scoring signal?
+- Should the committed Delivery Arcade PNG mini pack be applied to the runtime UI Toolkit layer now, refined first, or kept as design reference for later?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
 - Does the parcel-brown solid background improve focus compared with the logistics center image?
 - Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
@@ -171,6 +177,7 @@ B022 prototype asset loading boundary is implemented and verified without gamepl
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
 - Delivery Arcade should fix the app-like UI read, but it could become too busy or ad-game-like if feedback badges, side rail, and result stamps are all pushed too strongly in the first pass.
+- The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is now a milestone spot check for real device safe-area, touch feel, and performance rather than the default development loop.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
