@@ -1,7 +1,8 @@
-// 프로토타입 설정 - 제품용 데이터 에셋으로 넘어가기 위한 안전한 중간 단계.
+// 프로토타입 설정 - 제품 데이터 에셋으로 넘어가기 위한 안전한 중간 단계.
 
 using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// BoxStack 프로토타입의 튜닝값과 스테이지 값을 담는 데이터 경계입니다.
@@ -26,8 +27,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         lostHeight: -4.0f,
         lostHorizontalDistance: 4.0f,
         stackLineTolerance: 0.75f,
-        freeRescuesPerStage: 1,
-        adRescuesPerStage: 0);
+        undosPerStage: 1);
 
     private static readonly StageSettings[] DefaultStages =
     {
@@ -62,7 +62,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
     }
 
     /// <summary>
-    /// 프로토타입에서 사용할 수 있는 설정된 스테이지 수입니다.
+    /// 프로토타입에서 사용할 수 있는 설정 스테이지 수입니다.
     /// </summary>
     public int StageCount
     {
@@ -83,7 +83,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
     }
 
     /// <summary>
-    /// 범위 안으로 보정된 인덱스의 스테이지 설정을 반환합니다.
+    /// 범위 안으로 보정한 인덱스의 스테이지 설정을 반환합니다.
     /// </summary>
     public StageSettings GetStage(int index)
     {
@@ -135,8 +135,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             float lostHeight,
             float lostHorizontalDistance,
             float stackLineTolerance,
-            int freeRescuesPerStage,
-            int adRescuesPerStage)
+            int undosPerStage)
         {
             BaseMoveRange = baseMoveRange;
             BaseMoveSpeed = baseMoveSpeed;
@@ -154,8 +153,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             LostHeight = lostHeight;
             LostHorizontalDistance = lostHorizontalDistance;
             StackLineTolerance = stackLineTolerance;
-            FreeRescuesPerStage = freeRescuesPerStage;
-            AdRescuesPerStage = adRescuesPerStage;
+            UndosPerStage = undosPerStage;
         }
 
         public float BaseMoveRange;
@@ -174,8 +172,9 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         public float LostHeight;
         public float LostHorizontalDistance;
         public float StackLineTolerance;
-        public int FreeRescuesPerStage;
-        public int AdRescuesPerStage;
+
+        [FormerlySerializedAs("FreeRescuesPerStage")]
+        public int UndosPerStage;
     }
 
     [Serializable]

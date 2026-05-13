@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-User review B017 HUD undo cleanup in Editor Play Mode. If it feels right, commit the cleanup; otherwise adjust the undo ticket/result-card details before moving to the next productization task. WebGL/mobile testing remains deferred to the next milestone spot check.
+B018 undo config naming cleanup is verified in C# build and Unity Editor Play Mode. User review/commit is the next checkpoint; WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -81,7 +81,8 @@ User review B017 HUD undo cleanup in Editor Play Mode. If it feels right, commit
 - 2026-05-13: Delivery Arcade HUD implementation plan was approved for the next pass: replace the full-width Toss Minimal top bar with compact stage/undo badges, add a right-side delivery progress rail, add simple Korean central feedback, and restyle the result popup while preserving gameplay, stage select, undo, safe-area, and input-blocking behavior.
 - 2026-05-13: B016 Delivery Arcade HUD first pass implemented: compact shipping-label stage badge, top-right undo ticket, right-side delivery progress rail, central Korean feedback toast, and delivery-styled result card. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector on port `8090` confirmed Editor Play starts, one `UIDocument` exists, and the UI tree contains `B016`, the delivery-label stage badge, placed/target count, undo ticket, and stage select text. Connector screenshots did not capture UI Toolkit reliably, but the user accepted the overall Editor Game view layout.
 - 2026-05-13: B016 overall UI layout was accepted and committed as `7952526 B016 Delivery Arcade HUD 구조 적용`.
-- 2026-05-13: B017 HUD undo cleanup removed old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype`, while preserving the separate one-use HUD undo behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity Editor Play Mode confirmed one `UIDocument`, build marker `B017`, undo snapshot restoration once per stage, and failure result text without ad/reward copy; only the known `PanelSettings` and UDP warnings remain.
+- 2026-05-13: B017 HUD undo cleanup removed old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype`, while preserving the separate one-use HUD undo behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity Editor Play Mode confirmed one `UIDocument`, build marker `B017`, undo snapshot restoration once per stage, and failure result text without ad/reward copy; only the known `PanelSettings` and UDP warnings remain. User accepted and committed the cleanup as `af6cc91 B017 되돌리기 코드 정리`.
+- 2026-05-13: B018 undo config naming cleanup verified: `BoxStackPrototypeConfig` now uses `UndosPerStage` instead of the old rescue/ad setting names, the checked-in config asset stores `UndosPerStage: 1`, and `BoxStackPrototype` reads the renamed field without changing gameplay tuning. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification confirmed build marker `B018`, config load, `configUndosPerStage = 1`, `runtimeUndosRemaining = 1`, and no remaining `FreeRescuesPerStage` or `AdRescuesPerStage` fields in `TuningSettings`.
 
 ## Current Decisions
 
@@ -108,10 +109,10 @@ User review B017 HUD undo cleanup in Editor Play Mode. If it feels right, commit
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- The current productization pass is B017 HUD undo cleanup review: the cleanup is verified and waiting for user acceptance before commit.
+- The current productization pass is B018 undo config naming cleanup: code/build/Editor Play checks are verified, and the next checkpoint is user review/commit.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
-- B016 Delivery Arcade code pass was accepted and committed; B017 is verified in Editor Play Mode and should be user-reviewed before any commit or WebGL spot check.
+- B016 Delivery Arcade code pass and B017 HUD undo cleanup were accepted and committed; B018 should be build-verified before any commit or WebGL spot check.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
@@ -149,7 +150,7 @@ User review B017 HUD undo cleanup in Editor Play Mode. If it feels right, commit
 - Visual polish may hide physics readability issues if box silhouettes and contact edges are not kept clear.
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
-- B017 removes the old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype.cs`; the config asset still carries older serialized rescue field names for compatibility and can be renamed later with a deliberate asset migration.
+- B017 removed the old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype.cs`. B018 migrates the config asset to the current `UndosPerStage` name while keeping `FormerlySerializedAs` for older serialized assets.
 - Runtime-created UI Toolkit `PanelSettings` emits one known theme warning even though `BoxStackRuntimeTheme` loads and renders correctly; consider replacing runtime-created PanelSettings with a checked-in asset if zero-warning Play Mode is required.
 - The prototype now includes a full Korean font in `Resources`, which is acceptable for fast WebGL validation but adds build weight until UI/font handling is replaced or subsetted.
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.

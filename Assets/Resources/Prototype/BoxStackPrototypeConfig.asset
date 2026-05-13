@@ -29,8 +29,7 @@ MonoBehaviour:
     LostHeight: -4
     LostHorizontalDistance: 4
     StackLineTolerance: 0.75
-    FreeRescuesPerStage: 1
-    AdRescuesPerStage: 0
+    UndosPerStage: 1
   stages:
   - Number: 1
     TargetBoxes: 4
