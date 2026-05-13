@@ -6,24 +6,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR
-using System.IO;
-using UnityEditor;
-#endif
-
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const string ParcelAssetFolder = "Assets/Art/Prototype/Parcel";
-    private const string ParcelResourceFolder = "Prototype/Parcel";
-    private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
-    private const string BackgroundResourceFolder = "Prototype/Backgrounds";
-    private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
-    private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
-    private const int PrototypeBuildNumber = 21;
+    private const int PrototypeBuildNumber = 22;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -36,6 +25,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
     private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
+    private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
 
     private GameObject _activeBox;
@@ -226,7 +216,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void LoadPrototypeConfig()
     {
-        _prototypeConfig = Resources.Load<BoxStackPrototypeConfig>(PrototypeConfigResourcePath);
+        _prototypeConfig = _assetLoader.LoadConfig();
     }
 
     private void Update()
@@ -322,7 +312,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _prototypeFont = Resources.Load<Font>(KoreanFontResourcePath);
+        _prototypeFont = _assetLoader.LoadKoreanFont();
 
         var uiObject = new GameObject("BoxStack Prototype UI");
         uiObject.transform.SetParent(transform, false);
@@ -522,7 +512,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         var renderer = visual.AddComponent<SpriteRenderer>();
         renderer.sprite = _floorSprite;
         renderer.sortingOrder = -5;
-        FitSpriteToWorldSize(visual.transform, _floorSprite, new Vector2(6.2f, 0.35f));
+        FitSpriteToWorldSize(visual.transform, _floorSprite, _assetLoader.GetVisibleTextureRect(_floorSprite), new Vector2(6.2f, 0.35f));
 
         var collider = floor.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(6.2f, FloorHeight);
@@ -1169,26 +1159,26 @@ public sealed class BoxStackPrototype : MonoBehaviour
         for (int i = 0; i < BoxAssetDefinitions.Length; i++)
         {
             BoxAssetDefinition definition = BoxAssetDefinitions[i];
-            Sprite sprite = LoadPrototypeSprite(definition.Name);
+            Sprite sprite = _assetLoader.LoadParcelSprite(definition.Name);
             if (sprite != null)
             {
-                _boxVisuals.Add(new BoxVisual(sprite, definition.WorldSize, GetVisibleTextureRect(sprite), false));
+                _boxVisuals.Add(new BoxVisual(sprite, definition.WorldSize, _assetLoader.GetVisibleTextureRect(sprite), false));
                 continue;
             }
 
-            Sprite placeholder = CreateParcelBoxSprite();
-            _boxVisuals.Add(new BoxVisual(placeholder, definition.WorldSize, GetVisibleTextureRect(placeholder), true));
+            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
+            _boxVisuals.Add(new BoxVisual(placeholder, definition.WorldSize, _assetLoader.GetVisibleTextureRect(placeholder), true));
         }
 
         if (_boxVisuals.Count == 0)
         {
-            Sprite placeholder = CreateParcelBoxSprite();
-            _boxVisuals.Add(new BoxVisual(placeholder, Vector2.one * BoxSize, GetVisibleTextureRect(placeholder), true));
+            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
+            _boxVisuals.Add(new BoxVisual(placeholder, Vector2.one * BoxSize, _assetLoader.GetVisibleTextureRect(placeholder), true));
         }
 
-        _floorSprite = LoadPrototypeSprite(StackBaseSpriteName) ?? CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
+        _floorSprite = _assetLoader.LoadParcelSprite(StackBaseSpriteName) ?? _assetLoader.CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
         _backgroundSprite = UseLogisticsCenterBackground
-            ? LoadPrototypeSprite(BackgroundSpriteName, BackgroundResourceFolder, BackgroundAssetFolder)
+            ? _assetLoader.LoadBackgroundSprite(BackgroundSpriteName)
             : null;
     }
 
@@ -1207,8 +1197,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_boxVisuals.Count == 0)
         {
-            Sprite placeholder = CreateParcelBoxSprite();
-            return new BoxVisual(placeholder, Vector2.one * BoxSize, GetVisibleTextureRect(placeholder), true);
+            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
+            return new BoxVisual(placeholder, Vector2.one * BoxSize, _assetLoader.GetVisibleTextureRect(placeholder), true);
         }
 
         int visualIndex = GetBoxVisualIndex(boxCode);
@@ -1243,67 +1233,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return false;
     }
 
-    private static Sprite LoadPrototypeSprite(string assetName)
-    {
-        return LoadPrototypeSprite(assetName, ParcelResourceFolder, ParcelAssetFolder);
-    }
-
-    private static Sprite LoadPrototypeSprite(string assetName, string resourceFolder, string assetFolder)
-    {
-        Sprite sprite = Resources.Load<Sprite>($"{resourceFolder}/{assetName}");
-        if (sprite != null)
-        {
-            return sprite;
-        }
-
-        Texture2D resourceTexture = Resources.Load<Texture2D>($"{resourceFolder}/{assetName}");
-        if (resourceTexture != null)
-        {
-            return CreateRuntimeSprite(assetName, resourceTexture);
-        }
-
-#if UNITY_EDITOR
-        string assetPath = $"{assetFolder}/{assetName}.png";
-        string absolutePath = Path.Combine(Application.dataPath, assetPath.Substring("Assets/".Length));
-        if (File.Exists(absolutePath))
-        {
-            byte[] bytes = File.ReadAllBytes(absolutePath);
-            var fileTexture = new Texture2D(2, 2, TextureFormat.RGBA32, false)
-            {
-                filterMode = FilterMode.Bilinear,
-                name = assetName
-            };
-
-            if (ImageConversion.LoadImage(fileTexture, bytes))
-            {
-                return CreateRuntimeSprite(assetName, fileTexture);
-            }
-        }
-
-        sprite = AssetDatabase.LoadAssetAtPath<Sprite>(assetPath);
-        if (sprite != null)
-        {
-            return sprite;
-        }
-
-        Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(assetPath);
-        if (texture != null)
-        {
-            return CreateRuntimeSprite(assetName, texture);
-        }
-
-        return null;
-#else
-        return null;
-#endif
-    }
-
-    private static Sprite CreateRuntimeSprite(string assetName, Texture2D texture)
-    {
-        texture.name = assetName;
-        return Sprite.Create(texture, new Rect(0f, 0f, texture.width, texture.height), new Vector2(0.5f, 0.5f), texture.width);
-    }
-
     private void CreateBackground()
     {
         if (_camera == null || _backgroundSprite == null)
@@ -1332,63 +1261,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         float width = height * _camera.aspect;
         FitSpriteToCoverWorldSize(_background.transform, _backgroundSprite, new Vector2(width, height));
         _background.transform.localPosition = new Vector3(0f, 0f, 10f);
-    }
-
-    private static Rect GetVisibleTextureRect(Sprite sprite)
-    {
-        if (sprite == null || sprite.texture == null)
-        {
-            return Rect.zero;
-        }
-
-        Rect spriteRect = sprite.rect;
-        Texture2D texture = sprite.texture;
-
-        try
-        {
-            Color32[] pixels = texture.GetPixels32();
-            int textureWidth = texture.width;
-            int minX = Mathf.CeilToInt(spriteRect.xMax);
-            int minY = Mathf.CeilToInt(spriteRect.yMax);
-            int maxX = Mathf.FloorToInt(spriteRect.xMin);
-            int maxY = Mathf.FloorToInt(spriteRect.yMin);
-            int startX = Mathf.FloorToInt(spriteRect.xMin);
-            int startY = Mathf.FloorToInt(spriteRect.yMin);
-            int endX = Mathf.CeilToInt(spriteRect.xMax);
-            int endY = Mathf.CeilToInt(spriteRect.yMax);
-
-            for (int y = startY; y < endY; y++)
-            {
-                for (int x = startX; x < endX; x++)
-                {
-                    if (pixels[(y * textureWidth) + x].a <= 12)
-                    {
-                        continue;
-                    }
-
-                    minX = Mathf.Min(minX, x);
-                    minY = Mathf.Min(minY, y);
-                    maxX = Mathf.Max(maxX, x + 1);
-                    maxY = Mathf.Max(maxY, y + 1);
-                }
-            }
-
-            if (maxX > minX && maxY > minY)
-            {
-                return Rect.MinMaxRect(minX, minY, maxX, maxY);
-            }
-        }
-        catch (UnityException)
-        {
-            return spriteRect;
-        }
-
-        return spriteRect;
-    }
-
-    private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Vector2 worldSize)
-    {
-        FitSpriteToWorldSize(target, sprite, GetVisibleTextureRect(sprite), worldSize);
     }
 
     private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Rect visibleTextureRect, Vector2 worldSize)
@@ -1435,71 +1307,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         float scale = Mathf.Max(worldSize.x / spriteSize.x, worldSize.y / spriteSize.y);
         target.localScale = new Vector3(scale, scale, 1f);
-    }
-
-    private static Sprite CreateParcelBoxSprite()
-    {
-        const int size = 96;
-        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
-        {
-            filterMode = FilterMode.Point
-        };
-
-        Color cardboard = new Color(0.76f, 0.49f, 0.23f, 1f);
-        Color side = new Color(0.68f, 0.39f, 0.18f, 1f);
-        Color top = new Color(0.88f, 0.63f, 0.34f, 1f);
-        Color tape = new Color(0.38f, 0.24f, 0.12f, 1f);
-        Color edge = new Color(0.12f, 0.08f, 0.05f, 1f);
-
-        for (int y = 0; y < size; y++)
-        {
-            for (int x = 0; x < size; x++)
-            {
-                bool outside = x < 3 || x > size - 4 || y < 3 || y > size - 4;
-                bool topBand = y > size - 28;
-                bool sideBand = x > size - 24;
-                bool verticalTape = x >= 43 && x <= 52;
-                bool horizontalTape = y >= 46 && y <= 53;
-                bool diagonalTop = topBand && Mathf.Abs((x - 48) - ((y - 68) * 2)) < 3;
-
-                Color pixel = cardboard;
-                if (topBand)
-                {
-                    pixel = top;
-                }
-                else if (sideBand)
-                {
-                    pixel = side;
-                }
-
-                if (verticalTape || horizontalTape || diagonalTop)
-                {
-                    pixel = tape;
-                }
-
-                if (outside)
-                {
-                    pixel = edge;
-                }
-
-                texture.SetPixel(x, y, pixel);
-            }
-        }
-
-        texture.Apply();
-        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
-    }
-
-    private static Sprite CreateSolidSprite(Color color)
-    {
-        var texture = new Texture2D(1, 1, TextureFormat.RGBA32, false)
-        {
-            filterMode = FilterMode.Point
-        };
-
-        texture.SetPixel(0, 0, color);
-        texture.Apply();
-        return Sprite.Create(texture, new Rect(0f, 0f, 1f, 1f), new Vector2(0.5f, 0.5f), 1f);
     }
 
     private bool DropPressed()

@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-B021 stage progress storage boundary is implemented and verified without gameplay feel changes. Next checkpoint is user review/commit of the structure slice, then continue with the next small productization step. WebGL/mobile testing remains deferred to the next milestone spot check.
+B022 prototype asset loading boundary is implemented and verified without gameplay feel changes. Next checkpoint is user review/commit of the structure slice, then continue with the next small productization step. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -92,6 +92,7 @@ B021 stage progress storage boundary is implemented and verified without gamepla
 - 2026-05-13: B020 manual playtest checklist added at `production/qa/playtests/playtest-2026-05-13-b020-representative-stages.md` for Editor Play checks on stages 1, 5, 10, 15, and 20.
 - 2026-05-13: B020 representative playtest was accepted as good enough to proceed without immediate HUD, movement, physics, undo, or difficulty tuning changes.
 - 2026-05-13: B021 stage progress storage boundary implemented: `BoxStackStageProgressStore` now wraps highest-unlocked-stage PlayerPrefs access so later App-in-Toss storage replacement has a clear seam. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification confirmed reset saves stage 1, unlock-all saves stage 20, stage 15 selection still works, one `UIDocument` exists, and `B021` appears.
+- 2026-05-13: B022 prototype asset loading boundary implemented: `BoxStackPrototypeAssetLoader` now owns prototype config, Korean font, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation. `BoxStackPrototype` delegates those loading details to the loader while preserving gameplay, UI layout, physics, stage tuning, undo, and persistence behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification confirmed loader type `BoxStackPrototypeAssetLoader`, config loaded, Korean font `NotoSansKR-VF` loaded, floor sprite `parcel_stack_base_01` loaded, 3 box visuals loaded, one `UIDocument` exists, and UI labels include `B022`.
 
 ## Current Decisions
 
@@ -118,7 +119,7 @@ B021 stage progress storage boundary is implemented and verified without gamepla
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- B020 fixes the stage select unlock/test button hit-test issue and is now committed; automated structure checks pass and the user accepted the current feel. B021 preserves that baseline while moving stage progress storage behind a small replacement boundary.
+- B020 fixes the stage select unlock/test button hit-test issue and is now committed; automated structure checks pass and the user accepted the current feel. B021 preserves that baseline while moving stage progress storage behind a small replacement boundary; B022 preserves it again while moving prototype asset loading behind a small replacement boundary.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
