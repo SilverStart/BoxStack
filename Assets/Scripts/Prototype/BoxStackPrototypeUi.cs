@@ -426,11 +426,11 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         body.style.height = 22f;
         _stagePanel.Add(body);
 
-        _stageGrid = new VisualElement { pickingMode = PickingMode.Ignore };
+        _stageGrid = new VisualElement { pickingMode = PickingMode.Position };
         _stageGrid.style.marginTop = 16f;
         _stagePanel.Add(_stageGrid);
 
-        _progressControls = new VisualElement { pickingMode = PickingMode.Ignore };
+        _progressControls = new VisualElement { pickingMode = PickingMode.Position };
         _progressControls.style.flexDirection = FlexDirection.Row;
         _progressControls.style.marginTop = 18f;
         _progressControls.style.height = 34f;
@@ -584,7 +584,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         int rows = Mathf.CeilToInt(stageCount / (float)columns);
         for (int row = 0; row < rows; row++)
         {
-            var rowElement = new VisualElement { pickingMode = PickingMode.Ignore };
+            var rowElement = new VisualElement { pickingMode = PickingMode.Position };
             rowElement.style.flexDirection = FlexDirection.Row;
             rowElement.style.height = 46f;
             rowElement.style.marginBottom = row == rows - 1 ? 0f : 8f;
@@ -698,7 +698,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private static bool IsDisplayed(VisualElement element)
     {
-        return element != null && element.resolvedStyle.opacity > 0.5f;
+        return element != null
+            && element.resolvedStyle.display != DisplayStyle.None
+            && element.resolvedStyle.opacity > 0.5f;
     }
 
     private static void ApplyOverlayBounds(VisualElement overlay, float width, float height)
@@ -721,7 +723,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             return;
         }
 
-        overlay.style.visibility = Visibility.Visible;
+        overlay.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
+        overlay.style.visibility = visible ? Visibility.Visible : Visibility.Hidden;
         overlay.style.opacity = visible ? 1f : 0f;
         overlay.pickingMode = visible ? PickingMode.Position : PickingMode.Ignore;
         for (int i = 0; i < overlay.childCount; i++)

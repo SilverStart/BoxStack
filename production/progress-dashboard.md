@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-B019 UI Toolkit PanelSettings cleanup is verified in C# build and Unity Editor Play Mode. User review/commit is the next checkpoint; WebGL/mobile testing remains deferred to the next milestone spot check.
+B020 fixes the stage select unlock/test buttons hit-test issue and is verified in C# build plus Unity Editor Play Mode. Next checkpoint is user manual confirmation that "전체 해금" and stages 10, 15, and 20 respond correctly in the Editor. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -84,6 +84,9 @@ B019 UI Toolkit PanelSettings cleanup is verified in C# build and Unity Editor P
 - 2026-05-13: B017 HUD undo cleanup removed old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype`, while preserving the separate one-use HUD undo behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity Editor Play Mode confirmed one `UIDocument`, build marker `B017`, undo snapshot restoration once per stage, and failure result text without ad/reward copy; only the known `PanelSettings` and UDP warnings remain. User accepted and committed the cleanup as `af6cc91 B017 되돌리기 코드 정리`.
 - 2026-05-13: B018 undo config naming cleanup verified: `BoxStackPrototypeConfig` now uses `UndosPerStage` instead of the old rescue/ad setting names, the checked-in config asset stores `UndosPerStage: 1`, and `BoxStackPrototype` reads the renamed field without changing gameplay tuning. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification confirmed build marker `B018`, config load, `configUndosPerStage = 1`, `runtimeUndosRemaining = 1`, and no remaining `FreeRescuesPerStage` or `AdRescuesPerStage` fields in `TuningSettings`. User committed it as `9d6ea93 B018 되돌리기 설정명 정리`.
 - 2026-05-13: B019 UI Toolkit PanelSettings cleanup verified: `Assets/Resources/Prototype/Ui/BoxStackPanelSettings.asset` is now checked in with `BoxStackRuntimeTheme`, and `BoxStackPrototypeUi` loads that PanelSettings asset instead of creating one at runtime. Editor-only `AssetDatabase` fallback is used only to make Editor Play checks robust before Resources refresh timing catches up. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification confirmed build marker `B019`, one `UIDocument`, resource PanelSettings loaded and used, theme assigned, and the previous `No Theme Style Sheet set to PanelSettings` warning removed. The unrelated Visual Studio UDP warning remains.
+- 2026-05-13: B019 was accepted and committed as `917f2b4 B019 UI PanelSettings 경고 정리`; the worktree was clean immediately after the checkpoint.
+- 2026-05-13: B019 representative Editor Play structure check completed through Unity CLI Connector on port `8090`. Stages 1, 5, 10, 15, and 20 load, spawn from center x `0.0`, show build marker `B019`, and keep the clamped move range inside the current camera view. Stage speed intent is still preserved by range compensation, with stage 20 using a larger compensation ratio over the same visible range. Console showed only the known unrelated Visual Studio UDP warning and AIT/connector logs.
+- 2026-05-13: B020 stage select hit-test fix implemented after the "전체 해금" control and later-stage buttons appeared unresponsive. Stage grid/progress control containers now participate in picking, and hidden overlays now use `display: none` so the inactive result popup cannot intercept stage-select clicks. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification confirmed build marker `B020`, unlock-all changes highest unlocked stage to 20, stages 10/15/20 become enabled, their centers are picked as `Button`, and selecting them changes the current stage to 10/15/20.
 
 ## Current Decisions
 
@@ -110,10 +113,10 @@ B019 UI Toolkit PanelSettings cleanup is verified in C# build and Unity Editor P
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- The current productization pass is B019 UI Toolkit PanelSettings cleanup: code/build/Editor Play checks are verified, and the next checkpoint is user review/commit.
+- B020 fixes the stage select unlock/test button hit-test issue; the current checkpoint is user manual confirmation in Editor Play before committing the fix.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
-- B016 Delivery Arcade code pass, B017 HUD undo cleanup, and B018 undo config naming cleanup were accepted and committed; B019 should be user-reviewed before any commit or WebGL spot check.
+- B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
