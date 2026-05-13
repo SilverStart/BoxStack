@@ -41,3 +41,11 @@ other coding agents.
   playtest verdict, or risk changes.
 - When a user preference affects future AI behavior across tools, update this
   document and reference it from tool-specific guidance when useful.
+- Project documentation should be written in Korean by default. Keep source
+  identifiers, API names, file paths, and quoted external terms unchanged when
+  translating or maintaining documentation.
+- When changing BoxStack prototype code, review
+  `docs/architecture/boxstack-prototype-code-map.md` before handing work back.
+  If feature ownership, file responsibility, method names, execution flow, or
+  important caveats changed, update the code map in the same change so it does
+  not become stale.

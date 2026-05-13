@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 23;
+    private const int PrototypeBuildNumber = 24;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;
@@ -24,6 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
+    private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private GameObject _activeBox;
@@ -39,8 +40,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Font _prototypeFont;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
-    private PrototypeState _state;
-    private PrototypeState _stateBeforeStageSelect;
+    private BoxStackPrototypeState _state;
+    private BoxStackPrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
     private float _moveStartedAt;
     private float _minimumCameraY = CameraInitialY;
@@ -53,16 +54,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _undosRemaining;
     private bool _hasUndoSnapshot;
     private string _statusText = "READY";
-
-    private enum PrototypeState
-    {
-        Playing,
-        ResolvingDrop,
-        ValidatingClear,
-        StageSelect,
-        Won,
-        Failed
-    }
 
     private struct BoxSnapshot
     {
@@ -185,7 +176,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void Update()
     {
-        if (_state == PrototypeState.StageSelect)
+        if (_state == BoxStackPrototypeState.StageSelect)
         {
             if (CloseStageSelectPressed())
             {
@@ -219,7 +210,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (_state == PrototypeState.Playing)
+        if (_state == BoxStackPrototypeState.Playing)
         {
             MoveActiveBox();
 
@@ -237,7 +228,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 EndRun(false, "STACK CROOKED");
             }
         }
-        else if (_state == PrototypeState.ResolvingDrop)
+        else if (_state == BoxStackPrototypeState.ResolvingDrop)
         {
             if (AnyBoxLost())
             {
@@ -248,7 +239,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 EndRun(false, "STACK CROOKED");
             }
         }
-        else if (_state == PrototypeState.ValidatingClear)
+        else if (_state == BoxStackPrototypeState.ValidatingClear)
         {
             UpdateClearValidation();
         }
@@ -258,7 +249,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (_state == PrototypeState.ResolvingDrop)
+        if (_state == BoxStackPrototypeState.ResolvingDrop)
         {
             ClampDroppingBoxFallSpeed();
         }
@@ -300,37 +291,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        bool won = _state == PrototypeState.Won;
-        bool resultVisible = IsResultState();
-        bool hasNextStage = won && HasNextStage();
-        var stages = new BoxStackPrototypeUi.StageButtonState[StageCount];
-        for (int i = 0; i < StageCount; i++)
-        {
-            BoxStackPrototypeConfig.StageSettings stage = GetStage(i);
-            stages[i] = new BoxStackPrototypeUi.StageButtonState(
-                stage.Number,
-                stage.TargetBoxes,
-                IsStageUnlocked(i),
-                i == _currentStageIndex);
-        }
-
-        _prototypeUi.Refresh(new BoxStackPrototypeUi.UiState(
+        _prototypeUi.Refresh(_uiStateFactory.Create(new BoxStackPrototypeUiStateFactory.UiContext(
             PrototypeBuildNumber,
-            GetStageLabel(),
+            StageCount,
+            GetStage,
+            _currentStageIndex,
+            _highestUnlockedStageIndex,
             _placedBoxes.Count,
             CurrentTargetBoxes,
-            _placedBoxes.Count / (float)CurrentTargetBoxes,
-            GetHudStatusLabel(),
-            GetHudFeedbackLabel(),
-            _state == PrototypeState.StageSelect,
+            _state,
+            _statusText,
             CanUseUndoSkill(),
             GetUndosRemaining(),
-            resultVisible,
-            resultVisible ? won ? hasNextStage ? "배송 완료!" : "전체 배송 완료!" : "배송 실패" : string.Empty,
-            resultVisible ? GetResultBody(won) : string.Empty,
-            resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
-            ShouldShowProgressTestControls(),
-            stages));
+            ShouldShowProgressTestControls())));
     }
 
     private void HandleCurrentResultButton()
@@ -340,54 +313,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        bool won = _state == PrototypeState.Won;
+        bool won = _state == BoxStackPrototypeState.Won;
         HandleResultButton(won, won && HasNextStage());
     }
 
     private void HandleUndoButton()
     {
         UndoLastPlacedBox();
-    }
-
-    private string GetHudStatusLabel()
-    {
-        switch (_state)
-        {
-            case PrototypeState.ResolvingDrop:
-                return "낙하";
-            case PrototypeState.ValidatingClear:
-                return "검수";
-            case PrototypeState.StageSelect:
-                return "선택";
-            case PrototypeState.Won:
-                return "완료";
-            case PrototypeState.Failed:
-                return "실패";
-            default:
-                return "진행";
-        }
-    }
-
-    private string GetStageLabel()
-    {
-        return $"{CurrentStage.Number}단계";
-    }
-
-    private string GetHudFeedbackLabel()
-    {
-        switch (_state)
-        {
-            case PrototypeState.ResolvingDrop:
-                return "좋아요";
-            case PrototypeState.ValidatingClear:
-                return "조심!";
-            case PrototypeState.Won:
-                return "배송 완료";
-            case PrototypeState.Failed:
-                return "적재 실패";
-        }
-
-        return _statusText == "UNDO" ? "되돌렸어요" : string.Empty;
     }
 
     private static bool ShouldShowProgressTestControls()
@@ -397,37 +329,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool IsResultState()
     {
-        return _state == PrototypeState.Won || _state == PrototypeState.Failed;
-    }
-
-    private string GetResultBody(bool won)
-    {
-        if (won)
-        {
-            if (HasNextStage())
-            {
-                return $"스테이지 {CurrentStage.Number} 클리어\n다음 스테이지가 열렸어요";
-            }
-
-            return "20스테이지를 모두 클리어했어요";
-        }
-
-        if (_statusText == "STACK CROOKED")
-        {
-            return "한 줄로 쌓이지 않았어요";
-        }
-
-        return "박스가 떨어졌어요";
-    }
-
-    private string GetResultButtonLabel(bool won, bool hasNextStage)
-    {
-        if (!won)
-        {
-            return "다시 도전";
-        }
-
-        return hasNextStage ? "다음 스테이지" : "처음부터";
+        return _state == BoxStackPrototypeState.Won || _state == BoxStackPrototypeState.Failed;
     }
 
     private void HandleResultButton(bool won, bool hasNextStage)
@@ -517,7 +419,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _undosRemaining = tuning.UndosPerStage;
         _hasUndoSnapshot = false;
         _attempts++;
-        _state = PrototypeState.Playing;
+        _state = BoxStackPrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
         RefreshPrototypeUi();
@@ -555,7 +457,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void OpenStageSelect()
     {
-        if (_state == PrototypeState.StageSelect)
+        if (_state == BoxStackPrototypeState.StageSelect)
         {
             return;
         }
@@ -563,13 +465,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _stateBeforeStageSelect = _state;
         _timeScaleBeforeStageSelect = Time.timeScale;
         Time.timeScale = 0f;
-        _state = PrototypeState.StageSelect;
+        _state = BoxStackPrototypeState.StageSelect;
         RefreshPrototypeUi();
     }
 
     private void CloseStageSelect()
     {
-        if (_state != PrototypeState.StageSelect)
+        if (_state != BoxStackPrototypeState.StageSelect)
         {
             return;
         }
@@ -631,9 +533,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         return _hasUndoSnapshot
             && _undosRemaining > 0
-            && (_state == PrototypeState.Playing
-                || _state == PrototypeState.ResolvingDrop
-                || _state == PrototypeState.ValidatingClear);
+            && (_state == BoxStackPrototypeState.Playing
+                || _state == BoxStackPrototypeState.ResolvingDrop
+                || _state == BoxStackPrototypeState.ValidatingClear);
     }
 
     private bool UndoLastPlacedBox()
@@ -708,7 +610,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _undoSnapshot.Clear();
         _hasUndoSnapshot = false;
         _clearValidationEndTime = 0f;
-        _state = PrototypeState.Playing;
+        _state = BoxStackPrototypeState.Playing;
         _statusText = "UNDO";
         _cameraVelocityY = 0f;
         SpawnNextBox();
@@ -876,7 +778,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         CaptureUndoSnapshot();
-        _state = PrototypeState.ResolvingDrop;
+        _state = BoxStackPrototypeState.ResolvingDrop;
         _statusText = "DROP";
 
         var body = _activeBox.GetComponent<Rigidbody2D>();
@@ -948,14 +850,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
-        _state = PrototypeState.Playing;
+        _state = BoxStackPrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
     }
 
     private void BeginClearValidation()
     {
-        _state = PrototypeState.ValidatingClear;
+        _state = BoxStackPrototypeState.ValidatingClear;
         _statusText = "VERIFYING";
         _clearValidationEndTime = Time.time + Tuning.ClearValidationSeconds;
     }
@@ -1016,12 +918,12 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void EndRun(bool won, string status)
     {
-        if (_state == PrototypeState.Won || _state == PrototypeState.Failed)
+        if (_state == BoxStackPrototypeState.Won || _state == BoxStackPrototypeState.Failed)
         {
             return;
         }
 
-        _state = won ? PrototypeState.Won : PrototypeState.Failed;
+        _state = won ? BoxStackPrototypeState.Won : BoxStackPrototypeState.Failed;
         _statusText = status;
         if (won)
         {
