@@ -109,6 +109,7 @@ Verification:
 - 2026-05-07: After rebuilding AIT/WebGL, PC browser testing confirmed that parcel and conveyor/floor images appear correctly.
 - 2026-05-10: B014 PC browser smoke confirmed Korean text, parcel/conveyor art, and tap-to-drop behavior.
 - 2026-05-13: B022 Editor Play verification confirmed `BoxStackPrototypeAssetLoader` loads config, Korean font, floor sprite, and 3 box visuals.
+- 2026-05-13: B023 Editor Play verification confirmed `BoxStackPrototypeBoxVisualCatalog` is the active visual catalog, floor sprite `parcel_stack_base_01` loads, one `UIDocument` exists, and the UI marker shows `B023`.
 
 Remaining verification:
 
@@ -141,7 +142,7 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current runtime marker after the latest C# change is:
 
 ```text
-B022
+B023
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build. Documentation-only or design-asset-only commits do not require a build marker increment.
@@ -199,7 +200,7 @@ The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype
 
 ## Current Worktree Note
 
-As of `cd85880 Delivery Arcade UI 리소스 초안 추가`, the Delivery Arcade UI PNG mini pack exists under `design/ui/delivery-arcade-assets/`. The latest runtime C# structure checkpoint is `c3e0c92 B022 프로토타입 에셋 로딩 경계 분리`.
+As of `cd85880 Delivery Arcade UI 리소스 초안 추가`, the Delivery Arcade UI PNG mini pack exists under `design/ui/delivery-arcade-assets/`. The latest runtime C# structure checkpoint under review is B023 box visual catalog separation.
 
 ## Next Suggested Task
 

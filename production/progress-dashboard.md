@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-Documentation is being synced after the committed B022 asset-loading boundary and committed Delivery Arcade UI PNG mini pack. Next runtime-facing checkpoint is to choose between applying the Delivery Arcade PNG skin to `BoxStackPrototypeUi` or continuing another small productization split from `BoxStackPrototype.cs`. WebGL/mobile testing remains deferred to the next milestone spot check.
+B023 box visual catalog boundary is implemented and verified without gameplay feel changes. Next checkpoint is user review/commit of this structure slice, then decide whether to apply the Delivery Arcade PNG skin to `BoxStackPrototypeUi` or continue another small productization split from `BoxStackPrototype.cs`. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -96,6 +96,7 @@ Documentation is being synced after the committed B022 asset-loading boundary an
 - 2026-05-13: B022 asset-loading boundary was accepted and committed as `c3e0c92 B022 프로토타입 에셋 로딩 경계 분리`.
 - 2026-05-13: Delivery Arcade UI PNG mini pack was committed as `cd85880 Delivery Arcade UI 리소스 초안 추가` under `design/ui/delivery-arcade-assets/`. These are sidecar design assets for later UI Toolkit skinning and are not wired into runtime UI yet.
 - 2026-05-13: Documentation sync updated `docs/workflow/ait-webgl-testing-notes.md` away from stale B008/B014/OnGUI language to the current B022 asset loader, UI Toolkit runtime layer, Korean font path, and milestone-only WebGL validation policy.
+- 2026-05-13: B023 box visual catalog boundary implemented: `BoxStackPrototypeBoxVisualCatalog` now owns parcel box asset definitions, stage box-code to visual selection, placeholder visual creation, placeholder sprite checks, floor sprite selection, and optional background sprite selection. `BoxStackPrototype` now asks the catalog for a visual and applies physics/gameplay behavior as before. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification on port `8093` confirmed catalog type `BoxStackPrototypeBoxVisualCatalog`, floor sprite `parcel_stack_base_01`, one `UIDocument`, and UI label marker `B023`.
 
 ## Current Decisions
 
@@ -123,7 +124,8 @@ Documentation is being synced after the committed B022 asset-loading boundary an
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
 - B020 fixes the stage select unlock/test button hit-test issue and is now committed; automated structure checks pass and the user accepted the current feel. B021 preserves that baseline while moving stage progress storage behind a small replacement boundary; B022 preserves it again while moving prototype asset loading behind a small replacement boundary.
-- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed design reference, but the runtime UI still uses the B016/B022 UI Toolkit layout and styling.
+- B023 preserves the same gameplay/UI baseline while moving stage box-code visual selection and floor/background sprite choice behind `BoxStackPrototypeBoxVisualCatalog`.
+- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed design reference, but the runtime UI still uses the B016/B023 UI Toolkit layout and styling.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -133,7 +135,7 @@ Documentation is being synced after the committed B022 asset-loading boundary an
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
 - Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B022`; documentation-only or design-asset-only commits do not require a marker increment.
+- The current runtime build marker is `B023`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 

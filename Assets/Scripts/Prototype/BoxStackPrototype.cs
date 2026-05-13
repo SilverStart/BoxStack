@@ -12,9 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 22;
-    private const string StackBaseSpriteName = "parcel_stack_base_01";
-    private const string BackgroundSpriteName = "logistics_center_bg_01";
+    private const int PrototypeBuildNumber = 23;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;
@@ -23,11 +21,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float FloorY = -0.65f;
     private const float FloorHeight = 0.35f;
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
-    private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
     private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
 
+    private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private GameObject _activeBox;
     private GameObject _droppingBox;
     private Camera _camera;
@@ -66,34 +64,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         Failed
     }
 
-    private struct BoxVisual
-    {
-        public BoxVisual(Sprite sprite, Vector2 worldSize, Rect visibleTextureRect, bool isPlaceholder)
-        {
-            Sprite = sprite;
-            WorldSize = worldSize;
-            VisibleTextureRect = visibleTextureRect;
-            IsPlaceholder = isPlaceholder;
-        }
-
-        public Sprite Sprite;
-        public Vector2 WorldSize;
-        public Rect VisibleTextureRect;
-        public bool IsPlaceholder;
-    }
-
-    private struct BoxAssetDefinition
-    {
-        public BoxAssetDefinition(string name, Vector2 worldSize)
-        {
-            Name = name;
-            WorldSize = worldSize;
-        }
-
-        public string Name;
-        public Vector2 WorldSize;
-    }
-
     private struct BoxSnapshot
     {
         public BoxSnapshot(GameObject box, Vector3 position, Quaternion rotation, RigidbodyType2D bodyType, Vector2 linearVelocity, float angularVelocity, bool simulated)
@@ -115,13 +85,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         public float AngularVelocity;
         public bool Simulated;
     }
-
-    private static readonly BoxAssetDefinition[] BoxAssetDefinitions =
-    {
-        new BoxAssetDefinition("parcel_box_basic_01", new Vector2(1.0f, 1.0f)),
-        new BoxAssetDefinition("parcel_box_wide_01", new Vector2(1.18f, 0.88f)),
-        new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
-    };
 
     private static readonly Color ParcelBrownBackgroundColor = new Color(0.70f, 0.56f, 0.38f);
 
@@ -199,6 +162,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void Start()
     {
+        _boxVisualCatalog = new BoxStackPrototypeBoxVisualCatalog(_assetLoader, BoxSize);
         LoadPrototypeConfig();
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
@@ -763,7 +727,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private GameObject CreatePrototypeBox(string boxName, Color tint)
     {
-        BoxVisual boxVisual = GetBoxVisual(GetStageBoxCode(_placedBoxes.Count));
+        BoxStackPrototypeBoxVisual boxVisual = _boxVisualCatalog.GetVisual(CurrentStage.BoxSequence, _placedBoxes.Count);
         var box = new GameObject(boxName);
 
         var visual = new GameObject("Visual");
@@ -958,7 +922,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         var renderer = droppedBox.GetComponentInChildren<SpriteRenderer>();
-        if (renderer != null && IsPlaceholderSprite(renderer.sprite))
+        if (renderer != null && _boxVisualCatalog.IsPlaceholderSprite(renderer.sprite))
         {
             renderer.color = _placedTint;
         }
@@ -1154,83 +1118,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void LoadPrototypeSprites()
     {
-        _boxVisuals.Clear();
-
-        for (int i = 0; i < BoxAssetDefinitions.Length; i++)
-        {
-            BoxAssetDefinition definition = BoxAssetDefinitions[i];
-            Sprite sprite = _assetLoader.LoadParcelSprite(definition.Name);
-            if (sprite != null)
-            {
-                _boxVisuals.Add(new BoxVisual(sprite, definition.WorldSize, _assetLoader.GetVisibleTextureRect(sprite), false));
-                continue;
-            }
-
-            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
-            _boxVisuals.Add(new BoxVisual(placeholder, definition.WorldSize, _assetLoader.GetVisibleTextureRect(placeholder), true));
-        }
-
-        if (_boxVisuals.Count == 0)
-        {
-            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
-            _boxVisuals.Add(new BoxVisual(placeholder, Vector2.one * BoxSize, _assetLoader.GetVisibleTextureRect(placeholder), true));
-        }
-
-        _floorSprite = _assetLoader.LoadParcelSprite(StackBaseSpriteName) ?? _assetLoader.CreateSolidSprite(new Color(0.16f, 0.18f, 0.22f));
-        _backgroundSprite = UseLogisticsCenterBackground
-            ? _assetLoader.LoadBackgroundSprite(BackgroundSpriteName)
-            : null;
-    }
-
-    private char GetStageBoxCode(int boxIndex)
-    {
-        string sequence = CurrentStage.BoxSequence;
-        if (string.IsNullOrEmpty(sequence))
-        {
-            return 'B';
-        }
-
-        return sequence[Mathf.Clamp(boxIndex, 0, sequence.Length - 1)];
-    }
-
-    private BoxVisual GetBoxVisual(char boxCode)
-    {
-        if (_boxVisuals.Count == 0)
-        {
-            Sprite placeholder = _assetLoader.CreateParcelBoxPlaceholder();
-            return new BoxVisual(placeholder, Vector2.one * BoxSize, _assetLoader.GetVisibleTextureRect(placeholder), true);
-        }
-
-        int visualIndex = GetBoxVisualIndex(boxCode);
-        visualIndex = Mathf.Clamp(visualIndex, 0, _boxVisuals.Count - 1);
-        return _boxVisuals[visualIndex];
-    }
-
-    private static int GetBoxVisualIndex(char boxCode)
-    {
-        switch (boxCode)
-        {
-            case 'W':
-                return 1;
-            case 'T':
-                return 2;
-            default:
-                return 0;
-        }
-    }
-
-    private bool IsPlaceholderSprite(Sprite sprite)
-    {
-        for (int i = 0; i < _boxVisuals.Count; i++)
-        {
-            BoxVisual visual = _boxVisuals[i];
-            if (visual.IsPlaceholder && visual.Sprite == sprite)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        _boxVisualCatalog.Load(UseLogisticsCenterBackground);
+        _floorSprite = _boxVisualCatalog.FloorSprite;
+        _backgroundSprite = _boxVisualCatalog.BackgroundSprite;
     }
 
     private void CreateBackground()
