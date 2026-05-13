@@ -1,0 +1,3 @@
+interface:
+  display_name: "Context Diet"
+  short_description: "큰 파일 반복 읽기를 줄이고 필요한 문맥만 단계적으로 불러옵니다"
