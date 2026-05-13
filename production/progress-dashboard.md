@@ -4,7 +4,7 @@ Last updated: 2026-05-13
 
 ## Next Immediate Action
 
-B020 fixes the stage select unlock/test buttons hit-test issue and is verified in C# build plus Unity Editor Play Mode. Next checkpoint is user manual confirmation that "전체 해금" and stages 10, 15, and 20 respond correctly in the Editor. WebGL/mobile testing remains deferred to the next milestone spot check.
+B021 stage progress storage boundary is implemented and verified without gameplay feel changes. Next checkpoint is user review/commit of the structure slice, then continue with the next small productization step. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -87,6 +87,11 @@ B020 fixes the stage select unlock/test buttons hit-test issue and is verified i
 - 2026-05-13: B019 was accepted and committed as `917f2b4 B019 UI PanelSettings 경고 정리`; the worktree was clean immediately after the checkpoint.
 - 2026-05-13: B019 representative Editor Play structure check completed through Unity CLI Connector on port `8090`. Stages 1, 5, 10, 15, and 20 load, spawn from center x `0.0`, show build marker `B019`, and keep the clamped move range inside the current camera view. Stage speed intent is still preserved by range compensation, with stage 20 using a larger compensation ratio over the same visible range. Console showed only the known unrelated Visual Studio UDP warning and AIT/connector logs.
 - 2026-05-13: B020 stage select hit-test fix implemented after the "전체 해금" control and later-stage buttons appeared unresponsive. Stage grid/progress control containers now participate in picking, and hidden overlays now use `display: none` so the inactive result popup cannot intercept stage-select clicks. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification confirmed build marker `B020`, unlock-all changes highest unlocked stage to 20, stages 10/15/20 become enabled, their centers are picked as `Button`, and selecting them changes the current stage to 10/15/20.
+- 2026-05-13: B020 stage select hit-test fix was manually confirmed and committed as `b2d99b8 B020 스테이지 선택 해금 버튼 수정`; the worktree was clean immediately after the checkpoint.
+- 2026-05-13: B020 representative Editor Play structure check completed through Unity CLI Connector on port `8090`. Stages 1, 5, 10, 15, and 20 load after unlock-all, spawn from center x `0.0`, show build marker `B020`, keep one `UIDocument`, expose the Delivery Arcade HUD/stage-select controls, preserve one undo, and keep the clamped move range inside the current camera view. Stage 20 still uses the intended higher speed (`2.59`) while the visible move range remains about `2.042`. Console showed only the known unrelated Visual Studio UDP warning and AIT/connector logs.
+- 2026-05-13: B020 manual playtest checklist added at `production/qa/playtests/playtest-2026-05-13-b020-representative-stages.md` for Editor Play checks on stages 1, 5, 10, 15, and 20.
+- 2026-05-13: B020 representative playtest was accepted as good enough to proceed without immediate HUD, movement, physics, undo, or difficulty tuning changes.
+- 2026-05-13: B021 stage progress storage boundary implemented: `BoxStackStageProgressStore` now wraps highest-unlocked-stage PlayerPrefs access so later App-in-Toss storage replacement has a clear seam. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification confirmed reset saves stage 1, unlock-all saves stage 20, stage 15 selection still works, one `UIDocument` exists, and `B021` appears.
 
 ## Current Decisions
 
@@ -113,7 +118,7 @@ B020 fixes the stage select unlock/test buttons hit-test issue and is verified i
 - Later-stage difficulty should use one timely HUD undo before considering any fail-popup or reward-ad recovery prompt.
 - Actual ad SDK integration is deferred; the current prototype no longer exposes the mock reward-ad rescue during normal playtesting.
 - The fail popup should stay focused on retry/next actions; timely correction now belongs to the HUD undo button.
-- B020 fixes the stage select unlock/test button hit-test issue; the current checkpoint is user manual confirmation in Editor Play before committing the fix.
+- B020 fixes the stage select unlock/test button hit-test issue and is now committed; automated structure checks pass and the user accepted the current feel. B021 preserves that baseline while moving stage progress storage behind a small replacement boundary.
 - The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
 - Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.

@@ -23,8 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
-    private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 20;
+    private const int PrototypeBuildNumber = 21;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -37,6 +36,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly List<BoxVisual> _boxVisuals = new List<BoxVisual>();
     private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
+    private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
 
     private GameObject _activeBox;
     private GameObject _droppingBox;
@@ -637,15 +637,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void LoadStageProgress()
     {
-        int unlockedStageNumber = PlayerPrefs.GetInt(HighestUnlockedStageKey, 1);
-        _highestUnlockedStageIndex = Mathf.Clamp(unlockedStageNumber - 1, 0, StageCount - 1);
+        _highestUnlockedStageIndex = _stageProgressStore.LoadHighestUnlockedStageIndex(StageCount);
         _currentStageIndex = Mathf.Clamp(_currentStageIndex, 0, _highestUnlockedStageIndex);
     }
 
     private void SaveStageProgress()
     {
-        PlayerPrefs.SetInt(HighestUnlockedStageKey, GetStage(_highestUnlockedStageIndex).Number);
-        PlayerPrefs.Save();
+        _stageProgressStore.SaveHighestUnlockedStageNumber(GetStage(_highestUnlockedStageIndex).Number);
     }
 
     private void ResetStageProgress()
