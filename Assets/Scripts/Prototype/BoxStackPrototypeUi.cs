@@ -5,6 +5,8 @@ using UnityEngine.UIElements;
 
 internal sealed class BoxStackPrototypeUi : MonoBehaviour
 {
+    private const string RuntimePanelSettingsAssetPath = "Assets/Resources/Prototype/Ui/BoxStackPanelSettings.asset";
+    private const string RuntimePanelSettingsResourcePath = "Prototype/Ui/BoxStackPanelSettings";
     private const string RuntimeThemeResourcePath = "Prototype/Ui/BoxStackRuntimeTheme";
     private const float HudHorizontalPadding = 24f;
     private const float HudTopPadding = 12f;
@@ -36,6 +38,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private UIDocument _document;
     private PanelSettings _panelSettings;
     private ThemeStyleSheet _themeStyleSheet;
+    private bool _ownsPanelSettings;
     private bool _ownsThemeStyleSheet;
     private VisualElement _root;
     private VisualElement _safeRoot;
@@ -223,7 +226,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (_panelSettings != null)
+        if (_ownsPanelSettings && _panelSettings != null)
         {
             UnityEngine.Object.Destroy(_panelSettings);
         }
@@ -236,20 +239,35 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private void CreateDocument()
     {
-        _panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
-        _panelSettings.name = "BoxStack Prototype Panel Settings";
-        _themeStyleSheet = Resources.Load<ThemeStyleSheet>(RuntimeThemeResourcePath);
-        if (_themeStyleSheet == null)
+        bool shouldActivateAfterSetup = !gameObject.activeSelf;
+        _panelSettings = LoadPanelSettings();
+        if (_panelSettings == null)
         {
-            _themeStyleSheet = ScriptableObject.CreateInstance<ThemeStyleSheet>();
-            _themeStyleSheet.name = "BoxStack Prototype Runtime Theme";
-            _ownsThemeStyleSheet = true;
+            _panelSettings = ScriptableObject.CreateInstance<PanelSettings>();
+            _panelSettings.name = "BoxStack Prototype Panel Settings";
+            _ownsPanelSettings = true;
         }
 
-        _panelSettings.themeStyleSheet = _themeStyleSheet;
+        if (_panelSettings.themeStyleSheet == null)
+        {
+            _themeStyleSheet = Resources.Load<ThemeStyleSheet>(RuntimeThemeResourcePath);
+            if (_themeStyleSheet == null)
+            {
+                _themeStyleSheet = ScriptableObject.CreateInstance<ThemeStyleSheet>();
+                _themeStyleSheet.name = "BoxStack Prototype Runtime Theme";
+                _ownsThemeStyleSheet = true;
+            }
+
+            _panelSettings.themeStyleSheet = _themeStyleSheet;
+        }
 
         _document = gameObject.AddComponent<UIDocument>();
         _document.panelSettings = _panelSettings;
+        if (shouldActivateAfterSetup)
+        {
+            gameObject.SetActive(true);
+        }
+
         _root = _document.rootVisualElement;
         _root.pickingMode = PickingMode.Ignore;
         _root.style.position = Position.Absolute;
@@ -261,6 +279,18 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _safeRoot = new VisualElement { pickingMode = PickingMode.Ignore };
         _safeRoot.style.position = Position.Absolute;
         _root.Add(_safeRoot);
+    }
+
+    private static PanelSettings LoadPanelSettings()
+    {
+        PanelSettings panelSettings = Resources.Load<PanelSettings>(RuntimePanelSettingsResourcePath);
+#if UNITY_EDITOR
+        if (panelSettings == null)
+        {
+            panelSettings = UnityEditor.AssetDatabase.LoadAssetAtPath<PanelSettings>(RuntimePanelSettingsAssetPath);
+        }
+#endif
+        return panelSettings;
     }
 
     private void BuildHud()

@@ -24,7 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
     private const string HighestUnlockedStageKey = "BoxStackPrototype.HighestUnlockedStage";
-    private const int PrototypeBuildNumber = 18;
+    private const int PrototypeBuildNumber = 19;
     private const string StackBaseSpriteName = "parcel_stack_base_01";
     private const string BackgroundSpriteName = "logistics_center_bg_01";
     private static readonly bool UseLogisticsCenterBackground = false;
@@ -326,6 +326,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         var uiObject = new GameObject("BoxStack Prototype UI");
         uiObject.transform.SetParent(transform, false);
+        uiObject.SetActive(false);
         _prototypeUi = uiObject.AddComponent<BoxStackPrototypeUi>();
         _prototypeUi.Initialize(
             _prototypeFont,
