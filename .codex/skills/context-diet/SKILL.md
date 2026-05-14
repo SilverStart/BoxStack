@@ -70,6 +70,27 @@ rg -n "m_Name:|m_Script:|guid:" Assets
 
 토큰 절약만을 목적으로 프로젝트 파일을 수정하지 않는다. 파일 갱신은 사용자가 승인했을 때만 한다.
 
+## 절감량 측정
+
+정확한 API usage 로그가 있으면 그 값을 우선한다.
+
+사용량 로그가 없을 때는 `tools/context-budget/Measure-Context.ps1`로 모델에 넣을 텍스트 규모를 근사 측정한다. 기본 추정식은 `문자 수 / 3.5`이다.
+
+전체 파일 기준 비용을 볼 때:
+
+```powershell
+.\tools\context-budget\Measure-Context.ps1 -Path production\progress-dashboard.md
+```
+
+표적 검색 결과를 baseline과 비교할 때:
+
+```powershell
+rg -n "Next Immediate Action|Current Decisions|Risks" production\progress-dashboard.md |
+  .\tools\context-budget\Measure-Context.ps1 -Label "dashboard targeted" -BaselinePath production\progress-dashboard.md
+```
+
+측정값은 근사치이다. 목적은 청구 토큰을 정확히 재는 것이 아니라, 전체 읽기와 표적 읽기의 상대적 차이를 확인하는 것이다.
+
 ## 전체 읽기가 맞는 경우
 
 다음 경우에는 전체 읽기를 피하지 않는다.
