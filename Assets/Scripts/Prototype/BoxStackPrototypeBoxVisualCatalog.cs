@@ -44,9 +44,15 @@ internal sealed class BoxStackPrototypeBoxVisualCatalog
     internal Sprite FloorSprite { get; private set; }
     internal Sprite BackgroundSprite { get; private set; }
 
-    internal void Load(bool useLogisticsCenterBackground)
+    internal void Load(bool useLogisticsCenterBackground, bool useStackLikeAbstractVisuals)
     {
         _boxVisuals.Clear();
+
+        if (useStackLikeAbstractVisuals)
+        {
+            LoadStackLikeAbstractVisuals();
+            return;
+        }
 
         for (int i = 0; i < BoxAssetDefinitions.Length; i++)
         {
@@ -70,6 +76,20 @@ internal sealed class BoxStackPrototypeBoxVisualCatalog
         BackgroundSprite = useLogisticsCenterBackground
             ? _assetLoader.LoadBackgroundSprite(BackgroundSpriteName)
             : null;
+    }
+
+    private void LoadStackLikeAbstractVisuals()
+    {
+        Sprite blockSprite = _assetLoader.CreateStackBlockPlaceholder();
+        Rect visibleTextureRect = _assetLoader.GetVisibleTextureRect(blockSprite);
+
+        for (int i = 0; i < BoxAssetDefinitions.Length; i++)
+        {
+            _boxVisuals.Add(new BoxStackPrototypeBoxVisual(blockSprite, BoxAssetDefinitions[i].WorldSize, visibleTextureRect, true));
+        }
+
+        FloorSprite = _assetLoader.CreateStackFloorSprite();
+        BackgroundSprite = _assetLoader.CreateStackGradientBackgroundSprite();
     }
 
     internal BoxStackPrototypeBoxVisual GetVisual(string boxSequence, int boxIndex)

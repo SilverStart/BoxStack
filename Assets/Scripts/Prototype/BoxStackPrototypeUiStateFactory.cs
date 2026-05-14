@@ -25,7 +25,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
         BoxStackPrototypeConfig.StageSettings currentStage = context.GetStage(context.CurrentStageIndex);
         return new BoxStackPrototypeUi.UiState(
             context.BuildNumber,
-            $"{currentStage.Number}단계",
+            $"{currentStage.Number:00}",
             context.PlacedBoxes,
             context.TargetBoxes,
             GetHudFeedbackLabel(context.State, context.StatusText),
@@ -47,11 +47,11 @@ internal sealed class BoxStackPrototypeUiStateFactory
             case BoxStackPrototypeState.ResolvingDrop:
                 return "좋아요";
             case BoxStackPrototypeState.ValidatingClear:
-                return "조심!";
+                return "유지!";
             case BoxStackPrototypeState.Won:
-                return "배송 완료";
+                return "완료";
             case BoxStackPrototypeState.Failed:
-                return "적재 실패";
+                return "실패";
         }
 
         return statusText == "UNDO" ? "되돌렸어요" : string.Empty;
@@ -61,10 +61,10 @@ internal sealed class BoxStackPrototypeUiStateFactory
     {
         if (!won)
         {
-            return "배송 실패";
+            return "실패";
         }
 
-        return hasNextStage ? "배송 완료!" : "전체 배송 완료!";
+        return hasNextStage ? "클리어!" : "전체 클리어!";
     }
 
     private static string GetResultBody(bool won, bool hasNextStage, int stageNumber, string statusText)

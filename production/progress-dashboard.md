@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-14
+Last updated: 2026-05-15
 
 ## Next Immediate Action
 
-B028 fixes the UI Toolkit font application path by assigning `unityFontDefinition` alongside `unityFont`, after B027 loaded DNF BitBit v2, Gmarket Sans Bold, and Noto Sans KR fallback. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector Editor Play verification on port `8090` confirmed one `UIDocument`, `B028`, and matching inline/resolved `unityFont` plus inline/resolved `unityFontDefinition` for DNF BitBit v2 and Gmarket Sans Bold text elements; console errors/warnings are 0. Next checkpoint is user visual confirmation in the Game view. WebGL/mobile testing remains deferred to the next milestone spot check.
+B029 starts the Stack-like 2D redesign direction after research on Ketchapp `Stack`: abstract color blocks, code-generated gradient background, minimal translucent HUD colors, and non-delivery result/feedback copy. Next checkpoint is Unity Editor Play Mode visual confirmation in the Game view. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -103,6 +103,7 @@ B028 fixes the UI Toolkit font application path by assigning `unityFontDefinitio
 - 2026-05-14: B027 game-font pass added DNF BitBit v2 and Gmarket Sans Bold to `Assets/Resources/Prototype/Fonts/`, kept Noto Sans KR as fallback, recorded third-party font notices, and split UI font assignment so HUD/title/buttons use the display font while supporting text uses the body font. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, Unity generated the new font `.meta` files, and Unity CLI Connector Editor Play verification on port `8090` confirmed all three fonts load, the UI owns the expected font references, one `UIDocument` exists, `B027` appears, and the console has 0 errors/warnings.
 - 2026-05-14: B028 UI Toolkit font definition fix assigns both `unityFont` and `unityFontDefinition` for runtime text elements so the intended DNF/Gmarket fonts are explicitly passed to the UI Toolkit text renderer. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play verification on port `8090` confirmed matching inline/resolved font and font-definition values for display/body text plus 0 console errors/warnings.
 - 2026-05-14: Prototype code map added and converted to Korean so maintainers can quickly find feature ownership, important methods, execution flows, and current prototype caveats.
+- 2026-05-15: Stack-like 2D design guide added at `design/ui/boxstack-stack-like-2d-design-guide-2026-05-15.md`. B029 first visual pass switches runtime visuals away from delivery boxes toward code-generated abstract color blocks, a generated gradient background, minimal translucent UI colors, and short game-state copy.
 
 ## Current Decisions
 
@@ -110,16 +111,16 @@ B028 fixes the UI Toolkit font application path by assigning `unityFontDefinitio
 - Keep planning lightweight: active state plus dashboard, no heavy GDD/ADR/review workflow by default.
 - Record playtest outcomes briefly in this dashboard and `production/session-state/active.md`.
 - Target launch context is Toss app-in-app, so prototype direction favors lightweight 2D/2.5D sprites over modeled 3D assets.
-- Current prototype uses timing-based screen-clamped centered constant-speed drops, runtime placeholder parcel sprites, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
-- Next asset direction is AI-generated 2D PNGs with clear silhouettes, visible contact edges, transparent backgrounds, and mobile-readable parcel details.
-- Expected prototype sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`.
+- Current prototype uses timing-based screen-clamped centered constant-speed drops, code-generated Stack-like abstract block sprites, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
+- Next visual asset direction is generated or hand-authored abstract 2D block/UI assets only if the B029 code-generated look proves directionally right in Editor Play.
+- Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B029 keeps them preserved but bypasses them in the active abstract runtime path.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
 - Parcel PNG visuals and `BoxCollider2D` sizes are based on visible alpha bounds rather than the full transparent source image rectangle.
 - Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` for live Editor inspection, asset refresh, Play/Stop, console reads, screenshots, and injected C# checks.
-- Background direction is a bright 2D parcel logistics center with a calm central play lane, not a full 3D modeled warehouse.
-- Current background test uses a parcel-brown solid color because the logistics center image was distracting during play.
+- Background direction is now a clean Stack-like color field with a calm central play lane, not a logistics center or detailed scene.
+- Current background test uses a code-generated vertical gradient because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B028 Delivery Arcade HUD: compact stage badge, top-center box progress panel with filled/outline slots, undo ticket, central landing feedback, delivery-styled result cards, DNF BitBit v2 display text, and Gmarket Sans Bold supporting text while preserving the clean Toss app-in-app tone.
+- Current implemented UI is B029 Stack-like 2D first pass: compact stage badge, top-center box progress panel with filled/outline slots, undo button, central landing feedback, minimal result card, DNF BitBit v2 display text, and Gmarket Sans Bold supporting text. Delivery/parcel wording is being removed from active runtime UI.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -133,21 +134,20 @@ B028 fixes the UI Toolkit font application path by assigning `unityFontDefinitio
 - B023 preserves the same gameplay/UI baseline while moving stage box-code visual selection and floor/background sprite choice behind `BoxStackPrototypeBoxVisualCatalog`.
 - B024 preserves the same gameplay/UI baseline while moving runtime UI state/copy/stage-button construction behind `BoxStackPrototypeUiStateFactory`.
 - `docs/architecture/boxstack-prototype-code-map.md` is the current Korean code map for prototype feature ownership and should be reviewed whenever prototype code changes.
-- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed design reference, but the runtime UI still uses the B016/B024 UI Toolkit layout and styling.
-- The next UI pass should be Delivery Arcade visual/structural work only; do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into that pass.
-- Delivery Arcade first pass implementation scope is fixed: `BoxStackPrototypeUi.cs` owns the visual/structural HUD changes, while `BoxStackPrototype.cs` should only change for build marker `B016` and any minimal UI state needed for simple landing feedback.
+- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B029 Stack-like 2D.
+- The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, minimal HUD, and short game feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B028`; documentation-only or design-asset-only commits do not require a marker increment.
+- Use a tiny in-game build marker (`B029`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- The current runtime build marker is `B029`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 
-- Which parcel-box visual style best fits Toss app-in-app: clean fintech-casual, cute toy-like, or lightly realistic delivery packaging?
+- Which abstract block visual style best fits BoxStack: clean flat blocks, lightly beveled 2D blocks, or stronger pseudo-3D blocks?
 - How many box variations are needed before the stack stops feeling repetitive?
 - Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
@@ -160,9 +160,11 @@ B028 fixes the UI Toolkit font application path by assigning `unityFontDefinitio
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest use Korean-only UI copy, English arcade feedback, or a mixed prototype copy set?
 - Should the first landing feedback use generic messages only, or wait for an actual placement-quality scoring signal?
-- Should the committed Delivery Arcade PNG mini pack be applied to the runtime UI Toolkit layer now, refined first, or kept as design reference for later?
+- Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
+- Does the Stack-like B029 visual direction feel better than the previous Delivery Arcade direction in Editor Play?
+- Are generated abstract blocks readable enough for contact/collision judgment on the target phone viewport?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
-- Does the parcel-brown solid background improve focus compared with the logistics center image?
+- Does the generated gradient background improve focus compared with the old parcel-brown solid background?
 - Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
@@ -187,7 +189,7 @@ B028 fixes the UI Toolkit font application path by assigning `unityFontDefinitio
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
-- Delivery Arcade should fix the app-like UI read, but it could become too busy or ad-game-like if feedback badges, top progress panel, and result stamps are all pushed too strongly in the first pass.
+- Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if color, block shape, and feedback do not develop a BoxStack-specific identity.
 - The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is now a milestone spot check for real device safe-area, touch feel, and performance rather than the default development loop.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.

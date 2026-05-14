@@ -21,16 +21,15 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const float StagePanelMaxWidth = 420f;
     private const float ResultPanelMaxWidth = 360f;
 
-    private static readonly Color HudBackgroundColor = new Color(1.00f, 0.96f, 0.86f, 0.92f);
-    private static readonly Color HudBorderColor = new Color(0.80f, 0.48f, 0.18f, 0.76f);
-    private static readonly Color HudShadowColor = new Color(0.10f, 0.07f, 0.04f, 0.20f);
-    private static readonly Color ProgressFillColor = new Color(0.00f, 0.61f, 0.58f, 0.96f);
-    private static readonly Color ProgressNodeColor = new Color(1.00f, 0.54f, 0.20f, 0.98f);
-    private static readonly Color PrimaryButtonColor = new Color(0.94f, 0.37f, 0.14f, 0.98f);
-    private static readonly Color DisabledButtonColor = new Color(0.48f, 0.43f, 0.37f, 0.56f);
-    private static readonly Color LabelColor = new Color(0.37f, 0.42f, 0.49f, 0.92f);
-    private static readonly Color TextColor = new Color(0.09f, 0.11f, 0.14f);
-    private static readonly Color SubTextColor = new Color(0.38f, 0.43f, 0.50f);
+    private static readonly Color HudBackgroundColor = new Color(0.05f, 0.08f, 0.16f, 0.36f);
+    private static readonly Color HudBorderColor = new Color(1.00f, 1.00f, 1.00f, 0.28f);
+    private static readonly Color HudShadowColor = new Color(0.02f, 0.03f, 0.08f, 0.20f);
+    private static readonly Color ProgressFillColor = new Color(0.36f, 0.96f, 1.00f, 0.96f);
+    private static readonly Color ProgressNodeColor = new Color(1.00f, 0.88f, 0.34f, 0.98f);
+    private static readonly Color PrimaryButtonColor = new Color(0.24f, 0.86f, 1.00f, 0.88f);
+    private static readonly Color DisabledButtonColor = new Color(0.25f, 0.30f, 0.42f, 0.52f);
+    private static readonly Color TextColor = new Color(1.00f, 1.00f, 1.00f, 0.96f);
+    private static readonly Color SubTextColor = new Color(0.80f, 0.88f, 1.00f, 0.78f);
 
     private readonly List<Button> _stageButtons = new List<Button>();
     private readonly List<VisualElement> _progressNodes = new List<VisualElement>();
@@ -194,8 +193,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         if (state.ResultVisible)
         {
             bool failed = state.ResultTitle.IndexOf("실패", StringComparison.Ordinal) >= 0;
-            _resultStamp.text = failed ? "재적재 필요" : "배송 완료";
-            ApplyPanelStyle(_resultStamp, failed ? new Color(0.96f, 0.28f, 0.18f, 0.92f) : ProgressFillColor, new Color(1f, 1f, 1f, 0.24f), 16f);
+            _resultStamp.text = failed ? "MISS" : "CLEAR";
+            ApplyPanelStyle(_resultStamp, failed ? new Color(1.00f, 0.28f, 0.32f, 0.90f) : ProgressFillColor, new Color(1f, 1f, 1f, 0.24f), 16f);
             _resultTitle.text = state.ResultTitle;
             _resultBody.text = state.ResultBody;
             _resultButton.text = state.ResultButtonLabel;
@@ -327,7 +326,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressRail.style.justifyContent = Justify.Center;
         _progressRail.style.paddingLeft = 8f;
         _progressRail.style.paddingRight = 8f;
-        ApplyPanelStyle(_progressRail, new Color(1f, 0.96f, 0.88f, 0.88f), new Color(1f, 0.72f, 0.42f, 0.52f), 18f);
+        ApplyPanelStyle(_progressRail, new Color(0.04f, 0.07f, 0.15f, 0.32f), HudBorderColor, 18f);
         _safeRoot.Add(_progressRail);
 
         _feedbackToast = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -342,7 +341,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _feedbackLabel = new Label();
         _feedbackLabel.style.width = 154f;
         _feedbackLabel.style.height = 42f;
-        ApplyPanelStyle(_feedbackLabel, new Color(0.00f, 0.61f, 0.58f, 0.88f), new Color(1f, 1f, 1f, 0.28f), 21f);
+        ApplyPanelStyle(_feedbackLabel, new Color(1.00f, 1.00f, 1.00f, 0.18f), new Color(1f, 1f, 1f, 0.34f), 21f);
         ApplyDisplayText(_feedbackLabel, 18, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         _feedbackToast.Add(_feedbackLabel);
 
@@ -366,7 +365,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _buildLabel.style.top = HudTopPadding + UndoTicketHeight + 5f;
         _buildLabel.style.width = 64f;
         _buildLabel.style.height = 20f;
-        ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(0.20f, 0.16f, 0.12f, 0.45f), TextAnchor.MiddleRight);
+        ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(1f, 1f, 1f, 0.34f), TextAnchor.MiddleRight);
         _safeRoot.Add(_buildLabel);
     }
 
@@ -386,7 +385,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stagePanel.style.paddingRight = 24f;
         _stagePanel.style.paddingTop = 20f;
         _stagePanel.style.paddingBottom = 20f;
-        ApplyPanelStyle(_stagePanel, new Color(1f, 1f, 1f, 0.94f), new Color(0.73f, 0.52f, 0.28f, 0.58f), 24f);
+        ApplyPanelStyle(_stagePanel, new Color(0.05f, 0.08f, 0.18f, 0.92f), HudBorderColor, 24f);
         _stageOverlay.Add(_stagePanel);
 
         var title = new Label("스테이지 선택");
@@ -394,7 +393,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         title.style.height = 32f;
         _stagePanel.Add(title);
 
-        var body = new Label("배송 루트");
+        var body = new Label("컬러 스택");
         ApplyBodyText(body, 14, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
         body.style.height = 22f;
         _stagePanel.Add(body);
@@ -441,7 +440,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         panel.style.paddingRight = 28f;
         panel.style.paddingTop = 24f;
         panel.style.paddingBottom = 24f;
-        ApplyPanelStyle(panel, new Color(1f, 0.96f, 0.88f, 0.96f), HudBorderColor, 18f);
+        ApplyPanelStyle(panel, new Color(0.05f, 0.08f, 0.18f, 0.94f), HudBorderColor, 18f);
         _resultOverlay.Add(panel);
 
         _resultStamp = new Label();
@@ -495,7 +494,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             }
             else
             {
-                ApplyButtonColors(button, stage.Unlocked ? HudBackgroundColor : DisabledButtonColor, stage.Unlocked ? new Color(0.18f, 0.14f, 0.10f) : new Color(1f, 1f, 1f, 0.62f));
+                ApplyButtonColors(button, stage.Unlocked ? HudBackgroundColor : DisabledButtonColor, stage.Unlocked ? TextColor : new Color(1f, 1f, 1f, 0.62f));
             }
         }
     }
@@ -519,7 +518,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             ApplyPanelStyle(
                 _progressNodes[i],
                 completed ? ProgressNodeColor : Color.clear,
-                completed ? new Color(1f, 1f, 1f, 0.38f) : new Color(0.80f, 0.48f, 0.18f, 0.56f),
+                completed ? new Color(1f, 1f, 1f, 0.38f) : new Color(1f, 1f, 1f, 0.46f),
                 3f);
         }
     }

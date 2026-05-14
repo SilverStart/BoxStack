@@ -1,5 +1,5 @@
 ﻿// 프로토타입 - 제품 코드로 사용하지 않음
-// 질문: 2D/2.5D 택배 박스 쌓기 루프가 Toss 앱인앱 콘셉트와 AI PNG 에셋 파이프라인에 맞는가?
+// 질문: 2D 물리 스택 루프가 Stack-like 추상 블록 게임 콘셉트와 모바일 플레이에 맞는가?
 // 날짜: 2026-05-02
 
 using System.Collections;
@@ -12,7 +12,8 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 28;
+    private const int PrototypeBuildNumber = 29;
+    private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;
@@ -40,8 +41,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Font _displayFont;
     private Font _bodyFont;
     private Font _fallbackFont;
-    private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
-    private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
+    private Color _activeTint = new Color(0.36f, 0.96f, 1.00f);
+    private Color _placedTint = new Color(0.26f, 0.74f, 1.00f);
     private BoxStackPrototypeState _state;
     private BoxStackPrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
@@ -79,7 +80,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         public bool Simulated;
     }
 
-    private static readonly Color ParcelBrownBackgroundColor = new Color(0.70f, 0.56f, 0.38f);
+    private static readonly Color StackLikeBackgroundColor = new Color(0.12f, 0.18f, 0.35f);
 
     private BoxStackPrototypeConfig.TuningSettings Tuning
     {
@@ -160,7 +161,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
         _camera = EnsureCamera();
-        if (UseLogisticsCenterBackground)
+        if (_backgroundSprite != null)
         {
             CreateBackground();
         }
@@ -369,7 +370,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         camera.transform.position = new Vector3(0f, CameraInitialY, -10f);
         camera.transform.rotation = Quaternion.identity;
         camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = ParcelBrownBackgroundColor;
+        camera.backgroundColor = StackLikeBackgroundColor;
         return camera;
     }
 
@@ -629,7 +630,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _spawnHeight = 0.45f + (_placedBoxes.Count * BoxSize) + 2.15f;
         _moveStartedAt = Time.time;
 
-        _activeBox = CreatePrototypeBox($"Prototype Parcel Box {_placedBoxes.Count + 1}", _activeTint);
+        _activeTint = GetStackBlockTint(_placedBoxes.Count, true);
+        _activeBox = CreatePrototypeBox($"Prototype Stack Block {_placedBoxes.Count + 1}", _activeTint);
         _activeBox.transform.position = new Vector3(0f, _spawnHeight, 0f);
     }
 
@@ -832,6 +834,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         var renderer = droppedBox.GetComponentInChildren<SpriteRenderer>();
         if (renderer != null && _boxVisualCatalog.IsPlaceholderSprite(renderer.sprite))
         {
+            _placedTint = GetStackBlockTint(_placedBoxes.Count, false);
             renderer.color = _placedTint;
         }
 
@@ -1026,7 +1029,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void LoadPrototypeSprites()
     {
-        _boxVisualCatalog.Load(UseLogisticsCenterBackground);
+        _boxVisualCatalog.Load(UseLogisticsCenterBackground, UseStackLikeAbstractVisuals);
         _floorSprite = _boxVisualCatalog.FloorSprite;
         _backgroundSprite = _boxVisualCatalog.BackgroundSprite;
     }
@@ -1038,7 +1041,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _background = new GameObject("Prototype Logistics Center Background");
+        _background = new GameObject("Prototype Stack-Like Background");
         _background.transform.SetParent(_camera.transform, false);
 
         var renderer = _background.AddComponent<SpriteRenderer>();
@@ -1059,6 +1062,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
         float width = height * _camera.aspect;
         FitSpriteToCoverWorldSize(_background.transform, _backgroundSprite, new Vector2(width, height));
         _background.transform.localPosition = new Vector3(0f, 0f, 10f);
+    }
+
+    private static Color GetStackBlockTint(int boxIndex, bool active)
+    {
+        float hue = Mathf.Repeat(0.53f + (boxIndex * 0.045f), 1f);
+        float saturation = active ? 0.72f : 0.64f;
+        float value = active ? 1.00f : 0.92f;
+        return Color.HSVToRGB(hue, saturation, value);
     }
 
     private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Rect visibleTextureRect, Vector2 worldSize)

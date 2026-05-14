@@ -101,6 +101,114 @@ internal sealed class BoxStackPrototypeAssetLoader
         return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
     }
 
+    internal Sprite CreateStackBlockPlaceholder()
+    {
+        const int size = 96;
+        var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear
+        };
+
+        Color clear = new Color(0f, 0f, 0f, 0f);
+        Color top = new Color(1.00f, 1.00f, 1.00f, 1f);
+        Color face = new Color(0.88f, 0.88f, 0.88f, 1f);
+        Color side = new Color(0.70f, 0.70f, 0.70f, 1f);
+        Color edge = new Color(0.52f, 0.52f, 0.52f, 1f);
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool outside = x < 2 || x > size - 3 || y < 2 || y > size - 3;
+                if (outside)
+                {
+                    texture.SetPixel(x, y, clear);
+                    continue;
+                }
+
+                bool topBand = y > size - 20;
+                bool sideBand = x > size - 17;
+                bool bottomShade = y < 10;
+                Color pixel = face;
+                if (topBand)
+                {
+                    pixel = top;
+                }
+                else if (sideBand || bottomShade)
+                {
+                    pixel = side;
+                }
+
+                if (x < 5 || x > size - 6 || y < 5 || y > size - 6)
+                {
+                    pixel = edge;
+                }
+
+                texture.SetPixel(x, y, pixel);
+            }
+        }
+
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0f, 0f, size, size), new Vector2(0.5f, 0.5f), size);
+    }
+
+    internal Sprite CreateStackFloorSprite()
+    {
+        const int width = 256;
+        const int height = 32;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear
+        };
+
+        Color top = new Color(0.92f, 0.96f, 1.00f, 0.92f);
+        Color bottom = new Color(0.42f, 0.55f, 0.78f, 0.82f);
+        Color edge = new Color(1f, 1f, 1f, 0.65f);
+
+        for (int y = 0; y < height; y++)
+        {
+            float t = y / (float)(height - 1);
+            Color row = Color.Lerp(bottom, top, t);
+            for (int x = 0; x < width; x++)
+            {
+                texture.SetPixel(x, y, y > height - 4 ? edge : row);
+            }
+        }
+
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), width);
+    }
+
+    internal Sprite CreateStackGradientBackgroundSprite()
+    {
+        const int width = 16;
+        const int height = 256;
+        var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
+        {
+            filterMode = FilterMode.Bilinear,
+            wrapMode = TextureWrapMode.Clamp
+        };
+
+        Color bottom = new Color(0.10f, 0.16f, 0.32f, 1f);
+        Color middle = new Color(0.22f, 0.38f, 0.72f, 1f);
+        Color top = new Color(0.86f, 0.40f, 0.78f, 1f);
+
+        for (int y = 0; y < height; y++)
+        {
+            float t = y / (float)(height - 1);
+            Color row = t < 0.58f
+                ? Color.Lerp(bottom, middle, t / 0.58f)
+                : Color.Lerp(middle, top, (t - 0.58f) / 0.42f);
+            for (int x = 0; x < width; x++)
+            {
+                texture.SetPixel(x, y, row);
+            }
+        }
+
+        texture.Apply();
+        return Sprite.Create(texture, new Rect(0f, 0f, width, height), new Vector2(0.5f, 0.5f), width);
+    }
+
     internal Sprite CreateSolidSprite(Color color)
     {
         var texture = new Texture2D(1, 1, TextureFormat.RGBA32, false)
