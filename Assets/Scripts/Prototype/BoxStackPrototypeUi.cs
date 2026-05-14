@@ -47,7 +47,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private Label _countLabel;
     private VisualElement _progressRail;
     private VisualElement _progressFill;
-    private Label _statusLabel;
     private VisualElement _feedbackToast;
     private Label _feedbackLabel;
     private Button _undoButton;
@@ -97,7 +96,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             int placedBoxes,
             int targetBoxes,
             float progress,
-            string statusLabel,
             string feedbackLabel,
             bool stageSelectOpen,
             bool canUseUndo,
@@ -114,7 +112,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             PlacedBoxes = placedBoxes;
             TargetBoxes = targetBoxes;
             Progress = progress;
-            StatusLabel = statusLabel;
             FeedbackLabel = feedbackLabel;
             StageSelectOpen = stageSelectOpen;
             CanUseUndo = canUseUndo;
@@ -132,7 +129,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         internal int PlacedBoxes { get; }
         internal int TargetBoxes { get; }
         internal float Progress { get; }
-        internal string StatusLabel { get; }
         internal string FeedbackLabel { get; }
         internal bool StageSelectOpen { get; }
         internal bool CanUseUndo { get; }
@@ -182,7 +178,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stageButton.text = $"배송 라벨\n{state.StageLabel}";
         _countLabel.text = $"적재 {state.PlacedBoxes} / {state.TargetBoxes}";
         _progressFill.style.height = new Length(Mathf.Clamp01(state.Progress) * 100f, LengthUnit.Percent);
-        _statusLabel.text = state.StatusLabel;
         _feedbackLabel.text = state.FeedbackLabel;
         SetElementVisible(_feedbackToast, !string.IsNullOrWhiteSpace(state.FeedbackLabel));
         _undoButton.text = $"되돌리기 {state.UndoCount}";
@@ -347,15 +342,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressFill.style.width = 6f;
         ApplyPanelStyle(_progressFill, ProgressFillColor, Color.clear, 3f);
         _progressRail.Add(_progressFill);
-
-        _statusLabel = new Label();
-        _statusLabel.style.position = Position.Absolute;
-        _statusLabel.style.left = 0f;
-        _statusLabel.style.right = 0f;
-        _statusLabel.style.bottom = 4f;
-        _statusLabel.style.height = 18f;
-        ApplyText(_statusLabel, 11, FontStyle.Bold, LabelColor, TextAnchor.MiddleCenter);
-        _progressRail.Add(_statusLabel);
 
         _feedbackToast = new VisualElement { pickingMode = PickingMode.Ignore };
         _feedbackToast.style.position = Position.Absolute;

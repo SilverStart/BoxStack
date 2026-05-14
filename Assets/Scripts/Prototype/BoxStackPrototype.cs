@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 24;
+    private const int PrototypeBuildNumber = 25;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;

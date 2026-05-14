@@ -4,7 +4,7 @@ Last updated: 2026-05-14
 
 ## Next Immediate Action
 
-B024 UI state factory boundary is implemented and Editor Play verified without gameplay feel changes. The prototype code map is now maintained as a Korean summary document for feature ownership and method lookup. Next checkpoint is user review/commit of this structure/documentation slice. After that, decide whether to apply the Delivery Arcade PNG skin to `BoxStackPrototypeUi` or continue another small productization split from `BoxStackPrototype.cs`. WebGL/mobile testing remains deferred to the next milestone spot check.
+B025 removes the right-side progress rail's bottom status text label to prevent overlap in the HUD. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play verification confirmed one `UIDocument`, marker `B025`, and no `_statusLabel` field. Next checkpoint is user visual confirmation in the Editor Game view. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -98,6 +98,7 @@ B024 UI state factory boundary is implemented and Editor Play verified without g
 - 2026-05-13: Documentation sync updated `docs/workflow/ait-webgl-testing-notes.md` away from stale B008/B014/OnGUI language to the current B022 asset loader, UI Toolkit runtime layer, Korean font path, and milestone-only WebGL validation policy.
 - 2026-05-13: B023 box visual catalog boundary implemented: `BoxStackPrototypeBoxVisualCatalog` now owns parcel box asset definitions, stage box-code to visual selection, placeholder visual creation, placeholder sprite checks, floor sprite selection, and optional background sprite selection. `BoxStackPrototype` now asks the catalog for a visual and applies physics/gameplay behavior as before. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification on port `8093` confirmed catalog type `BoxStackPrototypeBoxVisualCatalog`, floor sprite `parcel_stack_base_01`, one `UIDocument`, and UI label marker `B023`.
 - 2026-05-13: B024 UI state factory boundary implemented: `BoxStackPrototypeUiStateFactory` now owns runtime UI state creation, HUD/status/feedback/result copy, progress ratio, and stage-button state construction. `BoxStackPrototypeState` exposes the prototype flow state to that factory. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector on port `8093` confirmed Editor Play starts, one `UIDocument` exists, `_uiStateFactory` is `BoxStackPrototypeUiStateFactory`, and the UI marker shows `B024`.
+- 2026-05-14: B025 right-side progress rail cleanup removed the bottom state text label from `BoxStackPrototypeUi` and the no-longer-used HUD status copy from `BoxStackPrototypeUiStateFactory`, keeping progress nodes/fill, gameplay, stage progression, undo, and result behavior unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; Unity CLI Connector Editor Play verification on port `8090` confirmed one `UIDocument`, marker `B025`, and no `_statusLabel` field.
 - 2026-05-14: Prototype code map added and converted to Korean so maintainers can quickly find feature ownership, important methods, execution flows, and current prototype caveats.
 
 ## Current Decisions
@@ -139,7 +140,7 @@ B024 UI state factory boundary is implemented and Editor Play verified without g
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
 - Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B024`; documentation-only or design-asset-only commits do not require a marker increment.
+- The current runtime build marker is `B025`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 

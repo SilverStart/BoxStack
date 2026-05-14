@@ -111,6 +111,7 @@ Verification:
 - 2026-05-13: B022 Editor Play verification confirmed `BoxStackPrototypeAssetLoader` loads config, Korean font, floor sprite, and 3 box visuals.
 - 2026-05-13: B023 Editor Play verification confirmed `BoxStackPrototypeBoxVisualCatalog` is the active visual catalog, floor sprite `parcel_stack_base_01` loads, one `UIDocument` exists, and the UI marker shows `B023`.
 - 2026-05-13: B024 Editor Play verification confirmed `BoxStackPrototypeUiStateFactory` builds the runtime UI state after the C# split, one `UIDocument` exists, and the UI marker shows `B024`.
+- 2026-05-14: B025 Editor Play verification on Unity CLI Connector port `8090` confirmed one `UIDocument`, UI marker `B025`, and no `_statusLabel` field on `BoxStackPrototypeUi`; the right-side progress rail no longer creates the bottom status text label that could overlap the progress UI.
 
 Remaining verification:
 
@@ -143,7 +144,7 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current runtime marker after the latest C# change is:
 
 ```text
-B024
+B025
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build. Documentation-only or design-asset-only commits do not require a build marker increment.
@@ -201,7 +202,7 @@ The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype
 
 ## Current Worktree Note
 
-As of `cd85880 Delivery Arcade UI 리소스 초안 추가`, the Delivery Arcade UI PNG mini pack exists under `design/ui/delivery-arcade-assets/`. The latest runtime C# structure checkpoint under review is B024 UI state factory separation.
+As of B025, the runtime UI keeps the B016/B024 Delivery Arcade vector layout and removes the right-side progress rail's bottom status text label. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
 
 ## Next Suggested Task
 

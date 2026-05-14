@@ -29,7 +29,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             context.PlacedBoxes,
             context.TargetBoxes,
             context.TargetBoxes > 0 ? context.PlacedBoxes / (float)context.TargetBoxes : 0f,
-            GetHudStatusLabel(context.State),
             GetHudFeedbackLabel(context.State, context.StatusText),
             context.State == BoxStackPrototypeState.StageSelect,
             context.CanUseUndo,
@@ -40,25 +39,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
             context.ShowProgressControls,
             stages);
-    }
-
-    private static string GetHudStatusLabel(BoxStackPrototypeState state)
-    {
-        switch (state)
-        {
-            case BoxStackPrototypeState.ResolvingDrop:
-                return "낙하";
-            case BoxStackPrototypeState.ValidatingClear:
-                return "검수";
-            case BoxStackPrototypeState.StageSelect:
-                return "선택";
-            case BoxStackPrototypeState.Won:
-                return "완료";
-            case BoxStackPrototypeState.Failed:
-                return "실패";
-            default:
-                return "진행";
-        }
     }
 
     private static string GetHudFeedbackLabel(BoxStackPrototypeState state, string statusText)

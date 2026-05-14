@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-05-14
-런타임 마커: B024
+런타임 마커: B025
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -228,7 +228,6 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 ### UI 문구
 
 먼저 볼 곳:
-- `BoxStackPrototypeUiStateFactory.GetHudStatusLabel`
 - `BoxStackPrototypeUiStateFactory.GetHudFeedbackLabel`
 - `BoxStackPrototypeUiStateFactory.GetResultTitle`
 - `BoxStackPrototypeUiStateFactory.GetResultBody`
