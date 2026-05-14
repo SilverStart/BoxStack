@@ -28,7 +28,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             $"{currentStage.Number}단계",
             context.PlacedBoxes,
             context.TargetBoxes,
-            context.TargetBoxes > 0 ? context.PlacedBoxes / (float)context.TargetBoxes : 0f,
             GetHudFeedbackLabel(context.State, context.StatusText),
             context.State == BoxStackPrototypeState.StageSelect,
             context.CanUseUndo,

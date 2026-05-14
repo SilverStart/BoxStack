@@ -10,20 +10,20 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const string RuntimeThemeResourcePath = "Prototype/Ui/BoxStackRuntimeTheme";
     private const float HudHorizontalPadding = 24f;
     private const float HudTopPadding = 12f;
-    private const float StageBadgeWidth = 142f;
-    private const float StageBadgeHeight = 60f;
-    private const float UndoTicketWidth = 112f;
+    private const float StageBadgeWidth = 82f;
+    private const float StageBadgeHeight = 54f;
+    private const float UndoTicketWidth = 82f;
     private const float UndoTicketHeight = 48f;
-    private const float ProgressRailTop = 104f;
-    private const float ProgressRailWidth = 52f;
-    private const float ProgressRailHeight = 306f;
+    private const float ProgressPanelWidth = 176f;
+    private const float ProgressPanelHeight = 54f;
+    private const float ProgressSlotSize = 10f;
+    private const float ProgressSlotGap = 3f;
     private const float StagePanelMaxWidth = 420f;
     private const float ResultPanelMaxWidth = 360f;
 
     private static readonly Color HudBackgroundColor = new Color(1.00f, 0.96f, 0.86f, 0.92f);
     private static readonly Color HudBorderColor = new Color(0.80f, 0.48f, 0.18f, 0.76f);
     private static readonly Color HudShadowColor = new Color(0.10f, 0.07f, 0.04f, 0.20f);
-    private static readonly Color ProgressTrackColor = new Color(0.99f, 0.89f, 0.72f, 0.92f);
     private static readonly Color ProgressFillColor = new Color(0.00f, 0.61f, 0.58f, 0.96f);
     private static readonly Color ProgressNodeColor = new Color(1.00f, 0.54f, 0.20f, 0.98f);
     private static readonly Color PrimaryButtonColor = new Color(0.94f, 0.37f, 0.14f, 0.98f);
@@ -44,9 +44,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private VisualElement _safeRoot;
     private VisualElement _hudShadow;
     private Button _stageButton;
-    private Label _countLabel;
     private VisualElement _progressRail;
-    private VisualElement _progressFill;
     private VisualElement _feedbackToast;
     private Label _feedbackLabel;
     private Button _undoButton;
@@ -95,7 +93,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             string stageLabel,
             int placedBoxes,
             int targetBoxes,
-            float progress,
             string feedbackLabel,
             bool stageSelectOpen,
             bool canUseUndo,
@@ -111,7 +108,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             StageLabel = stageLabel;
             PlacedBoxes = placedBoxes;
             TargetBoxes = targetBoxes;
-            Progress = progress;
             FeedbackLabel = feedbackLabel;
             StageSelectOpen = stageSelectOpen;
             CanUseUndo = canUseUndo;
@@ -128,7 +124,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         internal string StageLabel { get; }
         internal int PlacedBoxes { get; }
         internal int TargetBoxes { get; }
-        internal float Progress { get; }
         internal string FeedbackLabel { get; }
         internal bool StageSelectOpen { get; }
         internal bool CanUseUndo { get; }
@@ -175,9 +170,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
         ApplySafeArea();
 
-        _stageButton.text = $"배송 라벨\n{state.StageLabel}";
-        _countLabel.text = $"적재 {state.PlacedBoxes} / {state.TargetBoxes}";
-        _progressFill.style.height = new Length(Mathf.Clamp01(state.Progress) * 100f, LengthUnit.Percent);
+        _stageButton.text = $"STAGE\n{state.StageLabel}";
         _feedbackLabel.text = state.FeedbackLabel;
         SetElementVisible(_feedbackToast, !string.IsNullOrWhiteSpace(state.FeedbackLabel));
         _undoButton.text = $"되돌리기 {state.UndoCount}";
@@ -313,35 +306,23 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stageButton.style.paddingRight = 12f;
         _stageButton.style.whiteSpace = WhiteSpace.Normal;
         ApplyPanelStyle(_stageButton, HudBackgroundColor, HudBorderColor, 14f);
-        ApplyText(_stageButton, 16, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        ApplyText(_stageButton, 13, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         _safeRoot.Add(_stageButton);
-
-        _countLabel = new Label();
-        _countLabel.style.position = Position.Absolute;
-        _countLabel.style.left = HudHorizontalPadding + 6f;
-        _countLabel.style.top = HudTopPadding + StageBadgeHeight + 5f;
-        _countLabel.style.width = StageBadgeWidth - 12f;
-        _countLabel.style.height = 24f;
-        ApplyText(_countLabel, 13, FontStyle.Bold, new Color(0.23f, 0.32f, 0.36f, 0.78f), TextAnchor.MiddleCenter);
-        _safeRoot.Add(_countLabel);
 
         _progressRail = new VisualElement { pickingMode = PickingMode.Ignore };
         _progressRail.style.position = Position.Absolute;
-        _progressRail.style.right = HudHorizontalPadding;
-        _progressRail.style.top = ProgressRailTop;
-        _progressRail.style.width = ProgressRailWidth;
-        _progressRail.style.height = ProgressRailHeight;
+        _progressRail.style.left = new Length(50f, LengthUnit.Percent);
+        _progressRail.style.top = HudTopPadding;
+        _progressRail.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0f);
+        _progressRail.style.width = ProgressPanelWidth;
+        _progressRail.style.height = ProgressPanelHeight;
+        _progressRail.style.flexDirection = FlexDirection.Row;
         _progressRail.style.alignItems = Align.Center;
-        ApplyPanelStyle(_progressRail, new Color(1f, 0.96f, 0.88f, 0.54f), new Color(1f, 0.72f, 0.42f, 0.38f), 18f);
+        _progressRail.style.justifyContent = Justify.Center;
+        _progressRail.style.paddingLeft = 8f;
+        _progressRail.style.paddingRight = 8f;
+        ApplyPanelStyle(_progressRail, new Color(1f, 0.96f, 0.88f, 0.88f), new Color(1f, 0.72f, 0.42f, 0.52f), 18f);
         _safeRoot.Add(_progressRail);
-
-        _progressFill = new VisualElement { pickingMode = PickingMode.Ignore };
-        _progressFill.style.position = Position.Absolute;
-        _progressFill.style.left = 23f;
-        _progressFill.style.bottom = 22f;
-        _progressFill.style.width = 6f;
-        ApplyPanelStyle(_progressFill, ProgressFillColor, Color.clear, 3f);
-        _progressRail.Add(_progressFill);
 
         _feedbackToast = new VisualElement { pickingMode = PickingMode.Ignore };
         _feedbackToast.style.position = Position.Absolute;
@@ -370,7 +351,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _undoButton.style.marginTop = 0f;
         _undoButton.style.marginBottom = 0f;
         ApplyButtonColors(_undoButton, PrimaryButtonColor, Color.white);
-        ApplyText(_undoButton, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        ApplyText(_undoButton, 13, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         _safeRoot.Add(_undoButton);
 
         _buildLabel = new Label();
@@ -531,9 +512,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             bool completed = i < placedBoxes;
             ApplyPanelStyle(
                 _progressNodes[i],
-                completed ? ProgressNodeColor : ProgressTrackColor,
-                completed ? new Color(1f, 1f, 1f, 0.38f) : new Color(0.80f, 0.48f, 0.18f, 0.24f),
-                7f);
+                completed ? ProgressNodeColor : Color.clear,
+                completed ? new Color(1f, 1f, 1f, 0.38f) : new Color(0.80f, 0.48f, 0.18f, 0.56f),
+                3f);
         }
     }
 
@@ -545,16 +526,13 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         }
 
         _progressNodes.Clear();
-        float availableHeight = ProgressRailHeight - 54f;
-        float step = nodeCount <= 1 ? 0f : availableHeight / (nodeCount - 1);
         for (int i = 0; i < nodeCount; i++)
         {
             var node = new VisualElement { pickingMode = PickingMode.Ignore };
-            node.style.position = Position.Absolute;
-            node.style.left = 19f;
-            node.style.top = 18f + ((nodeCount - 1 - i) * step);
-            node.style.width = 14f;
-            node.style.height = 14f;
+            node.style.width = ProgressSlotSize;
+            node.style.height = ProgressSlotSize;
+            node.style.marginLeft = i == 0 ? 0f : ProgressSlotGap;
+            node.style.flexShrink = 1f;
             _progressRail.Add(node);
             _progressNodes.Add(node);
         }

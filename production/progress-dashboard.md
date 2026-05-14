@@ -4,7 +4,7 @@ Last updated: 2026-05-14
 
 ## Next Immediate Action
 
-B025 removes the right-side progress rail's bottom status text label to prevent overlap in the HUD. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play verification confirmed one `UIDocument`, marker `B025`, and no `_statusLabel` field. Next checkpoint is user visual confirmation in the Editor Game view. WebGL/mobile testing remains deferred to the next milestone spot check.
+B026 moves the placed-box progress UI from the right-side rail to a top-center horizontal panel, matching the B/C mockup direction more closely. Placed boxes now render as filled square slots, remaining boxes render as outline-only square slots, and the old text count is removed. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play verification on port `8090` confirmed one `UIDocument`, marker `B026`, no `_countLabel`/`_progressFill` fields, Row progress layout, and 4 progress slots on stage 1. Next checkpoint is user visual confirmation in the Game view. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -99,6 +99,7 @@ B025 removes the right-side progress rail's bottom status text label to prevent 
 - 2026-05-13: B023 box visual catalog boundary implemented: `BoxStackPrototypeBoxVisualCatalog` now owns parcel box asset definitions, stage box-code to visual selection, placeholder visual creation, placeholder sprite checks, floor sprite selection, and optional background sprite selection. `BoxStackPrototype` now asks the catalog for a visual and applies physics/gameplay behavior as before. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the new file. Unity CLI Connector Editor Play verification on port `8093` confirmed catalog type `BoxStackPrototypeBoxVisualCatalog`, floor sprite `parcel_stack_base_01`, one `UIDocument`, and UI label marker `B023`.
 - 2026-05-13: B024 UI state factory boundary implemented: `BoxStackPrototypeUiStateFactory` now owns runtime UI state creation, HUD/status/feedback/result copy, progress ratio, and stage-button state construction. `BoxStackPrototypeState` exposes the prototype flow state to that factory. `dotnet build BoxStack.slnx` passed with 0 warnings/errors. Unity CLI Connector on port `8093` confirmed Editor Play starts, one `UIDocument` exists, `_uiStateFactory` is `BoxStackPrototypeUiStateFactory`, and the UI marker shows `B024`.
 - 2026-05-14: B025 right-side progress rail cleanup removed the bottom state text label from `BoxStackPrototypeUi` and the no-longer-used HUD status copy from `BoxStackPrototypeUiStateFactory`, keeping progress nodes/fill, gameplay, stage progression, undo, and result behavior unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; Unity CLI Connector Editor Play verification on port `8090` confirmed one `UIDocument`, marker `B025`, and no `_statusLabel` field.
+- 2026-05-14: B026 top progress panel implemented: `BoxStackPrototypeUi` now places box-count progress in a top-center horizontal panel, uses filled square slots for placed boxes and outline-only square slots for remaining boxes, removes the old numeric count label, and keeps gameplay, undo, stage select, result popup, and UI state factory behavior unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; Unity CLI Connector Editor Play verification on port `8090` confirmed one `UIDocument`, marker `B026`, no `_countLabel`/`_progressFill` fields, Row progress layout, and 4 progress slots on stage 1.
 - 2026-05-14: Prototype code map added and converted to Korean so maintainers can quickly find feature ownership, important methods, execution flows, and current prototype caveats.
 
 ## Current Decisions
@@ -116,7 +117,7 @@ B025 removes the right-side progress rail's bottom status text label to prevent 
 - Background direction is a bright 2D parcel logistics center with a calm central play lane, not a full 3D modeled warehouse.
 - Current background test uses a parcel-brown solid color because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B016 Delivery Arcade first pass: compact shipping-label stage badge, undo ticket, side delivery progress rail, central landing feedback, and delivery-styled result cards while preserving the clean Toss app-in-app tone.
+- Current implemented UI is B026 Delivery Arcade HUD: compact stage badge, top-center box progress panel with filled/outline slots, undo ticket, central landing feedback, and delivery-styled result cards while preserving the clean Toss app-in-app tone.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -140,7 +141,7 @@ B025 removes the right-side progress rail's bottom status text label to prevent 
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
 - Use a tiny in-game build marker (`B016`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B025`; documentation-only or design-asset-only commits do not require a marker increment.
+- The current runtime build marker is `B026`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 
@@ -153,7 +154,7 @@ B025 removes the right-side progress rail's bottom status text label to prevent 
 - Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
 - At the next milestone WebGL checkpoint, does the phone browser load the latest AIT/WebGL build reliably through the PC LAN IP?
 - At the next milestone WebGL checkpoint, does the WebGL build render Korean text correctly across HUD, stage select, result popup, and undo button states?
-- For the Delivery Arcade pass, should the delivery progress rail live on the left or right side of the target phone viewport?
+- Does the top-center box progress panel stay readable on the target phone viewport across 4-12 box stages?
 - Should the next HUD playtest use Korean-only UI copy, English arcade feedback, or a mixed prototype copy set?
 - Should the first landing feedback use generic messages only, or wait for an actual placement-quality scoring signal?
 - Should the committed Delivery Arcade PNG mini pack be applied to the runtime UI Toolkit layer now, refined first, or kept as design reference for later?
@@ -183,7 +184,7 @@ B025 removes the right-side progress rail's bottom status text label to prevent 
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - HUD undo is accepted as the current recovery direction, but the button may still need repositioning later if it competes with drop input or crowds the top HUD on small screens.
-- Delivery Arcade should fix the app-like UI read, but it could become too busy or ad-game-like if feedback badges, side rail, and result stamps are all pushed too strongly in the first pass.
+- Delivery Arcade should fix the app-like UI read, but it could become too busy or ad-game-like if feedback badges, top progress panel, and result stamps are all pushed too strongly in the first pass.
 - The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is now a milestone spot check for real device safe-area, touch feel, and performance rather than the default development loop.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
