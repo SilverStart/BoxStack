@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-05-14
-런타임 마커: B026
+런타임 마커: B028
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -16,7 +16,7 @@
 4. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
 5. 보조 파일
-   - 에셋 로딩, 박스 비주얼 선택, 스테이지 진행 저장, 공유 상태 enum을 확인합니다.
+   - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 스테이지 진행 저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
 
@@ -112,7 +112,7 @@
 
 담당 기능:
 - `Resources`에서 설정 로드.
-- 한국어 폰트 로드.
+- 표시용 게임 폰트, 보조 UI 폰트, 한국어 fallback 폰트 로드.
 - 택배 박스와 배경 스프라이트 로드.
 - Editor 전용 `AssetDatabase` fallback.
 - 런타임 Texture2D-to-Sprite 생성.
@@ -244,6 +244,8 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - `BoxStackPrototypeUi.BuildResultOverlay`
 - `BoxStackPrototypeUi.ApplySafeArea`
 - `BoxStackPrototypeUi.ApplyPanelStyle`
+- `BoxStackPrototypeUi.ApplyDisplayText`
+- `BoxStackPrototypeUi.ApplyBodyText`
 - `BoxStackPrototypeUi.ApplyText`
 - `BoxStackPrototypeUi.ApplyButtonColors`
 
@@ -253,13 +255,15 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 
 먼저 볼 곳:
 - `BoxStackPrototypeAssetLoader.LoadConfig`
-- `BoxStackPrototypeAssetLoader.LoadKoreanFont`
+- `BoxStackPrototypeAssetLoader.LoadDisplayFont`
+- `BoxStackPrototypeAssetLoader.LoadBodyFont`
+- `BoxStackPrototypeAssetLoader.LoadKoreanFallbackFont`
 - `BoxStackPrototypeAssetLoader.LoadParcelSprite`
 - `BoxStackPrototypeAssetLoader.LoadBackgroundSprite`
 - `BoxStackPrototypeAssetLoader.LoadPrototypeSprite`
 - `BoxStackPrototypeAssetLoader.GetVisibleTextureRect`
 
-`Resources` 로딩, Editor fallback 로딩, 런타임 스프라이트 생성, visible-alpha bounds 계산을 처리합니다.
+`Resources` 로딩, 폰트 리소스 선택, Editor fallback 로딩, 런타임 스프라이트 생성, visible-alpha bounds 계산을 처리합니다.
 
 ### 박스 비주얼 매핑
 
@@ -330,4 +334,5 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다.
 - 스테이지 진행은 `PlayerPrefs`를 사용합니다.
 - WebGL/mobile 검증은 milestone spot check로 남기고, 일반 반복 검증은 Unity Editor Play Mode를 사용합니다.
+- 런타임 UI는 던파 비트비트체 v2를 HUD/버튼/제목 표시 폰트로, Gmarket Sans Bold를 보조 설명 텍스트로, Noto Sans KR을 fallback으로 사용합니다. UI Toolkit 렌더링 반영을 위해 `unityFont`와 `unityFontDefinition`을 함께 지정합니다.
 - 코드 변경으로 기능 책임, 파일 위치, 주요 메서드, 실행 흐름, 주의점이 달라지면 이 코드 맵도 같은 변경 묶음에서 갱신합니다.

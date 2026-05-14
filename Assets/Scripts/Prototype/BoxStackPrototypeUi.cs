@@ -60,7 +60,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private Label _resultTitle;
     private Label _resultBody;
     private Button _resultButton;
-    private Font _font;
+    private Font _displayFont;
+    private Font _bodyFont;
+    private Font _fallbackFont;
     private Action _openStageSelect;
     private Action _undo;
     private Action<int> _selectStage;
@@ -137,7 +139,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     }
 
     internal void Initialize(
-        Font font,
+        Font displayFont,
+        Font bodyFont,
+        Font fallbackFont,
         Action openStageSelect,
         Action undo,
         Action<int> selectStage,
@@ -146,7 +150,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         Action unlockAllStages,
         Action handleResult)
     {
-        _font = font;
+        _displayFont = displayFont;
+        _bodyFont = bodyFont;
+        _fallbackFont = fallbackFont;
         _openStageSelect = openStageSelect;
         _undo = undo;
         _selectStage = selectStage;
@@ -306,7 +312,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stageButton.style.paddingRight = 12f;
         _stageButton.style.whiteSpace = WhiteSpace.Normal;
         ApplyPanelStyle(_stageButton, HudBackgroundColor, HudBorderColor, 14f);
-        ApplyText(_stageButton, 13, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        ApplyDisplayText(_stageButton, 13, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         _safeRoot.Add(_stageButton);
 
         _progressRail = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -337,7 +343,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _feedbackLabel.style.width = 154f;
         _feedbackLabel.style.height = 42f;
         ApplyPanelStyle(_feedbackLabel, new Color(0.00f, 0.61f, 0.58f, 0.88f), new Color(1f, 1f, 1f, 0.28f), 21f);
-        ApplyText(_feedbackLabel, 18, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        ApplyDisplayText(_feedbackLabel, 18, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         _feedbackToast.Add(_feedbackLabel);
 
         _undoButton = new Button(() => _undo?.Invoke());
@@ -351,7 +357,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _undoButton.style.marginTop = 0f;
         _undoButton.style.marginBottom = 0f;
         ApplyButtonColors(_undoButton, PrimaryButtonColor, Color.white);
-        ApplyText(_undoButton, 13, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        ApplyDisplayText(_undoButton, 13, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         _safeRoot.Add(_undoButton);
 
         _buildLabel = new Label();
@@ -360,7 +366,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _buildLabel.style.top = HudTopPadding + UndoTicketHeight + 5f;
         _buildLabel.style.width = 64f;
         _buildLabel.style.height = 20f;
-        ApplyText(_buildLabel, 12, FontStyle.Bold, new Color(0.20f, 0.16f, 0.12f, 0.45f), TextAnchor.MiddleRight);
+        ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(0.20f, 0.16f, 0.12f, 0.45f), TextAnchor.MiddleRight);
         _safeRoot.Add(_buildLabel);
     }
 
@@ -384,12 +390,12 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stageOverlay.Add(_stagePanel);
 
         var title = new Label("스테이지 선택");
-        ApplyText(title, 24, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        ApplyDisplayText(title, 24, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         title.style.height = 32f;
         _stagePanel.Add(title);
 
         var body = new Label("배송 루트");
-        ApplyText(body, 14, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
+        ApplyBodyText(body, 14, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
         body.style.height = 22f;
         _stagePanel.Add(body);
 
@@ -443,18 +449,18 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _resultStamp.style.width = 132f;
         _resultStamp.style.height = 32f;
         _resultStamp.style.marginBottom = 14f;
-        ApplyText(_resultStamp, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        ApplyDisplayText(_resultStamp, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         panel.Add(_resultStamp);
 
         _resultTitle = new Label();
         _resultTitle.style.height = 44f;
-        ApplyText(_resultTitle, 28, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        ApplyDisplayText(_resultTitle, 28, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         panel.Add(_resultTitle);
 
         _resultBody = new Label();
         _resultBody.style.minHeight = 64f;
         _resultBody.style.whiteSpace = WhiteSpace.Normal;
-        ApplyText(_resultBody, 18, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
+        ApplyBodyText(_resultBody, 18, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
         panel.Add(_resultBody);
 
         _resultButton = CreatePanelButton(string.Empty, () => _handleResult?.Invoke(), 20);
@@ -620,7 +626,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         button.style.marginTop = 0f;
         button.style.marginBottom = 0f;
         ApplyButtonColors(button, PrimaryButtonColor, Color.white);
-        ApplyText(button, fontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        ApplyDisplayText(button, fontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         return button;
     }
 
@@ -647,11 +653,22 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         button.style.color = text;
     }
 
-    private void ApplyText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
+    private void ApplyDisplayText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
     {
-        if (_font != null)
+        ApplyText(element, _displayFont != null ? _displayFont : _fallbackFont, fontSize, fontStyle, color, alignment);
+    }
+
+    private void ApplyBodyText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
+    {
+        ApplyText(element, _bodyFont != null ? _bodyFont : _fallbackFont, fontSize, fontStyle, color, alignment);
+    }
+
+    private static void ApplyText(TextElement element, Font font, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
+    {
+        if (font != null)
         {
-            element.style.unityFont = _font;
+            element.style.unityFont = font;
+            element.style.unityFontDefinition = FontDefinition.FromFont(font);
         }
 
         element.style.fontSize = fontSize;

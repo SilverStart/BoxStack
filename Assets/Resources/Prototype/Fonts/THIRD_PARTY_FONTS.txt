@@ -1,0 +1,21 @@
+BoxStack 프로토타입 포함 폰트 고지
+
+이 프로토타입은 한국어 UI 표시를 위해 아래 무료 폰트를 포함합니다.
+
+1. 던파 비트비트체 v2
+- 제작/권리자: NEOPLE Inc.
+- 사용 위치: HUD, 스테이지 배지, 버튼, 결과 제목 등 게임성 강한 표시 텍스트
+- 공식 배포처: https://df.nexon.com/data/font/dnfbitbitv2
+- 라이선스 요약: 개인/기업 사용자에게 무료 제공, 상업적 사용 가능, 번들/임베디드 폰트 사용 가능. 글꼴 자체 유료 판매 및 임의 수정/편집 배포 금지.
+
+2. Gmarket Sans Bold
+- 제작/권리자: Gmarket Inc.
+- 사용 위치: 설명문과 보조 UI 텍스트
+- 공식 배포처: https://corp.gmarket.com/fonts/
+- 라이선스 요약: SIL Open Font License에 따라 개인/기업 사용자가 영리적/비영리적 목적으로 자유롭게 사용 가능.
+
+3. Noto Sans KR
+- 제작/권리자: Google
+- 사용 위치: 위 폰트 로드 실패 시 한국어 fallback
+- 공식 배포처: https://notofonts.github.io/
+- 라이선스 요약: SIL Open Font License.

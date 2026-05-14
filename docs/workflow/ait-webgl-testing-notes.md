@@ -1,6 +1,6 @@
 # AIT WebGL Testing Notes
 
-Last updated: 2026-05-13
+Last updated: 2026-05-14
 
 This note captures the current Apps in Toss / Unity WebGL findings so a new session can continue without rediscovering the same issues.
 
@@ -15,7 +15,8 @@ Use Unity Editor Play Mode for normal UI/gameplay iteration. AIT/WebGL builds ar
 - Resolved in PC browser smoke: build-included `Assets/Resources/Prototype/...` sprites make parcel and conveyor/floor images appear correctly.
 - Resolved in PC browser smoke: `Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf` renders Korean HUD text in WebGL.
 - Current runtime UI: UI Toolkit through `BoxStackPrototypeUi`, with `BoxStackPanelSettings` and `BoxStackRuntimeTheme` loaded from `Assets/Resources/Prototype/Ui/`.
-- Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
+- Current font direction: `DNFBitBitv2.otf` is used for game-like HUD/title/button text, `GmarketSansBold.ttf` for supporting UI text, and `NotoSansKR-VF.ttf` remains as Korean fallback.
+- Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font resources, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
 - Remaining milestone spot check: phone browser testing is still useful for real portrait layout, touch input, safe area, WebGL performance, and cache/build-marker verification.
 
 ## Dev Server Finding
@@ -113,6 +114,7 @@ Verification:
 - 2026-05-13: B024 Editor Play verification confirmed `BoxStackPrototypeUiStateFactory` builds the runtime UI state after the C# split, one `UIDocument` exists, and the UI marker shows `B024`.
 - 2026-05-14: B025 Editor Play verification on Unity CLI Connector port `8090` confirmed one `UIDocument`, UI marker `B025`, and no `_statusLabel` field on `BoxStackPrototypeUi`; the right-side progress rail no longer creates the bottom status text label that could overlap the progress UI.
 - 2026-05-14: B026 changes the HUD progress display from the right-side rail to a top-center horizontal panel. Placed boxes use filled square slots, remaining boxes use outline-only square slots, and the old numeric count text is removed. Editor Play verification on Unity CLI Connector port `8090` confirmed one `UIDocument`, UI marker `B026`, no `_countLabel`/`_progressFill` fields, Row progress layout, and 4 progress slots on stage 1.
+- 2026-05-14: B027 adds game-oriented runtime fonts. `BoxStackPrototypeAssetLoader` loads DNF BitBit v2, Gmarket Sans Bold, and Noto Sans KR fallback from `Assets/Resources/Prototype/Fonts/`; `BoxStackPrototypeUi` applies DNF BitBit v2 to HUD/title/button text and Gmarket Sans Bold to supporting body text. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, Unity generated the new font `.meta` files, and Editor Play verification confirmed all three fonts load, the UI owns the expected font references, one `UIDocument` exists, and the marker shows `B027`.
 
 Remaining verification:
 
@@ -145,7 +147,7 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current runtime marker after the latest C# change is:
 
 ```text
-B026
+B028
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build. Documentation-only or design-asset-only commits do not require a build marker increment.
@@ -155,16 +157,22 @@ When changing C# code for mobile WebGL testing, manually increment `PrototypeBui
 WebGL text can lose Korean glyphs if the build relies on Unity's default runtime font. The current prototype includes:
 
 ```text
+Assets/Resources/Prototype/Fonts/DNFBitBitv2.otf
+Assets/Resources/Prototype/Fonts/GmarketSansBold.ttf
 Assets/Resources/Prototype/Fonts/NotoSansKR-VF.ttf
+Assets/Resources/Prototype/Fonts/THIRD_PARTY_FONTS.txt
 ```
 
 `BoxStackPrototypeAssetLoader` loads it with:
 
 ```text
+Resources.Load<Font>("Prototype/Fonts/DNFBitBitv2")
+Resources.Load<Font>("Prototype/Fonts/GmarketSansBold")
 Resources.Load<Font>("Prototype/Fonts/NotoSansKR-VF")
 ```
 
-`BoxStackPrototypeUi` then applies it to UI Toolkit text through the runtime UI layer.
+`BoxStackPrototypeUi` applies DNF BitBit v2 to the stronger game/HUD text, Gmarket Sans Bold to supporting body text, and Noto Sans KR as fallback if either primary font is missing.
+To make UI Toolkit rendering pick up the intended font reliably, the runtime text helper assigns both `unityFont` and `unityFontDefinition`. B028 Editor Play verification confirmed matching inline/resolved font and font-definition values for DNF BitBit v2 and Gmarket Sans Bold text elements.
 
 Remaining milestone verification:
 
@@ -191,7 +199,7 @@ Expected result: impact-driven sideways sliding should be reduced, while towers 
 
 ## UI Finding
 
-The current HUD, stage select, result popup, and undo button are runtime UI Toolkit, not `OnGUI`/IMGUI. `BoxStackPrototypeUi` owns layout, safe-area placement, input blocking, Korean font assignment, result popup, stage select, and the Delivery Arcade HUD structure.
+The current HUD, stage select, result popup, and undo button are runtime UI Toolkit, not `OnGUI`/IMGUI. `BoxStackPrototypeUi` owns layout, safe-area placement, input blocking, game/display font assignment, result popup, stage select, and the Delivery Arcade HUD structure.
 
 Current UI resources:
 
@@ -203,7 +211,7 @@ The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype
 
 ## Current Worktree Note
 
-As of B026, the runtime UI keeps the B016/B024 Delivery Arcade vector layout but moves placed-box progress into a top-center horizontal slot panel inspired by the B/C mockups. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
+As of B028, the runtime UI keeps the B016/B024/B026 Delivery Arcade vector layout and applies game-oriented free fonts through both `unityFont` and `unityFontDefinition`: DNF BitBit v2 for HUD/title/button text and Gmarket Sans Bold for supporting text. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
 
 ## Next Suggested Task
 

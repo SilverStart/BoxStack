@@ -13,7 +13,9 @@ internal sealed class BoxStackPrototypeAssetLoader
     private const string ParcelResourceFolder = "Prototype/Parcel";
     private const string BackgroundAssetFolder = "Assets/Art/Prototype/Backgrounds";
     private const string BackgroundResourceFolder = "Prototype/Backgrounds";
-    private const string KoreanFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
+    private const string DisplayFontResourcePath = "Prototype/Fonts/DNFBitBitv2";
+    private const string BodyFontResourcePath = "Prototype/Fonts/GmarketSansBold";
+    private const string KoreanFallbackFontResourcePath = "Prototype/Fonts/NotoSansKR-VF";
     private const string PrototypeConfigResourcePath = "Prototype/BoxStackPrototypeConfig";
 
     internal BoxStackPrototypeConfig LoadConfig()
@@ -21,9 +23,19 @@ internal sealed class BoxStackPrototypeAssetLoader
         return Resources.Load<BoxStackPrototypeConfig>(PrototypeConfigResourcePath);
     }
 
-    internal Font LoadKoreanFont()
+    internal Font LoadDisplayFont()
     {
-        return Resources.Load<Font>(KoreanFontResourcePath);
+        return Resources.Load<Font>(DisplayFontResourcePath);
+    }
+
+    internal Font LoadBodyFont()
+    {
+        return Resources.Load<Font>(BodyFontResourcePath);
+    }
+
+    internal Font LoadKoreanFallbackFont()
+    {
+        return Resources.Load<Font>(KoreanFallbackFontResourcePath);
     }
 
     internal Sprite LoadParcelSprite(string assetName)

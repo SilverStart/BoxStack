@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 26;
+    private const int PrototypeBuildNumber = 28;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;
@@ -37,7 +37,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private PhysicsMaterial2D _floorPhysicsMaterial;
     private GameObject _background;
     private BoxStackPrototypeUi _prototypeUi;
-    private Font _prototypeFont;
+    private Font _displayFont;
+    private Font _bodyFont;
+    private Font _fallbackFont;
     private Color _activeTint = new Color(1.0f, 0.82f, 0.45f);
     private Color _placedTint = new Color(0.86f, 0.62f, 0.34f);
     private BoxStackPrototypeState _state;
@@ -267,14 +269,18 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _prototypeFont = _assetLoader.LoadKoreanFont();
+        _displayFont = _assetLoader.LoadDisplayFont();
+        _bodyFont = _assetLoader.LoadBodyFont();
+        _fallbackFont = _assetLoader.LoadKoreanFallbackFont();
 
         var uiObject = new GameObject("BoxStack Prototype UI");
         uiObject.transform.SetParent(transform, false);
         uiObject.SetActive(false);
         _prototypeUi = uiObject.AddComponent<BoxStackPrototypeUi>();
         _prototypeUi.Initialize(
-            _prototypeFont,
+            _displayFont,
+            _bodyFont,
+            _fallbackFont,
             OpenStageSelect,
             HandleUndoButton,
             SelectStage,
