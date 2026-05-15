@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 29;
+    private const int PrototypeBuildNumber = 35;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -33,6 +33,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Camera _camera;
     private Sprite _floorSprite;
     private Sprite _backgroundSprite;
+    private SpriteRenderer _floorRenderer;
+    private SpriteRenderer _backgroundRenderer;
     private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
@@ -43,6 +45,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Font _fallbackFont;
     private Color _activeTint = new Color(0.36f, 0.96f, 1.00f);
     private Color _placedTint = new Color(0.26f, 0.74f, 1.00f);
+    private BoxStackPrototypePalette _currentPalette = BoxStackPrototypePalette.FromStageIndex(0);
     private BoxStackPrototypeState _state;
     private BoxStackPrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
@@ -168,6 +171,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         CreateFloor();
         LoadStageProgress();
+        ApplyCurrentStagePalette();
         EnsurePrototypeUi();
         RestartGame();
     }
@@ -310,7 +314,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             _statusText,
             CanUseUndoSkill(),
             GetUndosRemaining(),
-            ShouldShowProgressTestControls())));
+            ShouldShowProgressTestControls(),
+            _currentPalette)));
     }
 
     private void HandleCurrentResultButton()
@@ -383,6 +388,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         visual.transform.SetParent(floor.transform, false);
 
         var renderer = visual.AddComponent<SpriteRenderer>();
+        _floorRenderer = renderer;
         renderer.sprite = _floorSprite;
         renderer.sortingOrder = -5;
         FitSpriteToWorldSize(visual.transform, _floorSprite, _assetLoader.GetVisibleTextureRect(_floorSprite), new Vector2(6.2f, 0.35f));
@@ -441,6 +447,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _currentStageIndex = nextStageIndex;
+        ApplyCurrentStagePalette();
         RestartGame();
     }
 
@@ -457,6 +464,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         if (stageIndex != _currentStageIndex)
         {
             _currentStageIndex = stageIndex;
+            ApplyCurrentStagePalette();
         }
 
         RestartGame();
@@ -515,6 +523,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _currentStageIndex = 0;
         SaveStageProgress();
         CloseStageSelect();
+        ApplyCurrentStagePalette();
         RestartGame();
     }
 
@@ -1045,6 +1054,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _background.transform.SetParent(_camera.transform, false);
 
         var renderer = _background.AddComponent<SpriteRenderer>();
+        _backgroundRenderer = renderer;
         renderer.sprite = _backgroundSprite;
         renderer.sortingOrder = -50;
 
@@ -1064,12 +1074,44 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _background.transform.localPosition = new Vector3(0f, 0f, 10f);
     }
 
-    private static Color GetStackBlockTint(int boxIndex, bool active)
+    private Color GetStackBlockTint(int boxIndex, bool active)
     {
-        float hue = Mathf.Repeat(0.53f + (boxIndex * 0.045f), 1f);
-        float saturation = active ? 0.72f : 0.64f;
-        float value = active ? 1.00f : 0.92f;
-        return Color.HSVToRGB(hue, saturation, value);
+        return _currentPalette.GetBlockTint(boxIndex, active);
+    }
+
+    private void ApplyCurrentStagePalette()
+    {
+        _currentPalette = BoxStackPrototypePalette.FromStageIndex(_currentStageIndex);
+
+        if (_camera != null)
+        {
+            _camera.backgroundColor = _currentPalette.BackgroundBottom;
+        }
+
+        if (!UseStackLikeAbstractVisuals)
+        {
+            return;
+        }
+
+        _backgroundSprite = _assetLoader.CreateStackGradientBackgroundSprite(
+            _currentPalette.BackgroundBottom,
+            _currentPalette.BackgroundMiddle,
+            _currentPalette.BackgroundTop);
+        if (_backgroundRenderer != null)
+        {
+            _backgroundRenderer.sprite = _backgroundSprite;
+            UpdateBackground();
+        }
+
+        _floorSprite = _assetLoader.CreateStackFloorSprite(
+            _currentPalette.FloorTop,
+            _currentPalette.FloorBottom,
+            Color.white);
+        if (_floorRenderer != null)
+        {
+            _floorRenderer.sprite = _floorSprite;
+            FitSpriteToWorldSize(_floorRenderer.transform, _floorSprite, _assetLoader.GetVisibleTextureRect(_floorSprite), new Vector2(6.2f, 0.35f));
+        }
     }
 
     private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Rect visibleTextureRect, Vector2 worldSize)
@@ -1114,8 +1156,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        float scale = Mathf.Max(worldSize.x / spriteSize.x, worldSize.y / spriteSize.y);
-        target.localScale = new Vector3(scale, scale, 1f);
+        target.localScale = new Vector3(
+            worldSize.x / spriteSize.x,
+            worldSize.y / spriteSize.y,
+            1f);
     }
 
     private bool DropPressed()
@@ -1199,5 +1243,168 @@ public sealed class BoxStackPrototype : MonoBehaviour
 #else
         return Input.GetKeyDown(KeyCode.Escape);
 #endif
+    }
+}
+
+internal readonly struct BoxStackPrototypePalette
+{
+    internal BoxStackPrototypePalette(
+        Color backgroundBottom,
+        Color backgroundMiddle,
+        Color backgroundTop,
+        Color blockBase,
+        Color blockAccent,
+        Color floorBottom,
+        Color floorTop,
+        Color accent,
+        Color secondaryAccent,
+        Color panelBackground)
+    {
+        BackgroundBottom = backgroundBottom;
+        BackgroundMiddle = backgroundMiddle;
+        BackgroundTop = backgroundTop;
+        BlockBase = blockBase;
+        BlockAccent = blockAccent;
+        FloorBottom = floorBottom;
+        FloorTop = floorTop;
+        Accent = accent;
+        SecondaryAccent = secondaryAccent;
+        PanelBackground = panelBackground;
+    }
+
+    internal Color BackgroundBottom { get; }
+    internal Color BackgroundMiddle { get; }
+    internal Color BackgroundTop { get; }
+    internal Color BlockBase { get; }
+    internal Color BlockAccent { get; }
+    internal Color FloorBottom { get; }
+    internal Color FloorTop { get; }
+    internal Color Accent { get; }
+    internal Color SecondaryAccent { get; }
+    internal Color PanelBackground { get; }
+
+    internal Color GetBlockTint(int boxIndex, bool active)
+    {
+        float t = Mathf.PingPong(boxIndex * 0.24f, 1f);
+        Color color = Color.Lerp(BlockBase, BlockAccent, t);
+        color = Color.Lerp(color, Color.white, active ? 0.08f : 0.02f);
+        color.a = 1f;
+        return color;
+    }
+
+    internal static BoxStackPrototypePalette FromStageIndex(int stageIndex)
+    {
+        switch (Mathf.Abs(stageIndex) % 6)
+        {
+            case 1:
+                return CreatePurplePink();
+            case 2:
+                return CreateSunsetCoral();
+            case 3:
+                return CreateMintTeal();
+            case 4:
+                return CreateIndigoCyan();
+            case 5:
+                return CreateLavenderBlue();
+            default:
+                return CreateAquaBlue();
+        }
+    }
+
+    private static BoxStackPrototypePalette CreateAquaBlue()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.47f, 0.36f, 1.00f),
+            Hsv(0.52f, 0.78f, 0.74f),
+            Hsv(0.61f, 0.96f, 0.16f),
+            Hsv(0.54f, 0.78f, 0.82f),
+            Hsv(0.46f, 0.72f, 1.00f),
+            Hsv(0.58f, 0.60f, 0.26f, 0.82f),
+            Hsv(0.49f, 0.44f, 1.00f, 0.96f),
+            Hsv(0.49f, 0.70f, 1.00f, 0.90f),
+            Hsv(0.16f, 0.70f, 1.00f, 0.96f),
+            new Color(0.04f, 0.08f, 0.18f, 0.36f));
+    }
+
+    private static BoxStackPrototypePalette CreatePurplePink()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.92f, 0.38f, 1.00f),
+            Hsv(0.86f, 0.78f, 0.74f),
+            Hsv(0.76f, 0.92f, 0.18f),
+            Hsv(0.82f, 0.70f, 0.82f),
+            Hsv(0.91f, 0.68f, 1.00f),
+            Hsv(0.78f, 0.52f, 0.26f, 0.82f),
+            Hsv(0.88f, 0.36f, 1.00f, 0.96f),
+            Hsv(0.88f, 0.56f, 1.00f, 0.90f),
+            Hsv(0.77f, 0.48f, 1.00f, 0.96f),
+            new Color(0.10f, 0.06f, 0.18f, 0.38f));
+    }
+
+    private static BoxStackPrototypePalette CreateSunsetCoral()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.12f, 0.34f, 1.00f),
+            Hsv(0.04f, 0.78f, 0.78f),
+            Hsv(0.00f, 0.96f, 0.18f),
+            Hsv(0.04f, 0.76f, 0.84f),
+            Hsv(0.11f, 0.76f, 1.00f),
+            Hsv(0.04f, 0.58f, 0.28f, 0.82f),
+            Hsv(0.11f, 0.42f, 1.00f, 0.96f),
+            Hsv(0.08f, 0.70f, 1.00f, 0.90f),
+            Hsv(0.14f, 0.66f, 1.00f, 0.96f),
+            new Color(0.18f, 0.08f, 0.06f, 0.36f));
+    }
+
+    private static BoxStackPrototypePalette CreateMintTeal()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.36f, 0.34f, 1.00f),
+            Hsv(0.42f, 0.76f, 0.72f),
+            Hsv(0.49f, 0.94f, 0.15f),
+            Hsv(0.42f, 0.72f, 0.82f),
+            Hsv(0.36f, 0.68f, 1.00f),
+            Hsv(0.46f, 0.54f, 0.26f, 0.82f),
+            Hsv(0.39f, 0.38f, 1.00f, 0.96f),
+            Hsv(0.41f, 0.64f, 1.00f, 0.90f),
+            Hsv(0.55f, 0.64f, 1.00f, 0.96f),
+            new Color(0.04f, 0.14f, 0.13f, 0.36f));
+    }
+
+    private static BoxStackPrototypePalette CreateIndigoCyan()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.52f, 0.38f, 1.00f),
+            Hsv(0.57f, 0.82f, 0.72f),
+            Hsv(0.65f, 0.98f, 0.16f),
+            Hsv(0.60f, 0.74f, 0.82f),
+            Hsv(0.52f, 0.72f, 1.00f),
+            Hsv(0.63f, 0.58f, 0.25f, 0.82f),
+            Hsv(0.53f, 0.42f, 1.00f, 0.96f),
+            Hsv(0.53f, 0.76f, 1.00f, 0.90f),
+            Hsv(0.69f, 0.48f, 1.00f, 0.96f),
+            new Color(0.05f, 0.07f, 0.19f, 0.38f));
+    }
+
+    private static BoxStackPrototypePalette CreateLavenderBlue()
+    {
+        return new BoxStackPrototypePalette(
+            Hsv(0.76f, 0.34f, 1.00f),
+            Hsv(0.70f, 0.74f, 0.74f),
+            Hsv(0.66f, 0.92f, 0.18f),
+            Hsv(0.70f, 0.62f, 0.84f),
+            Hsv(0.77f, 0.58f, 1.00f),
+            Hsv(0.69f, 0.50f, 0.26f, 0.82f),
+            Hsv(0.75f, 0.34f, 1.00f, 0.96f),
+            Hsv(0.72f, 0.50f, 1.00f, 0.90f),
+            Hsv(0.57f, 0.50f, 1.00f, 0.96f),
+            new Color(0.08f, 0.07f, 0.20f, 0.38f));
+    }
+
+    private static Color Hsv(float h, float s, float v, float a = 1f)
+    {
+        Color color = Color.HSVToRGB(h, s, v);
+        color.a = a;
+        return color;
     }
 }

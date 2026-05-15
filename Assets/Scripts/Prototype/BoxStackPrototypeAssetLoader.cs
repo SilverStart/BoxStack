@@ -154,16 +154,20 @@ internal sealed class BoxStackPrototypeAssetLoader
 
     internal Sprite CreateStackFloorSprite()
     {
+        return CreateStackFloorSprite(
+            new Color(0.92f, 0.96f, 1.00f, 0.92f),
+            new Color(0.42f, 0.55f, 0.78f, 0.82f),
+            new Color(1f, 1f, 1f, 0.65f));
+    }
+
+    internal Sprite CreateStackFloorSprite(Color top, Color bottom, Color edge)
+    {
         const int width = 256;
         const int height = 32;
         var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
         {
             filterMode = FilterMode.Bilinear
         };
-
-        Color top = new Color(0.92f, 0.96f, 1.00f, 0.92f);
-        Color bottom = new Color(0.42f, 0.55f, 0.78f, 0.82f);
-        Color edge = new Color(1f, 1f, 1f, 0.65f);
 
         for (int y = 0; y < height; y++)
         {
@@ -181,6 +185,14 @@ internal sealed class BoxStackPrototypeAssetLoader
 
     internal Sprite CreateStackGradientBackgroundSprite()
     {
+        return CreateStackGradientBackgroundSprite(
+            new Color(0.10f, 0.16f, 0.32f, 1f),
+            new Color(0.22f, 0.38f, 0.72f, 1f),
+            new Color(0.86f, 0.40f, 0.78f, 1f));
+    }
+
+    internal Sprite CreateStackGradientBackgroundSprite(Color bottom, Color middle, Color top)
+    {
         const int width = 16;
         const int height = 256;
         var texture = new Texture2D(width, height, TextureFormat.RGBA32, false)
@@ -189,16 +201,12 @@ internal sealed class BoxStackPrototypeAssetLoader
             wrapMode = TextureWrapMode.Clamp
         };
 
-        Color bottom = new Color(0.10f, 0.16f, 0.32f, 1f);
-        Color middle = new Color(0.22f, 0.38f, 0.72f, 1f);
-        Color top = new Color(0.86f, 0.40f, 0.78f, 1f);
-
         for (int y = 0; y < height; y++)
         {
             float t = y / (float)(height - 1);
-            Color row = t < 0.58f
-                ? Color.Lerp(bottom, middle, t / 0.58f)
-                : Color.Lerp(middle, top, (t - 0.58f) / 0.42f);
+            Color row = t < 0.46f
+                ? Color.Lerp(bottom, middle, Mathf.SmoothStep(0f, 1f, t / 0.46f))
+                : Color.Lerp(middle, top, Mathf.SmoothStep(0f, 1f, (t - 0.46f) / 0.54f));
             for (int x = 0; x < width; x++)
             {
                 texture.SetPixel(x, y, row);

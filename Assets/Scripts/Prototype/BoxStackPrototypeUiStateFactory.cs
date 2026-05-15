@@ -37,6 +37,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             resultVisible ? GetResultBody(won, hasNextStage, currentStage.Number, context.StatusText) : string.Empty,
             resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
             context.ShowProgressControls,
+            context.Palette,
             stages);
     }
 
@@ -115,7 +116,8 @@ internal sealed class BoxStackPrototypeUiStateFactory
             string statusText,
             bool canUseUndo,
             int undoCount,
-            bool showProgressControls)
+            bool showProgressControls,
+            BoxStackPrototypePalette palette)
         {
             BuildNumber = buildNumber;
             StageCount = stageCount;
@@ -129,6 +131,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             CanUseUndo = canUseUndo;
             UndoCount = undoCount;
             ShowProgressControls = showProgressControls;
+            Palette = palette;
         }
 
         internal int BuildNumber { get; }
@@ -143,5 +146,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
         internal bool CanUseUndo { get; }
         internal int UndoCount { get; }
         internal bool ShowProgressControls { get; }
+        internal BoxStackPrototypePalette Palette { get; }
     }
 }
