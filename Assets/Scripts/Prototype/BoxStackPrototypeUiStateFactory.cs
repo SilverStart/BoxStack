@@ -1,8 +1,6 @@
 // 프로토타입 UI 상태 팩토리 - 게임 로직에서 UI 문구와 버튼 상태 조립을 분리한다.
 
 using System;
-using UnityEngine;
-
 internal sealed class BoxStackPrototypeUiStateFactory
 {
     internal BoxStackPrototypeUi.UiState Create(UiContext context)
@@ -28,7 +26,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             $"{currentStage.Number:00}",
             context.PlacedBoxes,
             context.TargetBoxes,
-            GetHudFeedbackLabel(context.State, context.StatusText),
             context.State == BoxStackPrototypeState.StageSelect,
             context.CanUseUndo,
             context.UndoCount,
@@ -39,23 +36,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             context.ShowProgressControls,
             context.Palette,
             stages);
-    }
-
-    private static string GetHudFeedbackLabel(BoxStackPrototypeState state, string statusText)
-    {
-        switch (state)
-        {
-            case BoxStackPrototypeState.ResolvingDrop:
-                return "좋아요";
-            case BoxStackPrototypeState.ValidatingClear:
-                return "유지!";
-            case BoxStackPrototypeState.Won:
-                return "완료";
-            case BoxStackPrototypeState.Failed:
-                return "실패";
-        }
-
-        return statusText == "UNDO" ? "되돌렸어요" : string.Empty;
     }
 
     private static string GetResultTitle(bool won, bool hasNextStage)

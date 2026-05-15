@@ -44,8 +44,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private VisualElement _hudShadow;
     private Button _stageButton;
     private VisualElement _progressRail;
-    private VisualElement _feedbackToast;
-    private Label _feedbackLabel;
     private Button _undoButton;
     private Label _buildLabel;
     private VisualElement _stageOverlay;
@@ -95,7 +93,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             string stageLabel,
             int placedBoxes,
             int targetBoxes,
-            string feedbackLabel,
             bool stageSelectOpen,
             bool canUseUndo,
             int undoCount,
@@ -111,7 +108,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             StageLabel = stageLabel;
             PlacedBoxes = placedBoxes;
             TargetBoxes = targetBoxes;
-            FeedbackLabel = feedbackLabel;
             StageSelectOpen = stageSelectOpen;
             CanUseUndo = canUseUndo;
             UndoCount = undoCount;
@@ -128,7 +124,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         internal string StageLabel { get; }
         internal int PlacedBoxes { get; }
         internal int TargetBoxes { get; }
-        internal string FeedbackLabel { get; }
         internal bool StageSelectOpen { get; }
         internal bool CanUseUndo { get; }
         internal int UndoCount { get; }
@@ -181,8 +176,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         ApplyPalette(state.Palette);
 
         _stageButton.text = $"STAGE\n{state.StageLabel}";
-        _feedbackLabel.text = state.FeedbackLabel;
-        SetElementVisible(_feedbackToast, !string.IsNullOrWhiteSpace(state.FeedbackLabel));
         _undoButton.text = $"되돌리기 {state.UndoCount}";
         _undoButton.SetEnabled(state.CanUseUndo);
         ApplyButtonColors(_undoButton, state.CanUseUndo ? state.Palette.Accent : DisabledButtonColor, Color.white);
@@ -333,22 +326,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressRail.style.paddingRight = 8f;
         ApplyPanelStyle(_progressRail, new Color(0.04f, 0.07f, 0.15f, 0.32f), HudBorderColor, 18f);
         _safeRoot.Add(_progressRail);
-
-        _feedbackToast = new VisualElement { pickingMode = PickingMode.Ignore };
-        _feedbackToast.style.position = Position.Absolute;
-        _feedbackToast.style.left = 0f;
-        _feedbackToast.style.right = 0f;
-        _feedbackToast.style.top = 142f;
-        _feedbackToast.style.height = 42f;
-        _feedbackToast.style.alignItems = Align.Center;
-        _safeRoot.Add(_feedbackToast);
-
-        _feedbackLabel = new Label();
-        _feedbackLabel.style.width = 154f;
-        _feedbackLabel.style.height = 42f;
-        ApplyPanelStyle(_feedbackLabel, new Color(1.00f, 1.00f, 1.00f, 0.18f), new Color(1f, 1f, 1f, 0.34f), 21f);
-        ApplyDisplayText(_feedbackLabel, 18, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
-        _feedbackToast.Add(_feedbackLabel);
 
         _undoButton = new Button(() => _undo?.Invoke());
         _undoButton.style.position = Position.Absolute;
@@ -533,7 +510,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         Color border = new Color(1f, 1f, 1f, 0.28f);
         ApplyPanelStyle(_stageButton, palette.PanelBackground, border, 14f);
         ApplyPanelStyle(_progressRail, WithAlpha(palette.PanelBackground, 0.34f), border, 18f);
-        ApplyPanelStyle(_feedbackLabel, WithAlpha(palette.Accent, 0.22f), new Color(1f, 1f, 1f, 0.34f), 21f);
 
         if (_stagePanel != null)
         {
