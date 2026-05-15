@@ -52,6 +52,14 @@ other coding agents.
 - Keep `production/session-state/active.md` and
   `production/progress-dashboard.md` consistent when status, next action,
   playtest verdict, or risk changes.
+- 진행상황 확인, 다음 작업 리스트업, 커밋 직후 상태 점검처럼 현재 상태의
+  요약만 필요한 요청에서는 `production/session-state/active.md`와
+  `production/progress-dashboard.md`를 통째로 읽지 않는다. 먼저 `rg`로
+  `STATUS`, `Next Action`, `Next Immediate Action`, `Current Decisions`,
+  `Open Questions`, `Risks` 같은 관련 섹션 위치만 찾고, 필요한 주변
+  문맥만 제한적으로 읽는다.
+- 위 상태 문서의 전체 읽기는 문서를 직접 수정해야 하거나, 표적 검색 결과가
+  서로 모순되거나, 사용자가 명시적으로 전체 검토를 요청한 경우로 제한한다.
 - When a user preference affects future AI behavior across tools, update this
   document and reference it from tool-specific guidance when useful.
 - Project documentation should be written in Korean by default. Keep source

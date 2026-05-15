@@ -55,7 +55,9 @@ Task: Implement hitbox detection
 - The status line displays it as a breadcrumb: `Combat System > Melee Combat > Hitboxes`
 - Remove or empty the block when no active work focus exists
 
-After any disruption (compaction, crash, `/clear`), read the state file first.
+After any disruption (compaction, crash, `/clear`), recover state with targeted
+reads first. Search the status block and relevant sections before reading the
+full state file.
 
 ### Incremental File Writing
 
@@ -111,8 +113,10 @@ When context is compacted, preserve the following in the summary:
 - The current task and what step we are on
 - Which sections of the current document are written to file vs. still in progress
 
-**After compaction:** Read `production/session-state/active.md` and any files being
-actively worked on to recover full context. The files contain the decisions; the
+**After compaction:** Use targeted reads on `production/session-state/active.md`
+first, then inspect any files being actively worked on. For state recovery or
+next-task listing, search the status block, next action, open questions, and risks
+before reading large files in full. The files contain the decisions; the
 conversation history is secondary.
 
 ## Recovery After Session Crash
@@ -120,6 +124,7 @@ conversation history is secondary.
 If a session dies ("prompt too long") or you start a new session to continue work:
 
 1. The `session-start.sh` hook will detect and preview `active.md` automatically
-2. Read the full state file for context
+2. Search the state file for the status block, next action, open questions, and
+   risks before reading any large file in full
 3. Read the partially-completed file(s) listed in the state
 4. Continue from the next incomplete section or task

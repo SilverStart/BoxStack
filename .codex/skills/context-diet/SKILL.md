@@ -49,6 +49,21 @@ rg -n "Next Immediate Action|Current Decisions|Open Questions|Risks" production/
 rg -n "RefreshPrototypeUi|CanUseUndoSkill|DropPressed" Assets/Scripts/Prototype/BoxStackPrototype.cs
 ```
 
+## 빠른 상태 확인 경로
+
+사용자가 "현재 진행상황 확인", "다음 작업 리스트업", "남은 작업 알려줘", "커밋 직후 상태 확인"처럼 요약을 요청하면 다음 경로를 기본값으로 사용한다.
+
+1. `git status --short --branch`로 브랜치와 워크트리 상태만 확인한다.
+2. `production/session-state/active.md`와 `production/progress-dashboard.md`는 전체 읽기를 금지하고, 아래 검색 결과만 먼저 본다.
+
+```powershell
+rg -n "STATUS|Next Action|Open Questions|Risks" production/session-state/active.md
+rg -n "Next Immediate Action|Current Decisions|Open Questions|Risks" production/progress-dashboard.md
+```
+
+3. 검색 결과만으로 답할 수 없을 때는 해당 섹션 주변부만 제한적으로 읽는다.
+4. 전체 읽기는 문서를 직접 수정해야 하거나, 표적 검색 결과가 모순되거나, 사용자가 전체 검토를 명시적으로 요청한 경우에만 한다.
+
 코드는 먼저 심볼을 검색한 뒤, 필요한 주변 구간만 읽는다.
 
 Unity serialized 파일은 가능하면 다음을 우선한다.
