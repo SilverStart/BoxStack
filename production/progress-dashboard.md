@@ -4,7 +4,7 @@ Last updated: 2026-05-15
 
 ## Next Immediate Action
 
-B046 removes the in-play central feedback toast because the `좋아요`/`유지!` style pop-up made the current Stack-like direction feel cheaper rather than cleaner. The accepted B041 high-contrast block face gradient plus darker outline remains active, and contact shadows plus the B045 top/right face split remain intentionally excluded. Next check should be a user-led Editor Play feel pass confirming that normal play reads well with no central landing feedback.
+B048 borderless faux-glass UI polish is implemented in code and now needs user-led Editor Play visual review. Confirm whether removing the HUD/panel border lines makes the floating UI cleaner while keeping the stage badge, top progress panel, undo button, stage-select panel, and result panel readable over the stage gradients. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -124,6 +124,9 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-15: B045 non-shadow 2.5D face separation was tested and rejected after manual review found it did not feel natural. The top/right face split and internal seam code were removed, and the active runtime returned to B044's accepted high-contrast internal face gradient plus darker outline.
 - 2026-05-15: Validation workflow decision recorded: AI agents should no longer use Unity CLI Connector to run Play Mode only for verification. Use `dotnet build BoxStack.slnx` for routine C# validation, let the user perform real gameplay/UI feel checks manually in Unity Editor Play Mode, and keep WebGL/mobile checks for milestone spot checks.
 - 2026-05-15: B046 removes the central in-play feedback toast from the Stack-like runtime UI. `BoxStackPrototypeUi` no longer creates or refreshes the toast element, and `BoxStackPrototypeUiStateFactory` no longer emits `좋아요`, `유지!`, `완료`, `실패`, or `되돌렸어요` HUD feedback copy. Result popups, stage select, undo, progress slots, gameplay, and block visuals are unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-05-15: B047 glass-style UI polish plan recorded. First implementation should keep the current UI Toolkit/C# runtime UI path and fake the glass feel with transparent tinted fills, crisp light borders, subtle dark separation, and small highlight layers. Avoid real background blur until a separate shader/render-texture/WebGL performance experiment is explicitly approved.
+- 2026-05-15: B047 faux-glass UI polish implemented. `BoxStackPrototypeUi` now applies translucent lifted palette fills, brighter top borders, softer bottom borders, and HUD shadow layers to the stage badge, top progress panel, undo button, stage-select panel, and result panel. Runtime marker is `B047`; no gameplay, asset, scoring, combo, stars, reward-ad, or real blur changes were included. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-05-15: B048 borderless faux-glass UI polish removes the bright border lines from glass panels/buttons while keeping the translucent lifted fills and HUD shadow layers. Progress slot outlines remain unchanged because they communicate placed vs. remaining boxes. Runtime marker is `B048`; gameplay and assets are unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 
 ## Current Decisions
 
@@ -132,8 +135,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Record playtest outcomes briefly in this dashboard and `production/session-state/active.md`.
 - Target launch context is Toss app-in-app, so prototype direction favors lightweight 2D/2.5D sprites over modeled 3D assets.
 - Current prototype uses timing-based screen-clamped centered constant-speed drops, code-generated Stack-like abstract block sprites, stage-cycling same-family palettes, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
-- Next visual asset direction is generated or hand-authored abstract 2D block/UI assets only if the B046 code-generated palette and no-shadow/no-toast runtime look proves directionally right in Editor Play.
-- Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B046 keeps them preserved but bypasses them in the active abstract runtime path.
+- Next visual asset direction is generated or hand-authored abstract 2D block/UI assets only if the B048 code-generated palette, no-shadow/no-toast runtime look, and borderless faux-glass UI prove directionally right in Editor Play.
+- Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B048 keeps them preserved but bypasses them in the active abstract runtime path.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
 - Parcel PNG visuals and `BoxCollider2D` sizes are based on visible alpha bounds rather than the full transparent source image rectangle.
 - Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` only when an AI agent must directly control or inspect the currently open Unity Editor to continue the task. Do not use it only for Play Mode validation.
@@ -141,7 +144,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Background direction is now a clean Stack-like color field with a calm central play lane, not a logistics center or detailed scene.
 - Current background test uses a stage-palette code-generated vertical gradient because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B046 Stack-like 2D palette pass: compact stage badge, top-center box progress panel with filled/outline slots, undo button, minimal result card, DNF BitBit v2 display text, and Gmarket Sans Bold supporting text. The central landing feedback toast has been removed. Delivery/parcel wording is removed from active runtime UI, UI accent colors follow the current stage palette, rear background uses a softened full-screen light-bottom/dark-top Stack-like gradient, and blocks are tint-driven rectangles with darker outer edges and the accepted high-contrast internal grayscale gradient. Contact shadows and the B045 top/right face split are intentionally not applied; block tint still darkens as the stack gets higher without changing color on landing.
+- Current implemented UI is B048 Stack-like 2D borderless faux-glass pass: compact stage badge, top-center box progress panel with filled/outline slots, undo button, stage-select panel, and minimal result card now use semi-transparent lifted palette fills and small HUD shadow layers without bright panel border lines. The central landing feedback toast has been removed. Delivery/parcel wording is removed from active runtime UI, UI accent colors follow the current stage palette, rear background uses a softened full-screen light-bottom/dark-top Stack-like gradient, and blocks are tint-driven rectangles with darker outer edges and the accepted high-contrast internal grayscale gradient. Contact shadows and the B045 top/right face split are intentionally not applied; block tint still darkens as the stack gets higher without changing color on landing.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -155,7 +158,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B023 preserves the same gameplay/UI baseline while moving stage box-code visual selection and floor/background sprite choice behind `BoxStackPrototypeBoxVisualCatalog`.
 - B024 preserves the same gameplay/UI baseline while moving runtime UI state/copy/stage-button construction behind `BoxStackPrototypeUiStateFactory`.
 - `docs/architecture/boxstack-prototype-code-map.md` is the current Korean code map for prototype feature ownership and should be reviewed whenever prototype code changes.
-- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B046 Stack-like 2D.
+- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B048 Stack-like 2D.
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, and minimal HUD without central landing feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
@@ -163,8 +166,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B046`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B046`; documentation-only or design-asset-only commits do not require a marker increment.
+- Use a tiny in-game build marker (`B048`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- The current runtime build marker is `B048`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 
@@ -180,11 +183,12 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Does the top-center box progress panel stay readable on the target phone viewport across 4-12 box stages?
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
+- Does the B048 borderless faux glass HUD make the floating UI feel cleaner without hurting readability over the stage gradients?
 - Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
 - What non-shadow, non-face-split approach should improve block depth without making the block look noisy or less Stack-like?
 - Are generated abstract blocks readable enough for contact/collision judgment on the target phone viewport?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
-- Does the B046 no-shadow/no-toast block color progression read cleanly over the full-screen rear-background gradient?
+- Does the current no-shadow/no-toast block color progression read cleanly over the full-screen rear-background gradient?
 - Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
@@ -197,6 +201,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Dashboard staleness if `production/session-state/active.md` changes without this file being updated.
 - AI-generated assets may look inconsistent unless the first prompt set tightly controls angle, outline, color, and export rules.
 - Visual polish may hide physics readability issues if box silhouettes and contact edges are not kept clear.
+- Glass-style UI can reduce text contrast if transparency is too strong; keep result/stage-select panels more opaque than small HUD badges and verify by user-led Editor Play feel checks.
 - Background detail may reduce falling-box readability if the center play lane feels too busy on mobile.
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - B017 removed the old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype.cs`. B018 migrates the config asset to the current `UndosPerStage` name while keeping `FormerlySerializedAs` for older serialized assets.
