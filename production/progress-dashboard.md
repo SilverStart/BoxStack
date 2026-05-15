@@ -4,7 +4,7 @@ Last updated: 2026-05-15
 
 ## Next Immediate Action
 
-B035 restores the Stage 1 AquaBlue rear-background hue values to the intended Stack-like palette after confirming the B034 full-gradient fitting fix works. Background fitting still scales X and Y independently, so the full vertical gradient remains visible. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B035`, restored AquaBlue colors, non-uniform background scale `(5.495, 0.611, 1.000)`, and 0 console warnings/errors. Next checkpoint is manual Game view judgement. WebGL/mobile testing remains deferred to the next milestone spot check.
+B039 removes the landing-time color shift from the flat block visuals. Moving blocks and landed blocks now use the same progressive tint, while B038's darker outer edge remains for silhouette readability. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B039`, matching active/placed tint values, darker final block tint than first block tint, and 0 console warnings/errors. Next checkpoint is manual Game view judgement. WebGL/mobile testing remains deferred to the next milestone spot check.
 
 ## Prototype / Playtest History
 
@@ -110,6 +110,10 @@ B035 restores the Stage 1 AquaBlue rear-background hue values to the intended St
 - 2026-05-15: B033 changed the rear background direction to better match `Stack`: background bottoms are now light/soft, middle bands remain saturated, and background tops are deep/dark. This keeps the high contrast but flips the value direction from B032. Block, floor, and UI palette behavior remain unchanged from the previous palette pass. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B033`, generated `16x256` background, bright bottom pixel, dark top pixel, strong bottom-to-top color distance, and 0 console warnings/errors.
 - 2026-05-15: B034 fixed the background fitting bug that made the gradient appear flat. `FitSpriteToCoverWorldSize` now scales the generated background sprite independently on X and Y instead of preserving the `16x256` aspect ratio, so the full vertical gradient is visible across the camera view. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B034`, generated `16x256` background, full-gradient pixel colors, non-uniform background scale `(5.495, 0.611, 1.000)`, and 0 console warnings/errors.
 - 2026-05-15: B035 restored the Stage 1 AquaBlue background hue values to the intended palette: bottom hue `0.47`, middle hue `0.52`, top hue `0.61`, while keeping the B034 independent X/Y background scaling fix. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B035`, restored AquaBlue colors, non-uniform background scale `(5.495, 0.611, 1.000)`, and 0 console warnings/errors.
+- 2026-05-15: B036 softened the Stack-like rear-background contrast across all stage palettes. The bottom/middle/top hue flow is preserved, but background saturation is slightly lower and the top value is raised from near-black into a calmer dark color so the background no longer dominates the blocks. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B036`, softened AquaBlue colors, full-gradient background scale `(5.495, 0.611, 1.000)`, and 0 console warnings/errors.
+- 2026-05-15: B037 simplified generated Stack-like block sprites into flat single-color rectangle masks and changed block tinting from ping-pong color movement to stage-target-based progression. The first block starts from a lightened `BlockBase`, higher blocks move toward a darkened `BlockAccent`, and the active falling block is only slightly brightened for readability. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B037`, a one-color generated block sprite, darker final block tint than first block tint, and 0 console warnings/errors.
+- 2026-05-15: B038 adds a darker outer edge to the generated flat block sprite after the fully single-color B037 blocks proved too hard to read over the background. The block face still stays flat and tint-driven; only the edge pixels are darker for silhouette readability. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B038`, a two-color generated block sprite with dark edge pixels, darker final block tint than first block tint, and 0 console warnings/errors.
+- 2026-05-15: B039 removes the active-block brightening that made boxes appear to darken when they landed. `GetBlockTint` now returns the same progressive tint for moving and landed blocks, so placement does not change the box color. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B039`, matching active/placed tint values, darker final block tint than first block tint, and 0 console warnings/errors.
 
 ## Current Decisions
 
@@ -118,15 +122,15 @@ B035 restores the Stage 1 AquaBlue rear-background hue values to the intended St
 - Record playtest outcomes briefly in this dashboard and `production/session-state/active.md`.
 - Target launch context is Toss app-in-app, so prototype direction favors lightweight 2D/2.5D sprites over modeled 3D assets.
 - Current prototype uses timing-based screen-clamped centered constant-speed drops, code-generated Stack-like abstract block sprites, stage-cycling same-family palettes, 2D physics stacking, rotation-locked orthographic camera follow, stage-specific target counts, and quick restart.
-- Next visual asset direction is generated or hand-authored abstract 2D block/UI assets only if the B035 code-generated palette look proves directionally right in Editor Play.
-- Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B035 keeps them preserved but bypasses them in the active abstract runtime path.
+- Next visual asset direction is generated or hand-authored abstract 2D block/UI assets only if the B039 code-generated palette look proves directionally right in Editor Play.
+- Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B039 keeps them preserved but bypasses them in the active abstract runtime path.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
 - Parcel PNG visuals and `BoxCollider2D` sizes are based on visible alpha bounds rather than the full transparent source image rectangle.
 - Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` for live Editor inspection, asset refresh, Play/Stop, console reads, screenshots, and injected C# checks.
 - Background direction is now a clean Stack-like color field with a calm central play lane, not a logistics center or detailed scene.
 - Current background test uses a stage-palette code-generated vertical gradient because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B035 Stack-like 2D palette pass: compact stage badge, top-center box progress panel with filled/outline slots, undo button, central landing feedback, minimal result card, DNF BitBit v2 display text, and Gmarket Sans Bold supporting text. Delivery/parcel wording is removed from active runtime UI, and UI accent colors follow the current stage palette while the rear background now uses a full-screen light-bottom/dark-top Stack-like gradient.
+- Current implemented UI is B039 Stack-like 2D palette pass: compact stage badge, top-center box progress panel with filled/outline slots, undo button, central landing feedback, minimal result card, DNF BitBit v2 display text, and Gmarket Sans Bold supporting text. Delivery/parcel wording is removed from active runtime UI, UI accent colors follow the current stage palette, rear background uses a softened full-screen light-bottom/dark-top Stack-like gradient, and blocks are flat tint-driven rectangles with darker outer edges that darken as the stack gets higher without changing color on landing.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -140,7 +144,7 @@ B035 restores the Stage 1 AquaBlue rear-background hue values to the intended St
 - B023 preserves the same gameplay/UI baseline while moving stage box-code visual selection and floor/background sprite choice behind `BoxStackPrototypeBoxVisualCatalog`.
 - B024 preserves the same gameplay/UI baseline while moving runtime UI state/copy/stage-button construction behind `BoxStackPrototypeUiStateFactory`.
 - `docs/architecture/boxstack-prototype-code-map.md` is the current Korean code map for prototype feature ownership and should be reviewed whenever prototype code changes.
-- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B035 Stack-like 2D.
+- Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B039 Stack-like 2D.
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, minimal HUD, and short game feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
@@ -148,8 +152,8 @@ B035 restores the Stage 1 AquaBlue rear-background hue values to the intended St
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B035`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B035`; documentation-only or design-asset-only commits do not require a marker increment.
+- Use a tiny in-game build marker (`B039`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- The current runtime build marker is `B039`; documentation-only or design-asset-only commits do not require a marker increment.
 
 ## Open Questions
 
@@ -167,10 +171,10 @@ B035 restores the Stage 1 AquaBlue rear-background hue values to the intended St
 - Should the next HUD playtest use Korean-only UI copy, English arcade feedback, or a mixed prototype copy set?
 - Should the first landing feedback use generic messages only, or wait for an actual placement-quality scoring signal?
 - Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
-- Does the B035 full-screen light-bottom/dark-top rear background feel closer to the intended `Stack` reference?
+- Does the B039 edged flat-block plus softened light-bottom/dark-top rear background feel closer to the intended `Stack` reference?
 - Are generated abstract blocks readable enough for contact/collision judgment on the target phone viewport?
 - Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
-- Does the B035 full-screen rear-background gradient stay clearly visible without hurting block readability?
+- Does the B039 no-landing-shift flat-block color progression read cleanly over the full-screen rear-background gradient?
 - Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?

@@ -110,10 +110,8 @@ internal sealed class BoxStackPrototypeAssetLoader
         };
 
         Color clear = new Color(0f, 0f, 0f, 0f);
-        Color top = new Color(1.00f, 1.00f, 1.00f, 1f);
-        Color face = new Color(0.88f, 0.88f, 0.88f, 1f);
-        Color side = new Color(0.70f, 0.70f, 0.70f, 1f);
-        Color edge = new Color(0.52f, 0.52f, 0.52f, 1f);
+        Color fill = Color.white;
+        Color edge = new Color(0.48f, 0.48f, 0.48f, 1f);
 
         for (int y = 0; y < size; y++)
         {
@@ -126,25 +124,8 @@ internal sealed class BoxStackPrototypeAssetLoader
                     continue;
                 }
 
-                bool topBand = y > size - 20;
-                bool sideBand = x > size - 17;
-                bool bottomShade = y < 10;
-                Color pixel = face;
-                if (topBand)
-                {
-                    pixel = top;
-                }
-                else if (sideBand || bottomShade)
-                {
-                    pixel = side;
-                }
-
-                if (x < 5 || x > size - 6 || y < 5 || y > size - 6)
-                {
-                    pixel = edge;
-                }
-
-                texture.SetPixel(x, y, pixel);
+                bool edgeBand = x < 6 || x > size - 7 || y < 6 || y > size - 7;
+                texture.SetPixel(x, y, edgeBand ? edge : fill);
             }
         }
 

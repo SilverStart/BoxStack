@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 35;
+    private const int PrototypeBuildNumber = 39;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -1076,7 +1076,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private Color GetStackBlockTint(int boxIndex, bool active)
     {
-        return _currentPalette.GetBlockTint(boxIndex, active);
+        return _currentPalette.GetBlockTint(boxIndex, CurrentTargetBoxes, active);
     }
 
     private void ApplyCurrentStagePalette()
@@ -1283,11 +1283,13 @@ internal readonly struct BoxStackPrototypePalette
     internal Color SecondaryAccent { get; }
     internal Color PanelBackground { get; }
 
-    internal Color GetBlockTint(int boxIndex, bool active)
+    internal Color GetBlockTint(int boxIndex, int targetBoxes, bool active)
     {
-        float t = Mathf.PingPong(boxIndex * 0.24f, 1f);
-        Color color = Color.Lerp(BlockBase, BlockAccent, t);
-        color = Color.Lerp(color, Color.white, active ? 0.08f : 0.02f);
+        int maxIndex = Mathf.Max(1, targetBoxes - 1);
+        float t = Mathf.Clamp01(boxIndex / (float)maxIndex);
+        Color lightBase = Color.Lerp(BlockBase, Color.white, 0.34f);
+        Color darkAccent = Color.Lerp(BlockAccent, Color.black, 0.34f);
+        Color color = Color.Lerp(lightBase, darkAccent, t);
         color.a = 1f;
         return color;
     }
@@ -1314,9 +1316,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreateAquaBlue()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.47f, 0.36f, 1.00f),
-            Hsv(0.52f, 0.78f, 0.74f),
-            Hsv(0.61f, 0.96f, 0.16f),
+            Hsv(0.47f, 0.30f, 0.98f),
+            Hsv(0.52f, 0.58f, 0.72f),
+            Hsv(0.61f, 0.72f, 0.42f),
             Hsv(0.54f, 0.78f, 0.82f),
             Hsv(0.46f, 0.72f, 1.00f),
             Hsv(0.58f, 0.60f, 0.26f, 0.82f),
@@ -1329,9 +1331,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreatePurplePink()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.92f, 0.38f, 1.00f),
-            Hsv(0.86f, 0.78f, 0.74f),
-            Hsv(0.76f, 0.92f, 0.18f),
+            Hsv(0.92f, 0.32f, 0.98f),
+            Hsv(0.86f, 0.58f, 0.72f),
+            Hsv(0.76f, 0.70f, 0.43f),
             Hsv(0.82f, 0.70f, 0.82f),
             Hsv(0.91f, 0.68f, 1.00f),
             Hsv(0.78f, 0.52f, 0.26f, 0.82f),
@@ -1344,9 +1346,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreateSunsetCoral()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.12f, 0.34f, 1.00f),
-            Hsv(0.04f, 0.78f, 0.78f),
-            Hsv(0.00f, 0.96f, 0.18f),
+            Hsv(0.12f, 0.28f, 0.98f),
+            Hsv(0.04f, 0.58f, 0.74f),
+            Hsv(0.00f, 0.72f, 0.43f),
             Hsv(0.04f, 0.76f, 0.84f),
             Hsv(0.11f, 0.76f, 1.00f),
             Hsv(0.04f, 0.58f, 0.28f, 0.82f),
@@ -1359,9 +1361,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreateMintTeal()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.36f, 0.34f, 1.00f),
-            Hsv(0.42f, 0.76f, 0.72f),
-            Hsv(0.49f, 0.94f, 0.15f),
+            Hsv(0.36f, 0.28f, 0.98f),
+            Hsv(0.42f, 0.56f, 0.70f),
+            Hsv(0.49f, 0.70f, 0.40f),
             Hsv(0.42f, 0.72f, 0.82f),
             Hsv(0.36f, 0.68f, 1.00f),
             Hsv(0.46f, 0.54f, 0.26f, 0.82f),
@@ -1374,9 +1376,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreateIndigoCyan()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.52f, 0.38f, 1.00f),
-            Hsv(0.57f, 0.82f, 0.72f),
-            Hsv(0.65f, 0.98f, 0.16f),
+            Hsv(0.52f, 0.32f, 0.98f),
+            Hsv(0.57f, 0.60f, 0.70f),
+            Hsv(0.65f, 0.74f, 0.42f),
             Hsv(0.60f, 0.74f, 0.82f),
             Hsv(0.52f, 0.72f, 1.00f),
             Hsv(0.63f, 0.58f, 0.25f, 0.82f),
@@ -1389,9 +1391,9 @@ internal readonly struct BoxStackPrototypePalette
     private static BoxStackPrototypePalette CreateLavenderBlue()
     {
         return new BoxStackPrototypePalette(
-            Hsv(0.76f, 0.34f, 1.00f),
-            Hsv(0.70f, 0.74f, 0.74f),
-            Hsv(0.66f, 0.92f, 0.18f),
+            Hsv(0.76f, 0.28f, 0.98f),
+            Hsv(0.70f, 0.54f, 0.72f),
+            Hsv(0.66f, 0.70f, 0.43f),
             Hsv(0.70f, 0.62f, 0.84f),
             Hsv(0.77f, 0.58f, 1.00f),
             Hsv(0.69f, 0.50f, 0.26f, 0.82f),
