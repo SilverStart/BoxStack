@@ -517,8 +517,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             bool completed = i < placedBoxes;
             ApplyPanelStyle(
                 _progressNodes[i],
-                completed ? palette.SecondaryAccent : Color.clear,
-                completed ? new Color(1f, 1f, 1f, 0.38f) : new Color(1f, 1f, 1f, 0.46f),
+                completed ? palette.Accent : Color.clear,
+                WithAlpha(palette.Accent, completed ? 0.68f : 0.46f),
                 3f);
         }
     }
@@ -537,6 +537,12 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         {
             ApplyGlassPanelStyle(_resultPanel, palette.PanelBackground, 0.88f, 18f);
         }
+    }
+
+    private static Color WithAlpha(Color color, float alpha)
+    {
+        color.a = alpha;
+        return color;
     }
 
     private void RebuildProgressRail(int nodeCount)
