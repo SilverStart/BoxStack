@@ -110,7 +110,6 @@ internal sealed class BoxStackPrototypeAssetLoader
         };
 
         Color clear = new Color(0f, 0f, 0f, 0f);
-        Color fill = Color.white;
         Color edge = new Color(0.48f, 0.48f, 0.48f, 1f);
 
         for (int y = 0; y < size; y++)
@@ -125,6 +124,10 @@ internal sealed class BoxStackPrototypeAssetLoader
                 }
 
                 bool edgeBand = x < 6 || x > size - 7 || y < 6 || y > size - 7;
+                float vertical = Mathf.InverseLerp(6f, size - 7f, y);
+                float diagonal = Mathf.InverseLerp(6f, size - 7f, x);
+                float shade = Mathf.Lerp(0.62f, 1f, (vertical * 0.82f) + (diagonal * 0.18f));
+                Color fill = new Color(shade, shade, shade, 1f);
                 texture.SetPixel(x, y, edgeBand ? edge : fill);
             }
         }
