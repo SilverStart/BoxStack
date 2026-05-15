@@ -52,7 +52,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private Button _unlockAllButton;
     private VisualElement _progressControls;
     private VisualElement _resultOverlay;
-    private Label _resultStamp;
     private Label _resultTitle;
     private Label _resultBody;
     private Button _resultButton;
@@ -189,12 +188,10 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
         if (state.ResultVisible)
         {
-            bool failed = state.ResultTitle.IndexOf("실패", StringComparison.Ordinal) >= 0;
-            _resultStamp.text = failed ? "MISS" : "CLEAR";
-            ApplyPanelStyle(_resultStamp, failed ? new Color(1.00f, 0.28f, 0.32f, 0.90f) : state.Palette.Accent, new Color(1f, 1f, 1f, 0.24f), 16f);
             _resultTitle.text = state.ResultTitle;
             _resultBody.text = state.ResultBody;
             _resultButton.text = state.ResultButtonLabel;
+            ApplyButtonColors(_resultButton, GetResultButtonColor(state.Palette), Color.white);
         }
     }
 
@@ -435,21 +432,13 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _resultPanel = new VisualElement();
         _resultPanel.style.width = new Length(84f, LengthUnit.Percent);
         _resultPanel.style.maxWidth = ResultPanelMaxWidth;
-        _resultPanel.style.minHeight = 240f;
+        _resultPanel.style.minHeight = 204f;
         _resultPanel.style.paddingLeft = 28f;
         _resultPanel.style.paddingRight = 28f;
         _resultPanel.style.paddingTop = 24f;
         _resultPanel.style.paddingBottom = 24f;
         ApplyGlassPanelStyle(_resultPanel, new Color(0.05f, 0.08f, 0.18f, 0.94f), 0.88f, 18f);
         _resultOverlay.Add(_resultPanel);
-
-        _resultStamp = new Label();
-        _resultStamp.style.alignSelf = Align.Center;
-        _resultStamp.style.width = 132f;
-        _resultStamp.style.height = 32f;
-        _resultStamp.style.marginBottom = 14f;
-        ApplyDisplayText(_resultStamp, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
-        _resultPanel.Add(_resultStamp);
 
         _resultTitle = new Label();
         _resultTitle.style.height = 44f;
@@ -681,6 +670,13 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         float alpha = background.a > 0f ? Mathf.Clamp(background.a, 0.48f, 0.82f) : 0.52f;
         ApplyGlassPanelStyle(button, background, alpha, 18f);
         button.style.color = text;
+    }
+
+    private static Color GetResultButtonColor(BoxStackPrototypePalette palette)
+    {
+        Color color = Color.Lerp(palette.BackgroundTop, palette.Accent, 0.32f);
+        color.a = palette.Accent.a;
+        return color;
     }
 
     private void ApplyDisplayText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
