@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 48;
+    private const int PrototypeBuildNumber = 61;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -653,13 +653,26 @@ public sealed class BoxStackPrototype : MonoBehaviour
         visual.transform.SetParent(box.transform, false);
 
         var renderer = visual.AddComponent<SpriteRenderer>();
-        renderer.sprite = boxVisual.Sprite;
-        renderer.color = boxVisual.IsPlaceholder ? tint : Color.white;
+        bool useGeneratedStackVisual = UseStackLikeAbstractVisuals && boxVisual.IsPlaceholder;
+        Sprite sprite = boxVisual.Sprite;
+        Rect visibleTextureRect = boxVisual.VisibleTextureRect;
+        Vector2 visualWorldSize = boxVisual.WorldSize;
+        Vector2 colliderSize = boxVisual.WorldSize * 0.98f;
+        Color rendererColor = boxVisual.IsPlaceholder ? tint : Color.white;
+        if (useGeneratedStackVisual)
+        {
+            sprite = CreateStackBlockSprite(_placedBoxes.Count);
+            visibleTextureRect = _assetLoader.GetVisibleTextureRect(sprite);
+            rendererColor = Color.white;
+        }
+
+        renderer.sprite = sprite;
+        renderer.color = rendererColor;
         renderer.sortingOrder = 10 + _placedBoxes.Count;
-        FitSpriteToWorldSize(visual.transform, boxVisual.Sprite, boxVisual.VisibleTextureRect, boxVisual.WorldSize);
+        FitSpriteToWorldSize(visual.transform, sprite, visibleTextureRect, visualWorldSize);
 
         var collider = box.AddComponent<BoxCollider2D>();
-        collider.size = boxVisual.WorldSize * 0.96f;
+        collider.size = colliderSize;
         collider.sharedMaterial = _parcelPhysicsMaterial;
 
         var body = box.AddComponent<Rigidbody2D>();
@@ -672,6 +685,16 @@ public sealed class BoxStackPrototype : MonoBehaviour
         body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
         return box;
+    }
+
+    private Sprite CreateStackBlockSprite(int boxIndex)
+    {
+        int targetBoxes = Mathf.Max(1, CurrentTargetBoxes);
+        float bottomProgress = Mathf.Clamp01(boxIndex / (float)targetBoxes);
+        float topProgress = Mathf.Clamp01((boxIndex + 1) / (float)targetBoxes);
+        return _assetLoader.CreateStackBlockPlaceholder(
+            _currentPalette.GetStackGradientColor(bottomProgress),
+            _currentPalette.GetStackGradientColor(topProgress));
     }
 
     private void CreatePhysicsMaterials()
@@ -1287,9 +1310,16 @@ internal readonly struct BoxStackPrototypePalette
     {
         int maxIndex = Mathf.Max(1, targetBoxes - 1);
         float t = Mathf.Clamp01(boxIndex / (float)maxIndex);
-        Color lightBase = Color.Lerp(BlockBase, Color.white, 0.34f);
-        Color darkAccent = Color.Lerp(BlockAccent, Color.black, 0.34f);
-        Color color = Color.Lerp(lightBase, darkAccent, t);
+        return GetStackGradientColor(t);
+    }
+
+    internal Color GetStackGradientColor(float progress)
+    {
+        float t = Mathf.Clamp01(progress);
+        Color lowerTint = Color.Lerp(BackgroundTop, BlockAccent, 0.18f);
+        lowerTint = Color.Lerp(lowerTint, Color.black, 0.10f);
+        Color upperTint = Color.Lerp(BlockBase, Color.white, 0.42f);
+        Color color = Color.Lerp(lowerTint, upperTint, t);
         color.a = 1f;
         return color;
     }
