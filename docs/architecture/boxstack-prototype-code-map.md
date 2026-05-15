@@ -310,7 +310,7 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - 현재 UI는 UXML이 아니라 C# 코드로 생성합니다.
 - 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다.
 - 스테이지 진행은 `PlayerPrefs`를 사용합니다.
-- WebGL/mobile 검증은 milestone spot check로 남기고 일반 반복 검증은 Unity Editor Play Mode를 사용합니다.
+- WebGL/mobile 검증은 milestone spot check로 남기고, AI 에이전트의 일반 C# 검증은 `dotnet build BoxStack.slnx`를 우선 사용합니다. 실제 플레이 감각과 UI 체감 검증은 사용자가 Unity Editor Play Mode에서 직접 확인합니다.
 - 런타임 UI는 던파 비트비트체 v2를 HUD/버튼/제목 표시 폰트로, Gmarket Sans Bold를 보조 설명 텍스트로, Noto Sans KR을 fallback으로 사용합니다. UI Toolkit 렌더링 반영을 위해 `unityFont`와 `unityFontDefinition`을 함께 지정합니다.
 - B044는 배송/택배 시각 테마를 걷어내고 Stack-like 2D 디자인 가이드에 맞춰 스테이지별 유사 색 계열 팔레트, 테두리와 고대비 내부 그라데이션이 있는 컬러 블록, 코드 생성형 뒷배경 그라데이션, 반투명 미니멀 HUD를 사용합니다. B044 변경은 사용자가 마음에 든 B041 블록 면 그라데이션을 유지하면서, 시각적으로 어색하다고 판단된 B042/B043 접촉 그림자 실험을 제거한 상태입니다. 이후 B045에서 테스트한 그림자 없는 2.5D 면 분리도 부자연스럽다고 판단되어 적용하지 않습니다.
 - 코드 변경으로 기능 책임, 파일 위치, 주요 메서드, 실행 흐름, 주의점이 달라지면 이 코드 맵도 같은 변경 묶음에서 갱신합니다.

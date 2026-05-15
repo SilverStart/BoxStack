@@ -6,6 +6,8 @@ Last updated: 2026-05-15
 
 B044 removes the rejected contact-shadow experiment and returns the active block visual to the accepted B041 high-contrast face gradient plus darker outline, with no contact-shadow sprite or child renderer. B045's non-shadow 2.5D top/right face separation was also judged unnatural and reverted, so it is not part of the active runtime direction. Next visual polish should avoid contact shadows and the rejected face-split approach.
 
+Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
+
 ## Prototype / Playtest History
 
 - 2026-05-02: Prototype harness created. No playable prototype or playtest verdict yet.
@@ -120,6 +122,7 @@ B044 removes the rejected contact-shadow experiment and returns the active block
 - 2026-05-15: B043 increases the contact-shadow test values because B042 was not visible enough by eye. The shadow now sits lower, renders wider/taller, and uses alpha `0.72` while preserving the B041 block face gradient and all gameplay behavior. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, and Unity CLI Connector Editor Play confirmed marker `B043`, one active-box shadow, generated shadow sprite, larger scale, lower placement, and 0 console warnings/errors.
 - 2026-05-15: B044 removes the contact-shadow experiment after manual review judged it visually worse. Contact-shadow sprite generation, child renderer creation, and shadow sorting changes were removed; the accepted B041 block face gradient, darker outline, no-landing-shift tint behavior, and gameplay behavior remain unchanged.
 - 2026-05-15: B045 non-shadow 2.5D face separation was tested and rejected after manual review found it did not feel natural. The top/right face split and internal seam code were removed, and the active runtime returned to B044's accepted high-contrast internal face gradient plus darker outline.
+- 2026-05-15: Validation workflow decision recorded: AI agents should no longer use Unity CLI Connector to run Play Mode only for verification. Use `dotnet build BoxStack.slnx` for routine C# validation, let the user perform real gameplay/UI feel checks manually in Unity Editor Play Mode, and keep WebGL/mobile checks for milestone spot checks.
 
 ## Current Decisions
 
@@ -132,7 +135,8 @@ B044 removes the rejected contact-shadow experiment and returns the active block
 - Legacy delivery sprite names are `parcel_box_basic_01.png`, `parcel_box_wide_01.png`, `parcel_box_tall_01.png`, and `parcel_stack_base_01.png`; B044 keeps them preserved but bypasses them in the active abstract runtime path.
 - Prototype sprite loading also falls back from Sprite assets to Texture2D-to-Sprite creation, so Play mode remains tolerant of importer refresh timing.
 - Parcel PNG visuals and `BoxCollider2D` sizes are based on visible alpha bounds rather than the full transparent source image rectangle.
-- Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` for live Editor inspection, asset refresh, Play/Stop, console reads, screenshots, and injected C# checks.
+- Unity CLI Connector is installed and verified; use `docs/workflow/unity-cli-connector.md` only when an AI agent must directly control or inspect the currently open Unity Editor to continue the task. Do not use it only for Play Mode validation.
+- Routine AI-side C# validation should prefer `dotnet build BoxStack.slnx`; actual gameplay feel, UI feel, difficulty, touch input, and playability checks are confirmed by the user directly in Unity Editor Play Mode.
 - Background direction is now a clean Stack-like color field with a calm central play lane, not a logistics center or detailed scene.
 - Current background test uses a stage-palette code-generated vertical gradient because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
@@ -211,5 +215,5 @@ B044 removes the rejected contact-shadow experiment and returns the active block
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
-- Unity batchmode import could not run while the project was already open, so in-editor refresh/play verification is still needed.
-- Unity CLI Connector requires the Unity Editor to be open with this project loaded; if port `8090` does not respond, scan `8091` through `8099`. During B024 the live connector was found on port `8093` after `8090` through `8092` timed out.
+- Unity batchmode import could not run while the project was already open, but routine AI-side Play Mode verification is no longer required for normal iteration.
+- Unity CLI Connector requires the Unity Editor to be open with this project loaded; if editor control is genuinely needed and port `8090` does not respond, scan `8091` through `8099`. During B024 the live connector was found on port `8093` after `8090` through `8092` timed out.

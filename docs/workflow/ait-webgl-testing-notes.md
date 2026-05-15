@@ -6,7 +6,7 @@ This note captures the current Apps in Toss / Unity WebGL findings so a new sess
 
 ## Development Validation Policy
 
-Use Unity Editor Play Mode for normal UI/gameplay iteration. AIT/WebGL builds are too slow for every development loop, so reserve them for milestone browser/device spot checks such as WebGL-only asset loading, Korean font rendering, phone safe area, touch behavior, performance, and cache/build-marker verification.
+For normal C# iteration, AI agents should prefer `dotnet build BoxStack.slnx`. Do not use Unity CLI Connector to run Unity Editor Play Mode only for validation. Actual gameplay feel, UI feel, difficulty, touch behavior, and playability checks are confirmed by the user directly in Unity Editor Play Mode. AIT/WebGL builds are too slow for every development loop, so reserve them for milestone browser/device spot checks such as WebGL-only asset loading, Korean font rendering, phone safe area, touch behavior, performance, and cache/build-marker verification.
 
 ## Current Status
 
@@ -215,7 +215,7 @@ As of B028, the runtime UI keeps the B016/B024/B026 Delivery Arcade vector layou
 
 ## Next Suggested Task
 
-For normal development, continue using Unity Editor Play Mode. The next runtime-facing task should be either:
+For normal development, use `dotnet build BoxStack.slnx` for AI-side C# validation and leave manual playability checks to the user in Unity Editor Play Mode. The next runtime-facing task should be either:
 
 1. Apply or intentionally defer the `design/ui/delivery-arcade-assets/` PNG skin in `BoxStackPrototypeUi`.
 2. Continue productization by extracting another small boundary from `BoxStackPrototype.cs`.

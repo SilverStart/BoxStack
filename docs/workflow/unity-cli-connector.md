@@ -1,12 +1,22 @@
 # Unity CLI Connector
 
-Last updated: 2026-05-02
+Last updated: 2026-05-15
 
 ## Purpose
 
 Use Unity CLI Connector when Codex needs to inspect or control the currently open Unity Editor without relying on batchmode.
 
 This is especially useful for this project because Unity may already be open, which blocks batchmode import/play checks. The connector lets Codex send commands to the live editor instead.
+
+## Project Usage Policy
+
+- Do not use Unity CLI Connector only to run Play Mode verification.
+- Normal C# validation should prefer `dotnet build BoxStack.slnx`.
+- Gameplay feel, UI feel, difficulty, touch input, and manual playability checks
+  are confirmed by the user directly in Unity Editor Play Mode.
+- Use this connector only when an AI agent must directly control or inspect the
+  currently open Unity Editor to continue the task.
+- Keep WebGL/mobile checks for milestone spot checks, not routine iteration.
 
 ## Package
 
@@ -125,7 +135,11 @@ Observed console entries:
 
 ## Usage Notes
 
-- Prefer this connector for live-editor checks, screenshots, asset refreshes, Play mode smoke tests, and small C# inspection scripts.
+- Use this connector for live-editor control, screenshots, asset refreshes, and
+  small C# inspection scripts only when the task genuinely requires editor
+  control.
+- Skip Play Mode checks through this connector when they are only validation;
+  the user will perform real gameplay checks manually.
 - Keep injected C# small and purpose-specific.
 - For project file edits, still modify files in the workspace first, then use the connector to refresh or verify in Unity.
 - If a command fails, first check whether Unity is open and whether the package has compiled.
