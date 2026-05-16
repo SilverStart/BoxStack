@@ -4,7 +4,7 @@ Last updated: 2026-05-16
 
 ## Next Immediate Action
 
-Prototype `Resources` duplicate asset policy is documented: keep the duplicated parcel/background PNGs under `Assets/Resources/Prototype/...` through the prototype for WebGL inclusion stability, then replace that path with Addressables or serialized asset references during productization. Next immediate action is to decide whether to commit this docs-only policy checkpoint.
+B071 remains the current runtime marker after user-led Editor Play confirmation accepted the mobile HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative later-stage no-undo feel. Next immediate action is to decide whether to commit this docs-only acceptance checkpoint, then choose the next prototype risk to address.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -152,6 +152,9 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-16: B071 mobile HUD safe-area overlap prevention narrows the top-center progress panel against the stage badge when the safe-area width is around narrow phone sizes. Runtime marker is `B071`; gameplay, physics, stage palettes, block visuals, stage select, and result popup behavior are unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; user-led Editor Play confirmation is pending.
 - 2026-05-16: B072 non-color block repetition polish tested subtle generated luminance depth without hue variation, but user review found it visually awkward. The experiment was reverted before commit; runtime marker returns to `B071`.
 - 2026-05-16: Prototype `Resources` duplicate asset policy documented. The parcel/background PNGs in `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` currently match by file size and hash; the duplicate `Resources` copies remain acceptable during the prototype because they guarantee WebGL build inclusion. Productization should replace this with Addressables or serialized asset references instead of deleting the resources during active prototyping.
+- 2026-05-16: Active session state was refreshed after commit `3103e4c`, keeping runtime marker `B071` and moving the next action back to user-led mobile HUD safe-area confirmation plus later-stage no-undo checks.
+- 2026-05-16: B071 manual checklist added at `production/qa/playtests/playtest-2026-05-16-b071-mobile-hud-safe-area-no-undo-representative-stages.md` for user-led Editor Play checks on mobile HUD safe-area overlap, 4-12 box progress-slot readability, and representative no-undo stage feel.
+- 2026-05-16: User-led Editor Play check accepted B071 as good enough: top HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative no-undo stage feel do not need immediate tuning.
 
 ## Current Decisions
 
@@ -205,7 +208,6 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - During productization, should `Resources` loading be replaced with Addressables or simpler scene/prefab serialized asset references?
 - At the next milestone WebGL checkpoint, does the phone browser load the latest AIT/WebGL build reliably through the PC LAN IP?
 - At the next milestone WebGL checkpoint, does the WebGL build render Korean text correctly across HUD, stage select, and result popup states?
-- Does the top-center box progress panel stay readable on the target phone viewport across 4-12 box stages?
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
 - Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
