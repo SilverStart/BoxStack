@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 65;
+    private const int PrototypeBuildNumber = 67;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -22,7 +22,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float FloorY = -0.65f;
     private const float FloorHeight = 0.35f;
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
-    private readonly List<BoxSnapshot> _undoSnapshot = new List<BoxSnapshot>();
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
@@ -57,31 +56,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _attempts;
     private int _currentStageIndex;
     private int _highestUnlockedStageIndex;
-    private int _undosRemaining;
-    private bool _hasUndoSnapshot;
     private string _statusText = "READY";
-
-    private struct BoxSnapshot
-    {
-        public BoxSnapshot(GameObject box, Vector3 position, Quaternion rotation, RigidbodyType2D bodyType, Vector2 linearVelocity, float angularVelocity, bool simulated)
-        {
-            Box = box;
-            Position = position;
-            Rotation = rotation;
-            BodyType = bodyType;
-            LinearVelocity = linearVelocity;
-            AngularVelocity = angularVelocity;
-            Simulated = simulated;
-        }
-
-        public GameObject Box;
-        public Vector3 Position;
-        public Quaternion Rotation;
-        public RigidbodyType2D BodyType;
-        public Vector2 LinearVelocity;
-        public float AngularVelocity;
-        public bool Simulated;
-    }
 
     private static readonly Color StackLikeBackgroundColor = new Color(0.12f, 0.18f, 0.35f);
 
@@ -212,11 +187,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (UndoPressed() && UndoLastPlacedBox())
-        {
-            return;
-        }
-
         if (_state == BoxStackPrototypeState.Playing)
         {
             MoveActiveBox();
@@ -287,7 +257,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
             _bodyFont,
             _fallbackFont,
             OpenStageSelect,
-            HandleUndoButton,
             SelectStage,
             CloseStageSelect,
             ResetStageProgress,
@@ -312,8 +281,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
             CurrentTargetBoxes,
             _state,
             _statusText,
-            CanUseUndoSkill(),
-            GetUndosRemaining(),
             ShouldShowProgressTestControls(),
             _currentPalette)));
     }
@@ -327,11 +294,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         bool won = _state == BoxStackPrototypeState.Won;
         HandleResultButton(won, won && HasNextStage());
-    }
-
-    private void HandleUndoButton()
-    {
-        UndoLastPlacedBox();
     }
 
     private static bool ShouldShowProgressTestControls()
@@ -423,14 +385,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _placedBoxes.Clear();
-        _undoSnapshot.Clear();
         _activeBox = null;
         _droppingBox = null;
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
-        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
-        _undosRemaining = tuning.UndosPerStage;
-        _hasUndoSnapshot = false;
         _attempts++;
         _state = BoxStackPrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
@@ -543,95 +501,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _highestUnlockedStageIndex = Mathf.Clamp(_currentStageIndex + 1, 0, StageCount - 1);
         SaveStageProgress();
-    }
-
-    private bool CanUseUndoSkill()
-    {
-        return _hasUndoSnapshot
-            && _undosRemaining > 0
-            && (_state == BoxStackPrototypeState.Playing
-                || _state == BoxStackPrototypeState.ResolvingDrop
-                || _state == BoxStackPrototypeState.ValidatingClear);
-    }
-
-    private bool UndoLastPlacedBox()
-    {
-        if (!CanUseUndoSkill())
-        {
-            return false;
-        }
-
-        _undosRemaining--;
-        return RestoreUndoSnapshot();
-    }
-
-    private int GetUndosRemaining()
-    {
-        return _undosRemaining;
-    }
-
-    private bool RestoreUndoSnapshot()
-    {
-        StopAllCoroutines();
-
-        if (_activeBox != null)
-        {
-            Destroy(_activeBox);
-            _activeBox = null;
-        }
-
-        if (_droppingBox != null && !_placedBoxes.Contains(_droppingBox))
-        {
-            Destroy(_droppingBox);
-        }
-
-        _droppingBox = null;
-
-        for (int i = _placedBoxes.Count - 1; i >= _undoSnapshot.Count; i--)
-        {
-            GameObject extraBox = _placedBoxes[i];
-            _placedBoxes.RemoveAt(i);
-            if (extraBox != null)
-            {
-                Destroy(extraBox);
-            }
-        }
-
-        for (int i = 0; i < _undoSnapshot.Count; i++)
-        {
-            BoxSnapshot snapshot = _undoSnapshot[i];
-            if (snapshot.Box == null)
-            {
-                continue;
-            }
-
-            if (i < _placedBoxes.Count)
-            {
-                _placedBoxes[i] = snapshot.Box;
-            }
-
-            snapshot.Box.transform.position = snapshot.Position;
-            snapshot.Box.transform.rotation = snapshot.Rotation;
-
-            var body = snapshot.Box.GetComponent<Rigidbody2D>();
-            if (body != null)
-            {
-                body.bodyType = snapshot.BodyType;
-                body.simulated = snapshot.Simulated;
-                body.linearVelocity = snapshot.LinearVelocity;
-                body.angularVelocity = snapshot.AngularVelocity;
-            }
-        }
-
-        _undoSnapshot.Clear();
-        _hasUndoSnapshot = false;
-        _clearValidationEndTime = 0f;
-        _state = BoxStackPrototypeState.Playing;
-        _statusText = "UNDO";
-        _cameraVelocityY = 0f;
-        SpawnNextBox();
-        RefreshPrototypeUi();
-        return true;
     }
 
     private void SpawnNextBox()
@@ -817,7 +686,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        CaptureUndoSnapshot();
         _state = BoxStackPrototypeState.ResolvingDrop;
         _statusText = "DROP";
 
@@ -923,38 +791,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         EndRun(true, "STACK COMPLETE");
-    }
-
-    private void CaptureUndoSnapshot()
-    {
-        _undoSnapshot.Clear();
-
-        for (int i = 0; i < _placedBoxes.Count; i++)
-        {
-            GameObject box = _placedBoxes[i];
-            if (box == null)
-            {
-                continue;
-            }
-
-            var body = box.GetComponent<Rigidbody2D>();
-            if (body == null)
-            {
-                _undoSnapshot.Add(new BoxSnapshot(box, box.transform.position, box.transform.rotation, RigidbodyType2D.Dynamic, Vector2.zero, 0f, true));
-                continue;
-            }
-
-            _undoSnapshot.Add(new BoxSnapshot(
-                box,
-                box.transform.position,
-                box.transform.rotation,
-                body.bodyType,
-                body.linearVelocity,
-                body.angularVelocity,
-                body.simulated));
-        }
-
-        _hasUndoSnapshot = true;
     }
 
     private void EndRun(bool won, string status)
@@ -1227,15 +1063,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame;
 #else
         return Input.GetKeyDown(KeyCode.R);
-#endif
-    }
-
-    private static bool UndoPressed()
-    {
-#if ENABLE_INPUT_SYSTEM
-        return Keyboard.current != null && Keyboard.current.uKey.wasPressedThisFrame;
-#else
-        return Input.GetKeyDown(KeyCode.U);
 #endif
     }
 

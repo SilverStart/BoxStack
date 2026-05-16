@@ -1,14 +1,14 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-05-15
-런타임 마커: B065
+마지막 갱신: 2026-05-16
+런타임 마커: B067
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
 ## 추천 읽기 순서
 
 1. `Assets/Scripts/Prototype/BoxStackPrototypeConfig.cs`
-   - 스테이지별 목표 박스 수, 이동 속도, 이동 범위, 마찰, 중력, 감쇠, 클리어 판정 시간, 되돌리기 횟수 같은 조정값을 먼저 확인합니다.
+   - 스테이지별 목표 박스 수, 이동 속도, 이동 범위, 마찰, 중력, 감쇠, 클리어 판정 시간 같은 조정값을 먼저 확인합니다.
 2. `Assets/Scripts/Prototype/BoxStackPrototype.cs`
    - 메인 게임 흐름을 확인합니다. 초기화, 입력, 박스 이동, 낙하 처리, 성공/실패, 카메라, 스테이지 흐름, UI 갱신 호출이 여기 있습니다.
 3. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
@@ -32,7 +32,6 @@
 - 활성 박스 생성과 드롭 전 좌우 이동.
 - 박스 낙하, 정착, 클리어 검증 흐름.
 - 성공/실패 판정.
-- 되돌리기 스냅샷 저장과 복원.
 - 스테이지 선택과 스테이지 해금 흐름.
 - 현재 게임 상태를 UI 계층으로 전달.
 
@@ -50,8 +49,6 @@
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
-- `CaptureUndoSnapshot`: 드롭 직전 현재 스택 상태를 저장합니다.
-- `RestoreUndoSnapshot`: 저장된 스택 상태를 복원하고 되돌리기 횟수를 소비합니다.
 
 ### `BoxStackPrototypeConfig.cs`
 
@@ -70,7 +67,6 @@
 - 마찰, 중력, 감쇠, 낙하 속도 제한.
 - 클리어 검증 시간.
 - 단일 컬럼 허용 오차.
-- 스테이지당 되돌리기 횟수.
 
 ### `BoxStackPrototypeUiStateFactory.cs`
 
@@ -89,7 +85,7 @@
 - `UIDocument`와 `PanelSettings` 설정.
 - safe area를 반영한 루트 레이아웃.
 - Stack-like 2D 미니멀 HUD 요소.
-- 스테이지 배지와 되돌리기 버튼.
+- 스테이지 배지와 상단 진행 인디케이터.
 - 상단 가로 박스 진행 패널.
 - 상단 가로 박스 진행 패널의 채움/테두리 슬롯 색은 현재 스테이지의 Primary 역할을 하는 `palette.Accent`를 기준으로 맞춥니다.
 - B048 기준 HUD/오버레이 패널은 실제 배경 블러와 테두리선 없이 반투명 틴트와 어두운 분리 레이어를 조합한 가짜 글래스 스타일을 사용합니다.
@@ -197,22 +193,7 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - `BoxStackPrototype.BoxIsLost`
 - `BoxStackPrototype.StackIsSingleColumn`
 - `BoxStackPrototype.BeginClearValidation`
-- `BoxStackPrototype.UpdateClearValidation`
-- `BoxStackPrototype.EndRun`
 
-박스가 떨어졌는지, 스택이 단일 컬럼을 유지하는지, 완성된 스택이 검증 시간을 버티는지 판단합니다.
-
-### 되돌리기
-
-먼저 볼 곳:
-- `BoxStackPrototype.CaptureUndoSnapshot`
-- `BoxStackPrototype.CanUseUndoSkill`
-- `BoxStackPrototype.UndoLastPlacedBox`
-- `BoxStackPrototype.RestoreUndoSnapshot`
-- `BoxStackPrototypeUiStateFactory.Create`
-- `BoxStackPrototypeUi.Refresh`
-
-게임 플레이 되돌리기 저장/복원에 해당합니다. UI 상태 팩토리와 UI 클래스는 되돌리기 버튼 표시와 활성 상태를 담당합니다.
 
 ### 스테이지 선택과 해금
 
@@ -274,7 +255,6 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 -> `MoveActiveBox`
 -> `DropPressed`
 -> `DropActiveBox`
--> `CaptureUndoSnapshot`
 -> `ResolveDrop`
 -> `SpawnNextBox`, `BeginClearValidation`, `EndRun` 중 하나로 이동
 
@@ -285,21 +265,9 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 -> `UpdateClearValidation`
 -> 스택이 `ClearValidationSeconds` 동안 유지됨
 -> `EndRun(true)`
--> `UnlockNextStage`
 
-### 스테이지 실패
-
-`AnyBoxLost` 또는 `StackIsSingleColumn` 실패
--> `EndRun(false)`
--> 배치된 박스 고정
--> 결과 팝업 표시
-
-### 되돌리기 사용
 
 `DropActiveBox`가 드롭 직전 스냅샷 저장
--> HUD 되돌리기 버튼이 `HandleUndoButton` 호출
--> `UndoLastPlacedBox`
--> `RestoreUndoSnapshot`
 -> `Playing` 상태로 복귀
 -> `SpawnNextBox`
 

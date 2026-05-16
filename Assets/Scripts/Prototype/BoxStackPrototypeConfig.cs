@@ -2,7 +2,6 @@
 
 using System;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 /// <summary>
 /// BoxStack 프로토타입의 튜닝값과 스테이지 값을 담는 데이터 경계입니다.
@@ -26,8 +25,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         angularDamping: 0.8f,
         lostHeight: -4.0f,
         lostHorizontalDistance: 4.0f,
-        stackLineTolerance: 0.75f,
-        undosPerStage: 1);
+        stackLineTolerance: 0.75f);
 
     private static readonly StageSettings[] DefaultStages =
     {
@@ -134,8 +132,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             float angularDamping,
             float lostHeight,
             float lostHorizontalDistance,
-            float stackLineTolerance,
-            int undosPerStage)
+            float stackLineTolerance)
         {
             BaseMoveRange = baseMoveRange;
             BaseMoveSpeed = baseMoveSpeed;
@@ -153,7 +150,6 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             LostHeight = lostHeight;
             LostHorizontalDistance = lostHorizontalDistance;
             StackLineTolerance = stackLineTolerance;
-            UndosPerStage = undosPerStage;
         }
 
         public float BaseMoveRange;
@@ -172,9 +168,6 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         public float LostHeight;
         public float LostHorizontalDistance;
         public float StackLineTolerance;
-
-        [FormerlySerializedAs("FreeRescuesPerStage")]
-        public int UndosPerStage;
     }
 
     [Serializable]

@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: active.md token-efficient session state format
-Runtime Marker: B065
-Latest Commit: 99f67b3 B065 결과 팝업 UI 정리
-Dirty Worktree: docs-only context rule/session-state updates
+Task: remove undo feature
+Runtime Marker: B067
+Latest Commit: f39d8eb active 상태 문서 토큰 절약형으로 정리
+Dirty Worktree: B067 undo removal code/docs updates
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,12 +19,13 @@ Dirty Worktree: docs-only context rule/session-state updates
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B065`이다. 문서 전용 변경은 마커를 올리지 않는다.
-- 최신 커밋은 `99f67b3 B065 결과 팝업 UI 정리`이다.
+- 현재 런타임 마커는 `B067`이다.
+- 최신 커밋은 `f39d8eb active 상태 문서 토큰 절약형으로 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD이다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 `boxVisual.WorldSize * 0.96f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프는 사용하지 않는다.
 - 상단 중앙 진행 인디케이터는 현재 스테이지 primary/accent 계열 색상을 사용한다.
+- 되돌리기 버튼과 되돌리기 스냅샷/복원 기능은 현재 난이도 방향에 맞지 않아 제거한다.
 - 결과 팝업 버튼은 `BackgroundTop`과 `Accent`를 섞은 어두운 스테이지 테마 색상을 사용한다.
 
 ## Active Decisions
@@ -38,10 +39,8 @@ Dirty Worktree: docs-only context rule/session-state updates
 
 ## Next Action
 
-- 문맥 절약 규칙과 `active.md` 포맷 변경 내용을 검토한다.
-- `active.md`가 6,000자 이하, 긴 줄 최소화 상태인지 계측한다.
-- 필요하면 `production/progress-dashboard.md`의 다음 즉시 행동을 현재 문서 정리 작업 기준으로 맞춘다.
-- 문서 변경이 안정되면 사용자의 지시에 따라 커밋한다.
+- 사용자가 Unity Editor Play Mode에서 B067 되돌리기 제거 후 HUD와 난이도 흐름을 확인한다.
+- 확인 후 다음 작업은 스테이지 선택 UI polish 또는 블록 반복감 완화 중 하나를 고른다.
 
 ## Open Questions
 

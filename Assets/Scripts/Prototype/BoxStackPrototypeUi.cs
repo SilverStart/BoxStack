@@ -9,15 +9,17 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const string RuntimePanelSettingsResourcePath = "Prototype/Ui/BoxStackPanelSettings";
     private const string RuntimeThemeResourcePath = "Prototype/Ui/BoxStackRuntimeTheme";
     private const float HudHorizontalPadding = 24f;
+    private const float HudMinHorizontalPadding = 12f;
+    private const float HudControlGap = 8f;
     private const float HudTopPadding = 12f;
     private const float StageBadgeWidth = 82f;
     private const float StageBadgeHeight = 54f;
-    private const float UndoTicketWidth = 82f;
-    private const float UndoTicketHeight = 48f;
     private const float ProgressPanelWidth = 176f;
+    private const float ProgressPanelMinWidth = 116f;
     private const float ProgressPanelHeight = 54f;
     private const float ProgressSlotSize = 10f;
     private const float ProgressSlotGap = 3f;
+    private const float ProgressSlotGapRatio = 0.28f;
     private const float StagePanelMaxWidth = 420f;
     private const float ResultPanelMaxWidth = 360f;
 
@@ -30,6 +32,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private readonly List<Button> _stageButtons = new List<Button>();
     private readonly List<VisualElement> _progressNodes = new List<VisualElement>();
+    private float _currentProgressPanelWidth = ProgressPanelWidth;
+    private float _currentProgressSlotSize = ProgressSlotSize;
+    private float _currentProgressSlotGap = ProgressSlotGap;
 
     private UIDocument _document;
     private PanelSettings _panelSettings;
@@ -40,10 +45,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private VisualElement _safeRoot;
     private VisualElement _hudShadow;
     private VisualElement _progressShadow;
-    private VisualElement _undoShadow;
     private Button _stageButton;
     private VisualElement _progressRail;
-    private Button _undoButton;
     private Label _buildLabel;
     private VisualElement _stageOverlay;
     private VisualElement _stagePanel;
@@ -60,7 +63,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private Font _bodyFont;
     private Font _fallbackFont;
     private Action _openStageSelect;
-    private Action _undo;
     private Action<int> _selectStage;
     private Action _closeStageSelect;
     private Action _resetProgress;
@@ -92,8 +94,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             int placedBoxes,
             int targetBoxes,
             bool stageSelectOpen,
-            bool canUseUndo,
-            int undoCount,
             bool resultVisible,
             string resultTitle,
             string resultBody,
@@ -107,8 +107,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             PlacedBoxes = placedBoxes;
             TargetBoxes = targetBoxes;
             StageSelectOpen = stageSelectOpen;
-            CanUseUndo = canUseUndo;
-            UndoCount = undoCount;
             ResultVisible = resultVisible;
             ResultTitle = resultTitle;
             ResultBody = resultBody;
@@ -123,8 +121,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         internal int PlacedBoxes { get; }
         internal int TargetBoxes { get; }
         internal bool StageSelectOpen { get; }
-        internal bool CanUseUndo { get; }
-        internal int UndoCount { get; }
         internal bool ResultVisible { get; }
         internal string ResultTitle { get; }
         internal string ResultBody { get; }
@@ -139,7 +135,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         Font bodyFont,
         Font fallbackFont,
         Action openStageSelect,
-        Action undo,
         Action<int> selectStage,
         Action closeStageSelect,
         Action resetProgress,
@@ -150,7 +145,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _bodyFont = bodyFont;
         _fallbackFont = fallbackFont;
         _openStageSelect = openStageSelect;
-        _undo = undo;
         _selectStage = selectStage;
         _closeStageSelect = closeStageSelect;
         _resetProgress = resetProgress;
@@ -174,9 +168,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         ApplyPalette(state.Palette);
 
         _stageButton.text = $"STAGE\n{state.StageLabel}";
-        _undoButton.text = $"되돌리기 {state.UndoCount}";
-        _undoButton.SetEnabled(state.CanUseUndo);
-        ApplyButtonColors(_undoButton, state.CanUseUndo ? state.Palette.Accent : DisabledButtonColor, Color.white);
         _buildLabel.text = $"B{state.BuildNumber:000}";
 
         SetOverlayVisible(_stageOverlay, state.StageSelectOpen);
@@ -208,7 +199,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         }
 
         var uiPoint = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
-        return _stageButton.worldBound.Contains(uiPoint) || _undoButton.worldBound.Contains(uiPoint);
+        return _stageButton.worldBound.Contains(uiPoint);
     }
 
     private void OnDestroy()
@@ -333,33 +324,10 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         ApplyGlassPanelStyle(_progressRail, new Color(0.04f, 0.07f, 0.15f, 0.32f), 0.36f, 18f);
         _safeRoot.Add(_progressRail);
 
-        _undoShadow = new VisualElement { pickingMode = PickingMode.Ignore };
-        _undoShadow.style.position = Position.Absolute;
-        _undoShadow.style.right = HudHorizontalPadding;
-        _undoShadow.style.top = HudTopPadding + 3f;
-        _undoShadow.style.width = UndoTicketWidth;
-        _undoShadow.style.height = UndoTicketHeight;
-        ApplyPanelStyle(_undoShadow, HudShadowColor, Color.clear, 18f);
-        _safeRoot.Add(_undoShadow);
-
-        _undoButton = new Button(() => _undo?.Invoke());
-        _undoButton.style.position = Position.Absolute;
-        _undoButton.style.right = HudHorizontalPadding;
-        _undoButton.style.top = HudTopPadding;
-        _undoButton.style.width = UndoTicketWidth;
-        _undoButton.style.height = UndoTicketHeight;
-        _undoButton.style.marginLeft = 0f;
-        _undoButton.style.marginRight = 0f;
-        _undoButton.style.marginTop = 0f;
-        _undoButton.style.marginBottom = 0f;
-        ApplyButtonColors(_undoButton, PrimaryButtonColor, Color.white);
-        ApplyDisplayText(_undoButton, 13, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
-        _safeRoot.Add(_undoButton);
-
         _buildLabel = new Label();
         _buildLabel.style.position = Position.Absolute;
         _buildLabel.style.right = HudHorizontalPadding + 10f;
-        _buildLabel.style.top = HudTopPadding + UndoTicketHeight + 5f;
+        _buildLabel.style.top = HudTopPadding + StageBadgeHeight + 5f;
         _buildLabel.style.width = 64f;
         _buildLabel.style.height = 20f;
         ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(1f, 1f, 1f, 0.34f), TextAnchor.MiddleRight);
@@ -496,9 +464,14 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         }
 
         int nodeCount = Mathf.Max(1, targetBoxes);
+        UpdateProgressNodeMetrics(nodeCount);
         if (_progressNodes.Count != nodeCount)
         {
             RebuildProgressRail(nodeCount);
+        }
+        else
+        {
+            ApplyProgressNodeMetrics();
         }
 
         for (int i = 0; i < _progressNodes.Count; i++)
@@ -545,12 +518,31 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         for (int i = 0; i < nodeCount; i++)
         {
             var node = new VisualElement { pickingMode = PickingMode.Ignore };
-            node.style.width = ProgressSlotSize;
-            node.style.height = ProgressSlotSize;
-            node.style.marginLeft = i == 0 ? 0f : ProgressSlotGap;
+            node.style.width = _currentProgressSlotSize;
+            node.style.height = _currentProgressSlotSize;
+            node.style.marginLeft = i == 0 ? 0f : _currentProgressSlotGap;
             node.style.flexShrink = 1f;
             _progressRail.Add(node);
             _progressNodes.Add(node);
+        }
+    }
+
+    private void UpdateProgressNodeMetrics(int nodeCount)
+    {
+        float contentWidth = Mathf.Max(1f, _currentProgressPanelWidth - 16f);
+        float denominator = nodeCount + (ProgressSlotGapRatio * Mathf.Max(0, nodeCount - 1));
+        _currentProgressSlotSize = Mathf.Min(ProgressSlotSize, contentWidth / denominator);
+        _currentProgressSlotGap = Mathf.Min(ProgressSlotGap, _currentProgressSlotSize * ProgressSlotGapRatio);
+    }
+
+    private void ApplyProgressNodeMetrics()
+    {
+        for (int i = 0; i < _progressNodes.Count; i++)
+        {
+            VisualElement node = _progressNodes[i];
+            node.style.width = _currentProgressSlotSize;
+            node.style.height = _currentProgressSlotSize;
+            node.style.marginLeft = i == 0 ? 0f : _currentProgressSlotGap;
         }
     }
 
@@ -607,8 +599,28 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _safeRoot.style.top = Screen.height - safeArea.yMax;
         _safeRoot.style.width = safeArea.width;
         _safeRoot.style.height = safeArea.height;
+        ApplyHudLayout(safeArea.width);
         ApplyOverlayBounds(_stageOverlay, safeArea.width, safeArea.height);
         ApplyOverlayBounds(_resultOverlay, safeArea.width, safeArea.height);
+    }
+
+    private void ApplyHudLayout(float safeWidth)
+    {
+        if (_stageButton == null)
+        {
+            return;
+        }
+
+        float narrowAmount = Mathf.Clamp01(Mathf.InverseLerp(420f, 320f, safeWidth));
+        float horizontalPadding = Mathf.Lerp(HudHorizontalPadding, HudMinHorizontalPadding, narrowAmount);
+        float availableProgressWidth = safeWidth - (horizontalPadding * 2f) - StageBadgeWidth - HudControlGap;
+        _currentProgressPanelWidth = Mathf.Clamp(availableProgressWidth, ProgressPanelMinWidth, ProgressPanelWidth);
+
+        _hudShadow.style.left = horizontalPadding;
+        _stageButton.style.left = horizontalPadding;
+        _progressShadow.style.width = _currentProgressPanelWidth;
+        _progressRail.style.width = _currentProgressPanelWidth;
+        _buildLabel.style.right = horizontalPadding + 10f;
     }
 
     private VisualElement CreateOverlay()

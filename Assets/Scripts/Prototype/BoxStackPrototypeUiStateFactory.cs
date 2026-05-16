@@ -27,8 +27,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             context.PlacedBoxes,
             context.TargetBoxes,
             context.State == BoxStackPrototypeState.StageSelect,
-            context.CanUseUndo,
-            context.UndoCount,
             resultVisible,
             resultVisible ? GetResultTitle(won, hasNextStage) : string.Empty,
             resultVisible ? GetResultBody(won, hasNextStage, currentStage.Number, context.StatusText) : string.Empty,
@@ -94,8 +92,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             int targetBoxes,
             BoxStackPrototypeState state,
             string statusText,
-            bool canUseUndo,
-            int undoCount,
             bool showProgressControls,
             BoxStackPrototypePalette palette)
         {
@@ -108,8 +104,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             TargetBoxes = targetBoxes;
             State = state;
             StatusText = statusText;
-            CanUseUndo = canUseUndo;
-            UndoCount = undoCount;
             ShowProgressControls = showProgressControls;
             Palette = palette;
         }
@@ -123,8 +117,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
         internal int TargetBoxes { get; }
         internal BoxStackPrototypeState State { get; }
         internal string StatusText { get; }
-        internal bool CanUseUndo { get; }
-        internal int UndoCount { get; }
         internal bool ShowProgressControls { get; }
         internal BoxStackPrototypePalette Palette { get; }
     }
