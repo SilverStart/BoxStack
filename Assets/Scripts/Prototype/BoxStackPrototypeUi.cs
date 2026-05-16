@@ -645,7 +645,10 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         float narrowAmount = Mathf.Clamp01(Mathf.InverseLerp(420f, 320f, safeWidth));
         float horizontalPadding = Mathf.Lerp(HudHorizontalPadding, HudMinHorizontalPadding, narrowAmount);
         float availableProgressWidth = safeWidth - (horizontalPadding * 2f) - StageBadgeWidth - HudControlGap;
-        _currentProgressPanelWidth = Mathf.Clamp(availableProgressWidth, ProgressPanelMinWidth, ProgressPanelWidth);
+        float stageSafeProgressWidth = safeWidth - ((horizontalPadding + StageBadgeWidth + HudControlGap) * 2f);
+        float maxProgressWidth = Mathf.Min(ProgressPanelWidth, Mathf.Max(1f, stageSafeProgressWidth));
+        float minProgressWidth = Mathf.Min(ProgressPanelMinWidth, maxProgressWidth);
+        _currentProgressPanelWidth = Mathf.Clamp(availableProgressWidth, minProgressWidth, maxProgressWidth);
 
         _hudShadow.style.left = horizontalPadding;
         _stageButton.style.left = horizontalPadding;
