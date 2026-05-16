@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: choose next small polish target
 Runtime Marker: B069
-Latest Commit: 73f7153 B069 스테이지 선택 닫기 버튼 색상 정리
-Dirty Worktree: active state and gitignore cleanup ready to commit
+Latest Commit: 1af1f36 상태 문서와 C# 캐시 ignore 정리
+Dirty Worktree: B070 color variation reverted and documented
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,12 +20,12 @@ Dirty Worktree: active state and gitignore cleanup ready to commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B069`이다.
-- 최신 커밋은 `73f7153 B069 스테이지 선택 닫기 버튼 색상 정리`이다.
+- 최신 커밋은 `1af1f36 상태 문서와 C# 캐시 ignore 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
-- 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 `boxVisual.WorldSize * 0.96f`로 유지한다.
+- 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
 - 상단 중앙 진행 인디케이터는 현재 스테이지 primary/accent 계열 색상을 사용한다.
-- B069에서는 스테이지 선택 닫기 버튼도 현재 스테이지 테마 색상에 맞추는 polish를 적용했고, Unity Editor Play Mode 확인이 완료됐다.
+- B070 박스 코드/순서별 색 변주 실험은 쌓을 때 색상이 자연스럽게 이어지지 않아 되돌렸고, `dotnet build BoxStack.slnx` 재검증을 통과했다.
 
 ## Active Decisions
 
@@ -38,12 +38,12 @@ Dirty Worktree: active state and gitignore cleanup ready to commit
 
 ## Next Action
 
-- 다음 작업은 블록 반복감 완화 또는 모바일 HUD 안전영역 점검 중 하나를 고른다.
-- 코드 변경 작업을 시작하기 전 작은 범위, 성공 기준, 검증 방법을 먼저 정한다.
+- 다음 작업은 모바일 HUD 안전영역 점검 또는 색 흐름을 끊지 않는 다른 반복감 완화 접근 중 하나를 고른다.
+- B070 미채택 기록을 커밋할지 결정한다.
 
 ## Open Questions
 
-- 다음 polish는 블록 반복감 완화와 모바일 HUD 안전영역 점검 중 무엇을 먼저 진행할까?
+- 블록 반복감 완화는 색 변주 대신 어떤 방식으로 다시 접근할까?
 - `Assets/Resources/Prototype/...` 중복 리소스 구조는 프로토타입 동안 유지할까, 다음 제품화 단계에서 정리할까?
 
 ## Risks
