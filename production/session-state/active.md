@@ -1,15 +1,15 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: remove undo feature
-Runtime Marker: B067
-Latest Commit: f39d8eb active 상태 문서 토큰 절약형으로 정리
-Dirty Worktree: B067 undo removal code/docs updates
+Task: stage select close button theme color
+Runtime Marker: B069
+Latest Commit: 8b621fd B067 되돌리기 기능 제거
+Dirty Worktree: B069 stage select close button theme color ready to commit
 <!-- /STATUS -->
 
 # Active Session State
 
-이 문서는 현재 작업 재개에 필요한 핫 상태만 유지한다. 긴 구현 히스토리와 과거 플레이테스트 기록은 `production/session-state/history.md` 또는 `production/progress-dashboard.md`에서 검색으로 확인한다.
+이 문서는 현재 작업 재개에 필요한 핵심 상태만 유지한다. 긴 구현 히스토리와 과거 플레이테스트 기록은 `production/session-state/history.md` 또는 `production/progress-dashboard.md`에서 검색으로 확인한다.
 
 ## Project Mode
 
@@ -19,14 +19,13 @@ Dirty Worktree: B067 undo removal code/docs updates
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B067`이다.
-- 최신 커밋은 `f39d8eb active 상태 문서 토큰 절약형으로 정리`이다.
-- 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD이다.
+- 현재 런타임 마커는 `B069`이다.
+- 최신 커밋은 `8b621fd B067 되돌리기 기능 제거`이다.
+- 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 `boxVisual.WorldSize * 0.96f`로 유지한다.
-- 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프는 사용하지 않는다.
+- 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
 - 상단 중앙 진행 인디케이터는 현재 스테이지 primary/accent 계열 색상을 사용한다.
-- 되돌리기 버튼과 되돌리기 스냅샷/복원 기능은 현재 난이도 방향에 맞지 않아 제거한다.
-- 결과 팝업 버튼은 `BackgroundTop`과 `Accent`를 섞은 어두운 스테이지 테마 색상을 사용한다.
+- B069에서는 스테이지 선택 닫기 버튼도 현재 스테이지 테마 색상에 맞추는 polish를 적용했고, Unity Editor Play Mode 확인이 완료됐다.
 
 ## Active Decisions
 
@@ -35,17 +34,16 @@ Dirty Worktree: B067 undo removal code/docs updates
 - 코드 변경 후 코드맵, 진행 대시보드, active 상태 문서 갱신 필요 여부를 확인한다.
 - WebGL 반복 빌드는 비효율적이므로 개발 중에는 Unity Editor Play Mode 확인을 우선한다.
 - Unity CLI Connector는 에디터 직접 조작/검사가 필요할 때만 사용하고, 단순 Play Mode 검증용으로는 사용하지 않는다.
-- 상태 확인/다음 작업 리스트업에서는 문서 전체 읽기를 피하고 `rg` 검색 결과와 짧은 주변 구간만 사용한다.
+- 상태 확인/다음 작업 리스트업에서는 문서 전체 읽기를 피하고 `rg` 검색 결과와 직전 주요 구간만 사용한다.
 
 ## Next Action
 
-- 사용자가 Unity Editor Play Mode에서 B067 되돌리기 제거 후 HUD와 난이도 흐름을 확인한다.
-- 확인 후 다음 작업은 스테이지 선택 UI polish 또는 블록 반복감 완화 중 하나를 고른다.
+- B069 변경을 커밋한다.
+- 다음 작업은 블록 반복감 완화 또는 모바일 HUD 안전영역 점검 중 하나를 고른다.
 
 ## Open Questions
 
-- 다음 시각 polish는 모바일 HUD 안전영역 점검, 스테이지 선택 UI polish, 블록 반복감 완화 중 무엇을 먼저 진행할까?
-- 현재 no-toast/no-shadow 방향을 유지할까, 아니면 배치 품질 점수 같은 실제 시스템이 생긴 뒤 피드백을 다시 검토할까?
+- 다음 polish는 블록 반복감 완화와 모바일 HUD 안전영역 점검 중 무엇을 먼저 진행할까?
 - `Assets/Resources/Prototype/...` 중복 리소스 구조는 프로토타입 동안 유지할까, 다음 제품화 단계에서 정리할까?
 
 ## Risks

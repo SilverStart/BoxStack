@@ -21,6 +21,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const float ProgressSlotGap = 3f;
     private const float ProgressSlotGapRatio = 0.28f;
     private const float StagePanelMaxWidth = 420f;
+    private const float StageTileHeight = 56f;
     private const float ResultPanelMaxWidth = 360f;
 
     private static readonly Color HudBackgroundColor = new Color(0.05f, 0.08f, 0.16f, 0.36f);
@@ -53,6 +54,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private VisualElement _stageGrid;
     private Button _resetProgressButton;
     private Button _unlockAllButton;
+    private Button _closeStageButton;
     private VisualElement _progressControls;
     private VisualElement _resultOverlay;
     private Label _resultTitle;
@@ -383,12 +385,12 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _unlockAllButton.style.marginLeft = 4f;
         _progressControls.Add(_unlockAllButton);
 
-        var closeButton = CreatePanelButton("닫기", () => _closeStageSelect?.Invoke(), 20);
-        closeButton.style.height = 46f;
-        closeButton.style.marginLeft = 48f;
-        closeButton.style.marginRight = 48f;
-        closeButton.style.marginTop = 20f;
-        _stagePanel.Add(closeButton);
+        _closeStageButton = CreatePanelButton("닫기", () => _closeStageSelect?.Invoke(), 20);
+        _closeStageButton.style.height = 46f;
+        _closeStageButton.style.marginLeft = 48f;
+        _closeStageButton.style.marginRight = 48f;
+        _closeStageButton.style.marginTop = 20f;
+        _stagePanel.Add(_closeStageButton);
     }
 
     private void BuildResultOverlay()
@@ -443,15 +445,17 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         {
             StageButtonState stage = stages[i];
             Button button = _stageButtons[i];
-            button.text = stage.Unlocked ? $"ST {stage.Number:00}\n{stage.TargetBoxes}개" : $"ST {stage.Number:00}\n잠금";
+            button.text = GetStageButtonLabel(stage);
             button.SetEnabled(stage.Unlocked);
             if (stage.Selected)
             {
-                ApplyButtonColors(button, palette.Accent, Color.white);
+                ApplyButtonColors(button, GetSelectedStageTileColor(palette), Color.white);
             }
             else
             {
-                ApplyButtonColors(button, stage.Unlocked ? palette.PanelBackground : DisabledButtonColor, stage.Unlocked ? TextColor : new Color(1f, 1f, 1f, 0.62f));
+                Color tileColor = stage.Unlocked ? GetUnlockedStageTileColor(palette) : DisabledButtonColor;
+                Color textColor = stage.Unlocked ? TextColor : new Color(1f, 1f, 1f, 0.54f);
+                ApplyButtonColors(button, tileColor, textColor);
             }
         }
     }
@@ -498,6 +502,21 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         if (_resultPanel != null)
         {
             ApplyGlassPanelStyle(_resultPanel, palette.PanelBackground, 0.88f, 18f);
+        }
+
+        if (_resetProgressButton != null)
+        {
+            ApplyButtonColors(_resetProgressButton, GetSecondaryPanelButtonColor(palette), SubTextColor);
+        }
+
+        if (_unlockAllButton != null)
+        {
+            ApplyButtonColors(_unlockAllButton, GetSelectedStageTileColor(palette), Color.white);
+        }
+
+        if (_closeStageButton != null)
+        {
+            ApplyButtonColors(_closeStageButton, GetStageCloseButtonColor(palette), Color.white);
         }
     }
 
@@ -558,8 +577,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         {
             var rowElement = new VisualElement { pickingMode = PickingMode.Position };
             rowElement.style.flexDirection = FlexDirection.Row;
-            rowElement.style.height = 46f;
-            rowElement.style.marginBottom = row == rows - 1 ? 0f : 8f;
+            rowElement.style.height = StageTileHeight;
+            rowElement.style.marginBottom = row == rows - 1 ? 0f : 10f;
             _stageGrid.Add(rowElement);
 
             for (int column = 0; column < columns; column++)
@@ -577,14 +596,26 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
                 int selectedIndex = index;
                 Button button = CreatePanelButton(string.Empty, () => _selectStage?.Invoke(selectedIndex), 14);
+                button.style.height = StageTileHeight;
                 button.style.flexGrow = 1f;
                 button.style.marginLeft = 4f;
                 button.style.marginRight = 4f;
                 button.style.whiteSpace = WhiteSpace.Normal;
+                ApplyDisplayText(button, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
                 rowElement.Add(button);
                 _stageButtons.Add(button);
             }
         }
+    }
+
+    private static string GetStageButtonLabel(StageButtonState stage)
+    {
+        if (!stage.Unlocked)
+        {
+            return $"{stage.Number:00}\n잠김";
+        }
+
+        return stage.Selected ? $"{stage.Number:00}\n현재" : $"{stage.Number:00}\n{stage.TargetBoxes}개";
     }
 
     private void ApplySafeArea()
@@ -682,6 +713,34 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         float alpha = background.a > 0f ? Mathf.Clamp(background.a, 0.48f, 0.82f) : 0.52f;
         ApplyGlassPanelStyle(button, background, alpha, 18f);
         button.style.color = text;
+    }
+
+    private static Color GetSelectedStageTileColor(BoxStackPrototypePalette palette)
+    {
+        Color color = Color.Lerp(palette.BackgroundTop, palette.Accent, 0.34f);
+        color.a = 0.90f;
+        return color;
+    }
+
+    private static Color GetUnlockedStageTileColor(BoxStackPrototypePalette palette)
+    {
+        Color color = Color.Lerp(palette.PanelBackground, Color.white, 0.06f);
+        color.a = 0.58f;
+        return color;
+    }
+
+    private static Color GetSecondaryPanelButtonColor(BoxStackPrototypePalette palette)
+    {
+        Color color = Color.Lerp(palette.PanelBackground, palette.BackgroundTop, 0.42f);
+        color.a = 0.62f;
+        return color;
+    }
+
+    private static Color GetStageCloseButtonColor(BoxStackPrototypePalette palette)
+    {
+        Color color = Color.Lerp(palette.BackgroundTop, palette.Accent, 0.24f);
+        color.a = 0.78f;
+        return color;
     }
 
     private static Color GetResultButtonColor(BoxStackPrototypePalette palette)
