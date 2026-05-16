@@ -88,6 +88,40 @@ This keeps the context window holding only the *current* section's discussion
 - Medium (implement feature): ~8k tokens
 - Heavy (multi-system refactor): ~15k tokens
 
+## Low-Token Status and Next-Task Checks
+
+진행상황 확인, 다음 작업 리스트업, 커밋 직후 상태 확인처럼 상태 요약만 필요한 요청은
+대화 컨텍스트를 크게 쓰지 않는 경로를 기본으로 한다.
+
+1. 먼저 `git status --short --branch`로 워크트리와 브랜치 상태만 확인한다.
+2. `production/session-state/active.md`와 `production/progress-dashboard.md`는
+   전체 읽기를 하지 않는다. 먼저 `rg -n`으로 `STATUS`, `Next Action`,
+   `Next Immediate Action`, `Open Questions`, `Risks`의 라인 위치만 찾는다.
+3. 검색 결과만으로 답할 수 있으면 문서 본문을 추가로 읽지 않는다.
+4. 본문 확인이 꼭 필요하면 관련 섹션 주변 10-20줄만 읽는다. 20줄을 넘겨야 할 때는
+   그 이유를 먼저 스스로 확인하고, 진행 히스토리나 전체 결정사항 블록을 열지 않는다.
+5. `Prototype / Playtest History`, `Current Decisions`, `Risks` 전체 블록은 사용자가
+   명시적으로 요구하거나 실제 변경 판단에 필수일 때만 읽는다.
+6. 다음 작업 리스트는 기본적으로 3-5개만 제시하고, 오래된 히스토리 재요약은 생략한다.
+
+이 규칙은 `context-diet` 스킬을 언급했는지와 무관하게 BoxStack의 상태 확인/다음 작업
+요청에 항상 적용한다.
+
+## Token-Efficient `active.md` Format
+
+`production/session-state/active.md`는 현재 작업 재개에 필요한 핫 상태만 담는다.
+긴 구현 히스토리, 과거 playtest 기록, 오래된 B-number 변경 내역은
+`production/session-state/history.md` 또는 `production/progress-dashboard.md`로 분리한다.
+
+- 권장 전체 크기: 6,000자 이하.
+- 권장 줄 길이: 220자 이하. 500자를 넘는 줄은 원칙적으로 만들지 않는다.
+- `## Current Prototype`처럼 계속 누적되는 장문 섹션을 만들지 않는다.
+- 상태 확인과 다음 작업 리스트업에 필요한 정보는 `STATUS`, `Current Snapshot`,
+  `Active Decisions`, `Next Action`, `Open Questions`, `Risks`, `References`에 짧게 나눈다.
+- 오래된 상세 맥락이 필요하면 `rg -n`으로 history/dashboard에서 관련 키워드만 찾고,
+  필요한 주변 구간만 읽는다.
+- 문서 정리 후에는 문자 수와 긴 줄 수를 계측해서 포맷이 유지되는지 확인한다.
+
 ## Subagent Delegation
 
 Use subagents for research and exploration to keep the main session clean.

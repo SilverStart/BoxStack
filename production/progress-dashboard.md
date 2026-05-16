@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-15
+Last updated: 2026-05-16
 
 ## Next Immediate Action
 
-B065 result popup button darker theme color is implemented and needs user-led Editor Play visual confirmation. Check that the stage-clear popup no longer shows the upper `CLEAR` stamp, keeps the Korean `클리어!` title readable, and shows the next-stage button in a darker stage-themed color closer to the background top tone. Do not use Unity CLI Connector for validation; user will verify in Editor Play Mode.
+The B065 result popup UI pass was confirmed and committed as `99f67b3 B065 결과 팝업 UI 정리`. The current operational task is to finish the token-efficient `active.md` rewrite: keep hot state in `production/session-state/active.md`, move long history to `production/session-state/history.md`, and verify status/next-task checks no longer require large document reads.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 

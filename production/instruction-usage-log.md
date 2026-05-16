@@ -28,6 +28,42 @@ how it affected the task, and whether it looks worth keeping for future projects
 
 ## Entries
 
+### 2026-05-16 - active.md token-efficient format applied
+
+**Task**: Reduce context spikes caused by long lines and accumulated history in
+`production/session-state/active.md`.
+
+| File or Skill | Status | Effect on Work | Future Harness Note |
+| --- | --- | --- | --- |
+| `production/session-state/active.md` | Applied | Replaced the long accumulated history section with a short hot-state snapshot for state recovery and next-task checks. | Keep |
+| `production/session-state/history.md` | Created | Moved the previous long `Current Prototype` notes into a searchable archive that should not be read during routine status checks. | Keep |
+| `.codex/docs/context-management.md` | Applied | Added explicit `active.md` size, line-length, and history-separation rules so context-diet workflows can work reliably. | Keep |
+
+**Notes**:
+
+- The failure mode was line-count based partial reads: 100 lines could still
+  output tens of thousands of characters because many bullets were extremely long.
+- Future active session files should stay under roughly 6,000 characters and
+  avoid lines over 500 characters.
+
+### 2026-05-16 - Low-token status check rule tightened
+
+**Task**: Prevent repeated context spikes during "progress check" and
+"next-task list" requests.
+
+| File or Skill | Status | Effect on Work | Future Harness Note |
+| --- | --- | --- | --- |
+| `.codex/skills/context-diet/SKILL.md` | Applied | Confirmed the intended targeted-read workflow, but exposed that the previous response still read too much dashboard content. | Keep |
+| `.codex/docs/context-management.md` | Applied | Added a mandatory low-token status/next-task check rule: use `rg` first, avoid full dashboard reads, cap section reads to 10-20 lines, and keep task lists short. | Keep |
+| `production/instruction-usage-log.md` | Applied | Recorded the mistake and the durable rule change so future agents can carry the lesson across projects. | Keep |
+
+**Notes**:
+
+- The failure mode was not missing guidance; it was reading broad dashboard
+  sections after already finding the target lines.
+- For this project, status and next-task requests should avoid opening full
+  playtest history, current-decision, or risk blocks unless explicitly needed.
+
 ### 2026-05-13 - Bootstrap instruction usage tracking
 
 **Task**: Create a lightweight way to track which imported harness instructions
