@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: mobile HUD safe-area polish
+Task: block repetition experiment rejected
 Runtime Marker: B071
-Latest Commit: f6b7833 active 상태 문서 최신 커밋 반영
-Dirty Worktree: B071 mobile HUD safe-area overlap prevention, build passed
+Latest Commit: e1cf389 B071 모바일 HUD 안전영역 겹침 방지
+Dirty Worktree: B072 non-color block depth variation rejected, runtime back to B071
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,13 +20,14 @@ Dirty Worktree: B071 mobile HUD safe-area overlap prevention, build passed
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B071`이다.
-- 최신 커밋은 `f6b7833 active 상태 문서 최신 커밋 반영`이다.
+- 최신 커밋은 `e1cf389 B071 모바일 HUD 안전영역 겹침 방지`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
 - 상단 중앙 진행 인디케이터는 현재 스테이지 primary/accent 계열 색상을 사용한다.
 - B070 박스 코드/순서별 색 변주 실험은 쌓을 때 색상이 자연스럽게 이어지지 않아 되돌렸고, `dotnet build BoxStack.slnx` 재검증을 통과했다.
 - B071은 좁은 모바일 safe-area에서 상단 스테이지 배지와 중앙 진행 패널이 겹치지 않도록 진행 패널 최대 폭을 safe-area 기준으로 제한했고, `dotnet build BoxStack.slnx` 검증을 통과했다.
+- B072 비색상 명암/질감 변주 실험은 색상 진행을 바꾸지는 않았지만 실제 체감이 어색해 미채택으로 결정했고, 코드는 B071 상태로 되돌렸다.
 
 ## Active Decisions
 
@@ -39,11 +40,11 @@ Dirty Worktree: B071 mobile HUD safe-area overlap prevention, build passed
 
 ## Next Action
 
-- B071 모바일 HUD safe-area 수정은 사용자 주도 Unity Editor Play Mode 확인이 필요하다.
+- B072 비색상 명암/질감 변주 미채택 기록을 커밋할지 결정한다.
 
 ## Open Questions
 
-- 블록 반복감 완화는 색 변주 대신 어떤 방식으로 다시 접근할까?
+- 블록 반복감 완화는 당분간 더 건드리지 않을까, 아니면 다른 방향으로 다시 접근할까?
 - `Assets/Resources/Prototype/...` 중복 리소스 구조는 프로토타입 동안 유지할까, 다음 제품화 단계에서 정리할까?
 
 ## Risks
