@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: block repetition experiment rejected
+Task: prototype Resources duplicate policy
 Runtime Marker: B071
-Latest Commit: e1cf389 B071 모바일 HUD 안전영역 겹침 방지
-Dirty Worktree: B072 non-color block depth variation rejected, runtime back to B071
+Latest Commit: 1161f89 B072 비색상 블록 변주 미채택 기록
+Dirty Worktree: prototype Resources duplicate policy documented, docs only
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B072 non-color block depth variation rejected, runtime back to B
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B071`이다.
-- 최신 커밋은 `e1cf389 B071 모바일 HUD 안전영역 겹침 방지`이다.
+- 최신 커밋은 `1161f89 B072 비색상 블록 변주 미채택 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -28,6 +28,7 @@ Dirty Worktree: B072 non-color block depth variation rejected, runtime back to B
 - B070 박스 코드/순서별 색 변주 실험은 쌓을 때 색상이 자연스럽게 이어지지 않아 되돌렸고, `dotnet build BoxStack.slnx` 재검증을 통과했다.
 - B071은 좁은 모바일 safe-area에서 상단 스테이지 배지와 중앙 진행 패널이 겹치지 않도록 진행 패널 최대 폭을 safe-area 기준으로 제한했고, `dotnet build BoxStack.slnx` 검증을 통과했다.
 - B072 비색상 명암/질감 변주 실험은 색상 진행을 바꾸지는 않았지만 실제 체감이 어색해 미채택으로 결정했고, 코드는 B071 상태로 되돌렸다.
+- `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 해시와 용량이 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지하고, 제품화 단계에서 Addressables 또는 직렬화된 참조로 교체한다.
 
 ## Active Decisions
 
@@ -40,12 +41,12 @@ Dirty Worktree: B072 non-color block depth variation rejected, runtime back to B
 
 ## Next Action
 
-- B072 비색상 명암/질감 변주 미채택 기록을 커밋할지 결정한다.
+- `Resources` 중복 리소스 유지 정책 문서화 변경을 커밋할지 결정한다.
 
 ## Open Questions
 
 - 블록 반복감 완화는 당분간 더 건드리지 않을까, 아니면 다른 방향으로 다시 접근할까?
-- `Assets/Resources/Prototype/...` 중복 리소스 구조는 프로토타입 동안 유지할까, 다음 제품화 단계에서 정리할까?
+- `Resources` 의존을 제품화 단계에서 Addressables로 옮길지, 씬/프리팹 직렬 참조로 단순화할지 결정해야 한다.
 
 ## Risks
 

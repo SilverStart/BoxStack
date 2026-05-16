@@ -4,7 +4,7 @@ Last updated: 2026-05-16
 
 ## Next Immediate Action
 
-B072 non-color block repetition polish was rejected after user review as visually awkward. Runtime code is back to B071; next immediate action is to decide whether to commit the rejection/docs checkpoint or move to a different remaining task.
+Prototype `Resources` duplicate asset policy is documented: keep the duplicated parcel/background PNGs under `Assets/Resources/Prototype/...` through the prototype for WebGL inclusion stability, then replace that path with Addressables or serialized asset references during productization. Next immediate action is to decide whether to commit this docs-only policy checkpoint.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -151,6 +151,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-16: B070 block repetition color-variation experiment was tested after `dotnet build BoxStack.slnx` passed with 0 warnings/errors, but user review found the stacked colors no longer flowed naturally. The experiment was reverted before commit; runtime marker returns to `B069`.
 - 2026-05-16: B071 mobile HUD safe-area overlap prevention narrows the top-center progress panel against the stage badge when the safe-area width is around narrow phone sizes. Runtime marker is `B071`; gameplay, physics, stage palettes, block visuals, stage select, and result popup behavior are unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; user-led Editor Play confirmation is pending.
 - 2026-05-16: B072 non-color block repetition polish tested subtle generated luminance depth without hue variation, but user review found it visually awkward. The experiment was reverted before commit; runtime marker returns to `B071`.
+- 2026-05-16: Prototype `Resources` duplicate asset policy documented. The parcel/background PNGs in `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` currently match by file size and hash; the duplicate `Resources` copies remain acceptable during the prototype because they guarantee WebGL build inclusion. Productization should replace this with Addressables or serialized asset references instead of deleting the resources during active prototyping.
 
 ## Current Decisions
 
@@ -188,7 +189,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
-- WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype uses duplicate PNGs under `Assets/Resources/Prototype/...` for speed.
+- WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This is acceptable through prototype work, but should be replaced during productization with Addressables or serialized asset references.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
 - Use a tiny in-game build marker (`B071`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
 - The current runtime build marker is `B071`; documentation-only or design-asset-only commits do not require a marker increment.
@@ -201,7 +202,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - What bottom padding feels best on the target portrait app-in-app viewport?
 - Does the safe-area-aware UI Toolkit layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
-- Is the duplicate `Assets/Resources/Prototype/...` copy acceptable through the prototype phase, or should it be replaced later with serialized/build-included asset references?
+- During productization, should `Resources` loading be replaced with Addressables or simpler scene/prefab serialized asset references?
 - At the next milestone WebGL checkpoint, does the phone browser load the latest AIT/WebGL build reliably through the PC LAN IP?
 - At the next milestone WebGL checkpoint, does the WebGL build render Korean text correctly across HUD, stage select, and result popup states?
 - Does the top-center box progress panel stay readable on the target phone viewport across 4-12 box stages?
@@ -229,7 +230,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - B017 removed the old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype.cs`; B067 later removed the remaining HUD undo path and `UndosPerStage` tuning field entirely.
 - The previous runtime-created UI Toolkit `PanelSettings` theme warning is fixed by loading the checked-in `BoxStackPanelSettings` asset. One unrelated Visual Studio UDP warning still appears in this local Editor setup.
-- The prototype now includes multiple full Korean fonts in `Resources`, which improves visual direction but increases build weight until UI/font handling is replaced or subsetted.
+- The prototype now includes multiple full Korean fonts and duplicate parcel/background PNGs in `Resources`, which improves WebGL parity and visual direction but increases build weight until UI/font and asset-loading paths are replaced or subsetted.
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
 - WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.

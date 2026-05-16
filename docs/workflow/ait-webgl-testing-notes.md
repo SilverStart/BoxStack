@@ -105,6 +105,13 @@ Assets/Art/Prototype/Parcel/
 Assets/Art/Prototype/Backgrounds/
 ```
 
+Prototype policy:
+
+- Keep the duplicate parcel/background PNGs in both `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` during the prototype phase.
+- The `Resources` copies are the WebGL build-included runtime path; deleting them can reintroduce sprite parity failures even though Editor Play has an `AssetDatabase` fallback.
+- The `Assets/Art/Prototype/...` copies remain the source-art/reference location.
+- Replace this duplicate setup during productization with Addressables or serialized scene/prefab references, not during active prototype iteration.
+
 Verification:
 
 - 2026-05-07: After rebuilding AIT/WebGL, PC browser testing confirmed that parcel and conveyor/floor images appear correctly.

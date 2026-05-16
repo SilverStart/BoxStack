@@ -277,7 +277,7 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - 아직 최종 제품 아키텍처가 아니라 프로토타입 코드입니다.
 - `BoxStackPrototype.cs`가 여전히 여러 게임플레이 책임을 함께 가지고 있습니다.
 - 현재 UI는 UXML이 아니라 C# 코드로 생성합니다.
-- 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다.
+- 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다. parcel/background PNG는 현재 `Assets/Art/Prototype/...` 원본과 `Assets/Resources/Prototype/...` 런타임 복사본을 함께 유지하고, 제품화 단계에서 Addressables 또는 직렬화된 참조로 교체합니다.
 - 스테이지 진행은 `PlayerPrefs`를 사용합니다.
 - WebGL/mobile 검증은 milestone spot check로 남기고, AI 에이전트의 일반 C# 검증은 `dotnet build BoxStack.slnx`를 우선 사용합니다. 실제 플레이 감각과 UI 체감 검증은 사용자가 Unity Editor Play Mode에서 직접 확인합니다.
 - 런타임 UI는 던파 비트비트체 v2를 HUD/버튼/제목 표시 폰트로, Gmarket Sans Bold를 보조 설명 텍스트로, Noto Sans KR을 fallback으로 사용합니다. UI Toolkit 렌더링 반영을 위해 `unityFont`와 `unityFontDefinition`을 함께 지정합니다.
