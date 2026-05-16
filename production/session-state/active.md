@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B071 mobile HUD/no-undo accepted record
+Task: B071 phone WebGL milestone checkpoint prep
 Runtime Marker: B071
-Latest Commit: 3103e4c 프로토타입 리소스 중복 유지 정책 기록
-Dirty Worktree: B071 manual playtest accepted, docs only
+Latest Commit: f92af7c B071 수동 점검 수용 기록
+Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B071 manual playtest accepted, docs only
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B071`이다.
-- 최신 커밋은 `3103e4c 프로토타입 리소스 중복 유지 정책 기록`이다.
+- 최신 커밋은 `f92af7c B071 수동 점검 수용 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -30,6 +30,7 @@ Dirty Worktree: B071 manual playtest accepted, docs only
 - 사용자 주도 Unity Editor Play Mode 수동 점검에서 B071 HUD safe-area 처리, 4-12박스 진행 슬롯 가독성, no-undo 후반 난이도는 현재 기준 괜찮은 것으로 수용했다.
 - B072 비색상 명암/질감 변주 실험은 색상 진행을 바꾸지는 않았지만 실제 체감이 어색해 미채택으로 결정했고, 코드는 B071 상태로 되돌렸다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 해시와 용량이 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지하고, 제품화 단계에서 Addressables 또는 직렬화된 참조로 교체한다.
+- 다음 milestone device 리스크는 phone WebGL에서 B071 safe-area, touch 입력, 한국어 폰트, cache/build marker, WebGL 성능을 확인하는 것이다.
 
 ## Active Decisions
 
@@ -42,8 +43,8 @@ Dirty Worktree: B071 manual playtest accepted, docs only
 
 ## Next Action
 
-- B071 수동 점검 수용 기록과 상태 문서 변경을 커밋할지 결정한다.
-- 다음 구현 후보를 고를 때는 블록 반복감 완화 재시도보다, 현재 수용된 B071 기준을 유지한 채 다음 프로토타입 리스크를 우선순위화한다.
+- `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md` 기준으로 phone WebGL milestone 스팟 체크를 진행한다.
+- 결과가 수용되면 phone WebGL 리스크를 낮추고, 이후 `Resources` 제품화 대체 경로 또는 다음 gameplay/visual 리스크를 결정한다.
 
 ## Open Questions
 

@@ -4,7 +4,7 @@ Last updated: 2026-05-16
 
 ## Next Immediate Action
 
-B071 remains the current runtime marker after user-led Editor Play confirmation accepted the mobile HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative later-stage no-undo feel. Next immediate action is to decide whether to commit this docs-only acceptance checkpoint, then choose the next prototype risk to address.
+B071 remains the current runtime marker after user-led Editor Play confirmation accepted the mobile HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative later-stage no-undo feel. Next immediate action is the B071 phone WebGL milestone spot check at `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md`, covering real portrait safe area, touch input, Korean fonts, WebGL performance, and cache/build-marker behavior.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -155,6 +155,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-16: Active session state was refreshed after commit `3103e4c`, keeping runtime marker `B071` and moving the next action back to user-led mobile HUD safe-area confirmation plus later-stage no-undo checks.
 - 2026-05-16: B071 manual checklist added at `production/qa/playtests/playtest-2026-05-16-b071-mobile-hud-safe-area-no-undo-representative-stages.md` for user-led Editor Play checks on mobile HUD safe-area overlap, 4-12 box progress-slot readability, and representative no-undo stage feel.
 - 2026-05-16: User-led Editor Play check accepted B071 as good enough: top HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative no-undo stage feel do not need immediate tuning.
+- 2026-05-16: B071 phone WebGL milestone spot-check checklist added at `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md`, and `docs/workflow/ait-webgl-testing-notes.md` was refreshed from stale B028/undo wording to the current B071/no-undo runtime state.
 
 ## Current Decisions
 
