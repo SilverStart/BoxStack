@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: choose next small polish target
 Runtime Marker: B069
-Latest Commit: 1af1f36 상태 문서와 C# 캐시 ignore 정리
-Dirty Worktree: B070 color variation reverted and documented
+Latest Commit: 9396a91 B070 색상 변주 실험 미채택 기록
+Dirty Worktree: clean
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B070 color variation reverted and documented
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B069`이다.
-- 최신 커밋은 `1af1f36 상태 문서와 C# 캐시 ignore 정리`이다.
+- 최신 커밋은 `9396a91 B070 색상 변주 실험 미채택 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -39,7 +39,6 @@ Dirty Worktree: B070 color variation reverted and documented
 ## Next Action
 
 - 다음 작업은 모바일 HUD 안전영역 점검 또는 색 흐름을 끊지 않는 다른 반복감 완화 접근 중 하나를 고른다.
-- B070 미채택 기록을 커밋할지 결정한다.
 
 ## Open Questions
 
