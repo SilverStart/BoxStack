@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: stage select close button theme color
+Task: choose next small polish target
 Runtime Marker: B069
-Latest Commit: 8b621fd B067 되돌리기 기능 제거
-Dirty Worktree: B069 stage select close button theme color ready to commit
+Latest Commit: 73f7153 B069 스테이지 선택 닫기 버튼 색상 정리
+Dirty Worktree: active state and gitignore cleanup ready to commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B069 stage select close button theme color ready to commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B069`이다.
-- 최신 커밋은 `8b621fd B067 되돌리기 기능 제거`이다.
+- 최신 커밋은 `73f7153 B069 스테이지 선택 닫기 버튼 색상 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 `boxVisual.WorldSize * 0.96f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -38,8 +38,8 @@ Dirty Worktree: B069 stage select close button theme color ready to commit
 
 ## Next Action
 
-- B069 변경을 커밋한다.
 - 다음 작업은 블록 반복감 완화 또는 모바일 HUD 안전영역 점검 중 하나를 고른다.
+- 코드 변경 작업을 시작하기 전 작은 범위, 성공 기준, 검증 방법을 먼저 정한다.
 
 ## Open Questions
 
