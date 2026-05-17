@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B071 phone WebGL milestone checkpoint prep
-Runtime Marker: B071
-Latest Commit: f92af7c B071 수동 점검 수용 기록
-Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
+Task: B073 phone WebGL safe-area panel scale fix
+Runtime Marker: B073
+Latest Commit: 6d330fa B071 phone WebGL 점검 문서 정리
+Dirty Worktree: B073 phone WebGL safe-area fix, code and docs
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B071`이다.
-- 최신 커밋은 `f92af7c B071 수동 점검 수용 기록`이다.
+- 현재 런타임 마커는 `B073`이다.
+- 최신 커밋은 `6d330fa B071 phone WebGL 점검 문서 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -30,7 +30,9 @@ Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
 - 사용자 주도 Unity Editor Play Mode 수동 점검에서 B071 HUD safe-area 처리, 4-12박스 진행 슬롯 가독성, no-undo 후반 난이도는 현재 기준 괜찮은 것으로 수용했다.
 - B072 비색상 명암/질감 변주 실험은 색상 진행을 바꾸지는 않았지만 실제 체감이 어색해 미채택으로 결정했고, 코드는 B071 상태로 되돌렸다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 해시와 용량이 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지하고, 제품화 단계에서 Addressables 또는 직렬화된 참조로 교체한다.
-- 다음 milestone device 리스크는 phone WebGL에서 B071 safe-area, touch 입력, 한국어 폰트, cache/build marker, WebGL 성능을 확인하는 것이다.
+- 사용자 주도 phone WebGL 확인에서 B071은 상단 중앙 박스 인디케이터, 클리어 결과 팝업, 스테이지 선택 팝업이 화면 밖으로 잘리는 문제가 재현되었다.
+- B073은 UI Toolkit `PanelSettings` 스케일링 환경에서 `Screen.safeArea` 픽셀 좌표를 패널 좌표로 변환해 `_safeRoot`, overlay, HUD, touch hit-test에 적용한다.
+- B073 수정 후 `dotnet build BoxStack.slnx` 검증은 경고/오류 없이 통과했다.
 
 ## Active Decisions
 
@@ -43,8 +45,7 @@ Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
 
 ## Next Action
 
-- `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md` 기준으로 phone WebGL milestone 스팟 체크를 진행한다.
-- 결과가 수용되면 phone WebGL 리스크를 낮추고, 이후 `Resources` 제품화 대체 경로 또는 다음 gameplay/visual 리스크를 결정한다.
+- `production/qa/playtests/playtest-2026-05-17-b073-phone-webgl-safe-area-panel-scale-regression.md` 기준으로 B073 phone WebGL safe-area 회귀 점검을 진행한다.
 
 ## Open Questions
 
@@ -54,7 +55,7 @@ Dirty Worktree: B071 phone WebGL checkpoint docs, docs only
 ## Risks
 
 - `active.md`가 다시 긴 히스토리 누적 문서가 되면 상태 확인 요청마다 토큰을 크게 소모한다.
-- 모바일 실기기 safe-area와 WebGL 캐시 문제는 Editor Game view만으로는 완전히 확인되지 않는다.
+- B073 safe-area 좌표 변환은 실제 phone WebGL에서 재확인되기 전까지 수용으로 보지 않는다.
 - 후반 12박스 스테이지는 물리 흔들림이 커지면 타이밍 실력보다 운으로 느껴질 수 있다.
 
 ## References

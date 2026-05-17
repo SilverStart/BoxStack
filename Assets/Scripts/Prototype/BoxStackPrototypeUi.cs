@@ -200,7 +200,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             return true;
         }
 
-        var uiPoint = new Vector2(screenPosition.x, Screen.height - screenPosition.y);
+        Vector2 uiPoint = ScreenPointToPanelPoint(screenPosition);
         return _stageButton.worldBound.Contains(uiPoint);
     }
 
@@ -620,19 +620,68 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private void ApplySafeArea()
     {
+        Rect safeArea = GetPanelSafeArea();
+        _safeRoot.style.left = safeArea.x;
+        _safeRoot.style.top = safeArea.y;
+        _safeRoot.style.width = safeArea.width;
+        _safeRoot.style.height = safeArea.height;
+        ApplyHudLayout(safeArea.width);
+        ApplyOverlayBounds(_stageOverlay, safeArea.width, safeArea.height);
+        ApplyOverlayBounds(_resultOverlay, safeArea.width, safeArea.height);
+    }
+
+    private Rect GetPanelSafeArea()
+    {
         Rect safeArea = Screen.safeArea;
         if (safeArea.width <= 0f || safeArea.height <= 0f)
         {
             safeArea = new Rect(0f, 0f, Screen.width, Screen.height);
         }
 
-        _safeRoot.style.left = safeArea.x;
-        _safeRoot.style.top = Screen.height - safeArea.yMax;
-        _safeRoot.style.width = safeArea.width;
-        _safeRoot.style.height = safeArea.height;
-        ApplyHudLayout(safeArea.width);
-        ApplyOverlayBounds(_stageOverlay, safeArea.width, safeArea.height);
-        ApplyOverlayBounds(_resultOverlay, safeArea.width, safeArea.height);
+        Vector2 scale = GetScreenToPanelScale();
+        return new Rect(
+            safeArea.x * scale.x,
+            (Screen.height - safeArea.yMax) * scale.y,
+            safeArea.width * scale.x,
+            safeArea.height * scale.y);
+    }
+
+    private Vector2 ScreenPointToPanelPoint(Vector2 screenPosition)
+    {
+        Vector2 scale = GetScreenToPanelScale();
+        return new Vector2(
+            screenPosition.x * scale.x,
+            (Screen.height - screenPosition.y) * scale.y);
+    }
+
+    private Vector2 GetScreenToPanelScale()
+    {
+        Vector2 panelSize = GetPanelSize();
+        float screenWidth = Mathf.Max(1f, Screen.width);
+        float screenHeight = Mathf.Max(1f, Screen.height);
+        return new Vector2(panelSize.x / screenWidth, panelSize.y / screenHeight);
+    }
+
+    private Vector2 GetPanelSize()
+    {
+        if (_root == null)
+        {
+            return new Vector2(Mathf.Max(1f, Screen.width), Mathf.Max(1f, Screen.height));
+        }
+
+        float width = GetUsablePanelLength(_root.resolvedStyle.width, Screen.width);
+        float height = GetUsablePanelLength(_root.resolvedStyle.height, Screen.height);
+        return new Vector2(width, height);
+    }
+
+    private static float GetUsablePanelLength(float resolvedLength, int fallbackLength)
+    {
+        if (float.IsNaN(resolvedLength) || float.IsInfinity(resolvedLength) || resolvedLength <= 1f)
+        {
+            return Mathf.Max(1f, fallbackLength);
+        }
+
+        return resolvedLength;
     }
 
     private void ApplyHudLayout(float safeWidth)

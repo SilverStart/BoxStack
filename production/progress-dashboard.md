@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-16
+Last updated: 2026-05-17
 
 ## Next Immediate Action
 
-B071 remains the current runtime marker after user-led Editor Play confirmation accepted the mobile HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative later-stage no-undo feel. Next immediate action is the B071 phone WebGL milestone spot check at `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md`, covering real portrait safe area, touch input, Korean fonts, WebGL performance, and cache/build-marker behavior.
+B073 is now the current runtime marker after B071 phone WebGL testing found that the top-center box indicator, clear result popup, and stage select popup can be clipped outside the visible phone screen. The next immediate action is the B073 phone WebGL safe-area regression check at `production/qa/playtests/playtest-2026-05-17-b073-phone-webgl-safe-area-panel-scale-regression.md`.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -156,6 +156,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-16: B071 manual checklist added at `production/qa/playtests/playtest-2026-05-16-b071-mobile-hud-safe-area-no-undo-representative-stages.md` for user-led Editor Play checks on mobile HUD safe-area overlap, 4-12 box progress-slot readability, and representative no-undo stage feel.
 - 2026-05-16: User-led Editor Play check accepted B071 as good enough: top HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative no-undo stage feel do not need immediate tuning.
 - 2026-05-16: B071 phone WebGL milestone spot-check checklist added at `production/qa/playtests/playtest-2026-05-16-b071-phone-webgl-milestone-spot-check.md`, and `docs/workflow/ait-webgl-testing-notes.md` was refreshed from stale B028/undo wording to the current B071/no-undo runtime state.
+- 2026-05-17: Active session state was refreshed after commit `6d330fa`, keeping runtime marker `B071`, aligning the latest-commit pointer, and leaving the next action as the B071 phone WebGL milestone spot check.
+- 2026-05-17: User-led phone WebGL check reversed the earlier B071 acceptance: the top-center box indicator, clear result popup, and stage select popup are clipped outside the visible phone screen. B073 changes safe-area handling to convert `Screen.safeArea` pixel coordinates into UI Toolkit panel coordinates before applying `_safeRoot`, overlay bounds, HUD layout, and touch hit-tests. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 
 ## Current Decisions
 
@@ -173,7 +175,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Background direction is now a clean Stack-like color field with a calm central play lane, not a logistics center or detailed scene.
 - Current background test uses a stage-palette code-generated vertical gradient because the logistics center image was distracting during play.
 - Camera bottom clamp is tied to the prototype floor constants instead of a fixed `CameraBaseY` number.
-- Current implemented UI is B071 Stack-like 2D visual pass: compact stage badge, responsive top-center box progress panel with filled/outline slots, theme-aware stage-select tiles/buttons, and minimal result card use the accepted B048 semi-transparent borderless faux-glass treatment. The undo button and all undo runtime behavior are removed. The top-center progress indicator uses the current stage primary/accent color for filled slots and remaining-slot outlines, narrows its panel/slot sizing on small safe-area widths, and caps the centered panel width so it does not overlap the stage badge on narrow safe-area layouts. The stage-select panel now uses taller tiles with selected/unlocked/locked color states, current-stage labeling, and a stage-themed close button. The result popup no longer shows the redundant upper `CLEAR/MISS` stamp, and the result popup action button background uses a darker stage-themed blend of the current stage background top and primary/accent color. The central landing feedback toast has been removed. Delivery/parcel wording is removed from active runtime UI, UI accent colors follow the current stage palette, rear background uses a softened full-screen light-bottom/dark-top Stack-like gradient, and blocks are generated as full-opaque per-box segments of one lower-dark/upper-light stack gradient without the previous darker block edge band. The lower/first stack color starts much darker by blending toward the stage background top color. Stack-like generated block visuals use full `boxVisual.WorldSize`, while colliders use current code value `boxVisual.WorldSize * 0.98f`. Contact shadows, B045 top/right face split, B049 shape-based gradient variation, B070 code/order-based color variation, and B072 non-color luminance/depth variation are intentionally not applied.
+- Current implemented UI is B073 Stack-like 2D visual pass: compact stage badge, responsive top-center box progress panel with filled/outline slots, theme-aware stage-select tiles/buttons, and minimal result card use the accepted B048 semi-transparent borderless faux-glass treatment. The undo button and all undo runtime behavior are removed. The top-center progress indicator uses the current stage primary/accent color for filled slots and remaining-slot outlines, narrows its panel/slot sizing on small safe-area widths, and caps the centered panel width so it does not overlap the stage badge on narrow safe-area layouts. B073 additionally converts `Screen.safeArea` from screen pixels into UI Toolkit panel coordinates before positioning the safe root, overlays, HUD layout, and touch hit-test point. The stage-select panel now uses taller tiles with selected/unlocked/locked color states, current-stage labeling, and a stage-themed close button. The result popup no longer shows the redundant upper `CLEAR/MISS` stamp, and the result popup action button background uses a darker stage-themed blend of the current stage background top and primary/accent color. The central landing feedback toast has been removed. Delivery/parcel wording is removed from active runtime UI, UI accent colors follow the current stage palette, rear background uses a softened full-screen light-bottom/dark-top Stack-like gradient, and blocks are generated as full-opaque per-box segments of one lower-dark/upper-light stack gradient without the previous darker block edge band. The lower/first stack color starts much darker by blending toward the stage background top color. Stack-like generated block visuals use full `boxVisual.WorldSize`, while colliders use current code value `boxVisual.WorldSize * 0.98f`. Contact shadows, B045 top/right face split, B049 shape-based gradient variation, B070 code/order-based color variation, and B072 non-color luminance/depth variation are intentionally not applied.
 - Main progression direction is fixed-count clear stages, not infinite stacking, for the first Toss app-in-app MVP.
 - Clear requires every settled box to stay within the single-column x tolerance from the first placed box; crossing the tolerance fails immediately, and the completed stage stack must survive 5 seconds before success.
 - Pre-drop horizontal movement should start at screen center, move right first, keep the same speed through side-edge direction changes, clamp to the visible camera width, and preserve stage speed even when the range clamp shortens the path for the B012 timing-feel test.
@@ -195,8 +197,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This is acceptable through prototype work, but should be replaced during productization with Addressables or serialized asset references.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`.
-- Use a tiny in-game build marker (`B071`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B071`; documentation-only or design-asset-only commits do not require a marker increment.
+- Use a tiny in-game build marker (`B073`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
+- The current runtime build marker is `B073`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
@@ -207,8 +209,6 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - What bottom padding feels best on the target portrait app-in-app viewport?
 - Does the safe-area-aware UI Toolkit layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
 - During productization, should `Resources` loading be replaced with Addressables or simpler scene/prefab serialized asset references?
-- At the next milestone WebGL checkpoint, does the phone browser load the latest AIT/WebGL build reliably through the PC LAN IP?
-- At the next milestone WebGL checkpoint, does the WebGL build render Korean text correctly across HUD, stage select, and result popup states?
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
 - Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
@@ -236,14 +236,14 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - The prototype now includes multiple full Korean fonts and duplicate parcel/background PNGs in `Resources`, which improves WebGL parity and visual direction but increases build weight until UI/font and asset-loading paths are replaced or subsetted.
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but this depends on the AIT embedded pnpm folder remaining available on Windows `PATH`.
-- WebGL sprite parity is confirmed in PC browser after the AIT/WebGL rebuild, but phone browser testing is still needed.
+- WebGL sprite parity is confirmed in PC browser, but B073 phone WebGL layout regression testing is still needed before lowering the real-device UI risk.
 - Later 12-box stages may feel random if physics instability dominates player timing skill.
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
 - With undo removed, later 12-box stage fairness depends more directly on movement speed, physics stability, and clear tolerance.
 - Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if color, block shape, and interaction feel do not develop a BoxStack-specific identity.
 - The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
-- The new config asset is confirmed in Editor Play and PC WebGL smoke, but phone browser testing is now a milestone spot check for real device safe-area, touch feel, and performance rather than the default development loop.
+- The new config asset is confirmed in Editor Play and PC WebGL smoke, but B071 phone WebGL testing found real-device UI clipping; B073 must be verified on phone WebGL before this risk is lowered.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
