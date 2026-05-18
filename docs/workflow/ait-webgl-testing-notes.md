@@ -17,9 +17,10 @@ For normal C# iteration, AI agents should prefer `dotnet build BoxStack.slnx`. D
 - Current runtime UI: UI Toolkit through `BoxStackPrototypeUi`, with `BoxStackPanelSettings` and `BoxStackRuntimeTheme` loaded from `Assets/Resources/Prototype/Ui/`.
 - Current font direction: `DNFBitBitv2.otf` is used for game-like HUD/title/button text, `GmarketSansBold.ttf` for supporting UI text, and `NotoSansKR-VF.ttf` remains as Korean fallback.
 - Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font resources, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
-- Current runtime marker: `B073`.
+- Current runtime marker: `B074`.
 - B071 phone browser testing found a real-device UI clipping issue: the top-center box indicator, clear result popup, and stage select popup can be cut off outside the visible phone screen.
 - B073 changes safe-area handling in `BoxStackPrototypeUi` so `Screen.safeArea` pixel coordinates are converted into UI Toolkit panel coordinates before applying `_safeRoot`, overlay bounds, HUD layout, and touch hit-tests.
+- B074 changes the stage-select popup layout so mobile height calculations reserve a computed bottom margin inside the safe area and slightly reduce stage tile height/gaps when vertical space is tight.
 
 ## Dev Server Finding
 
@@ -48,6 +49,40 @@ C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64
 3. Reopen Unity Hub, reopen this project, and run `AIT > Dev Server > Start Server` again.
 
 Unity needs the restart because the Editor inherits environment variables from the process that launched it. If Unity Hub stays open, it may keep the old `PATH`.
+
+For ongoing mobile WebGL iteration, prefer the reusable PowerShell script instead of the Unity menu. The user-level script works from any AIT Unity project folder that contains `ait-build/package.json`:
+
+```powershell
+Start-AitUnityDevServer.ps1
+```
+
+`C:\Users\Ahneunsung\Documents\PowerShell\Scripts` has been added to the user `PATH`; open a new PowerShell window if the command name is not recognized in an already-open shell.
+
+If the script folder is still not visible in the current shell, run it directly:
+
+```powershell
+& "$HOME\Documents\PowerShell\Scripts\Start-AitUnityDevServer.ps1"
+```
+
+To target a project explicitly:
+
+```powershell
+& "$HOME\Documents\PowerShell\Scripts\Start-AitUnityDevServer.ps1" -ProjectRoot C:\unity\BoxStack
+```
+
+This runs the Vite server independently from Unity, so rebuilding WebGL in the Editor should not require manually starting the server again. Keep the PowerShell window open, rebuild WebGL in Unity, and refresh the PC or phone browser after the build finishes.
+
+The project-local wrapper remains available too:
+
+```powershell
+.\tools\start-ait-dev-server.ps1
+```
+
+To verify the script environment without starting the server:
+
+```powershell
+Start-AitUnityDevServer.ps1 -ProjectRoot C:\unity\BoxStack -CheckOnly
+```
 
 The AIT SDK embedded pnpm direct command remains useful as a fallback/debug check:
 
@@ -125,10 +160,12 @@ Verification:
 - 2026-05-14: B026 changes the HUD progress display from the right-side rail to a top-center horizontal panel. Placed boxes use filled square slots, remaining boxes use outline-only square slots, and the old numeric count text is removed. Editor Play verification on Unity CLI Connector port `8090` confirmed one `UIDocument`, UI marker `B026`, no `_countLabel`/`_progressFill` fields, Row progress layout, and 4 progress slots on stage 1.
 - 2026-05-14: B027 adds game-oriented runtime fonts. `BoxStackPrototypeAssetLoader` loads DNF BitBit v2, Gmarket Sans Bold, and Noto Sans KR fallback from `Assets/Resources/Prototype/Fonts/`; `BoxStackPrototypeUi` applies DNF BitBit v2 to HUD/title/button text and Gmarket Sans Bold to supporting body text. `dotnet build BoxStack.slnx` passed with 0 warnings/errors, Unity generated the new font `.meta` files, and Editor Play verification confirmed all three fonts load, the UI owns the expected font references, one `UIDocument` exists, and the marker shows `B027`.
 
-B071/B073 milestone verification:
+B071/B073/B074 milestone verification:
 
 1. 2026-05-17 user-led phone WebGL check found that B071 loads, but the top-center box indicator, clear result popup, and stage select popup are clipped outside the visible phone screen.
-2. B073 WebGL rebuild and phone retest are required before lowering the phone safe-area/UI risk.
+2. B073 corrects safe-area pixel-to-panel coordinate conversion.
+3. B074 adds stage-select bottom-spacing polish after the user found the stage-select popup still feels too close to the bottom edge on phone.
+4. B074 WebGL rebuild and phone retest are required before lowering the phone safe-area/UI risk.
 
 ## Phone Browser Smoke Test Checklist
 
@@ -157,7 +194,7 @@ The phone must be on the same network as the PC. Do not use `localhost` on the p
 `BoxStackPrototype` shows a tiny build marker below the top-right HUD area. The current runtime marker after the latest C# change is:
 
 ```text
-B073
+B074
 ```
 
 When changing C# code for mobile WebGL testing, manually increment `PrototypeBuildNumber` before rebuilding so the phone can confirm that it loaded the fresh build instead of a cached old build. Documentation-only or design-asset-only commits do not require a build marker increment.
@@ -184,10 +221,10 @@ Resources.Load<Font>("Prototype/Fonts/NotoSansKR-VF")
 `BoxStackPrototypeUi` applies DNF BitBit v2 to the stronger game/HUD text, Gmarket Sans Bold to supporting body text, and Noto Sans KR as fallback if either primary font is missing.
 To make UI Toolkit rendering pick up the intended font reliably, the runtime text helper assigns both `unityFont` and `unityFontDefinition`. B028 Editor Play verification confirmed matching inline/resolved font and font-definition values for DNF BitBit v2 and Gmarket Sans Bold text elements.
 
-B071/B073 milestone verification:
+B071/B073/B074 milestone verification:
 
 1. B071 had no newly reported Korean text/font issue, but UI clipping prevents accepting the phone WebGL milestone.
-2. Reconfirm Korean text and font rendering during the B073 phone WebGL safe-area regression check.
+2. Reconfirm Korean text and font rendering during the B074 phone WebGL stage-select bottom-spacing check.
 
 ## Current Physics Tuning To Retest
 
@@ -219,10 +256,10 @@ The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype
 
 ## Current Worktree Note
 
-As of B073, the runtime UI uses the accepted Stack-like 2D direction: compact stage badge, top-center progress panel, theme-aware stage select, minimal result popup, no undo UI, and no central landing feedback toast. B073 also converts phone `Screen.safeArea` pixels into UI Toolkit panel coordinates before laying out safe-root UI. Game-oriented free fonts are still applied through both `unityFont` and `unityFontDefinition`: DNF BitBit v2 for HUD/title/button text and Gmarket Sans Bold for supporting text. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
+As of B074, the runtime UI uses the accepted Stack-like 2D direction: compact stage badge, top-center progress panel, theme-aware stage select, minimal result popup, no undo UI, and no central landing feedback toast. B073 converts phone `Screen.safeArea` pixels into UI Toolkit panel coordinates before laying out safe-root UI, and B074 adds safe-height-aware stage-select bottom spacing. Game-oriented free fonts are still applied through both `unityFont` and `unityFontDefinition`: DNF BitBit v2 for HUD/title/button text and Gmarket Sans Bold for supporting text. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
 
 ## Next Suggested Task
 
 For normal development, use `dotnet build BoxStack.slnx` for AI-side C# validation and leave manual playability checks to the user in Unity Editor Play Mode.
 
-The next milestone browser/device checkpoint is `production/qa/playtests/playtest-2026-05-17-b073-phone-webgl-safe-area-panel-scale-regression.md`. Rebuild WebGL, confirm marker `B073`, and verify that the top-center box indicator, stage select popup, and result popup stay fully inside the visible phone screen.
+The next milestone browser/device checkpoint is `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md`. Rebuild WebGL, confirm marker `B074`, and verify that the top-center box indicator, stage select popup, and result popup stay fully inside the visible phone screen. In stage select, also confirm that the panel keeps a visible bottom margin instead of touching the bottom edge.

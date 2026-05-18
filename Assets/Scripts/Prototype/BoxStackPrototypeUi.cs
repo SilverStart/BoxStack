@@ -21,7 +21,19 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const float ProgressSlotGap = 3f;
     private const float ProgressSlotGapRatio = 0.28f;
     private const float StagePanelMaxWidth = 420f;
-    private const float StageTileHeight = 56f;
+    private const float StagePanelDefaultMinHeight = 430f;
+    private const float StagePanelDefaultMaxHeight = 560f;
+    private const float StagePanelDefaultTopMargin = 156f;
+    private const float StagePanelMinTopMargin = 88f;
+    private const float StagePanelMinBottomMargin = 40f;
+    private const float StagePanelMaxBottomMargin = 72f;
+    private const float StagePanelFixedContentHeight = 176f;
+    private const float StageProgressControlsBlockHeight = 52f;
+    private const int StageGridColumns = 4;
+    private const float StageTileDefaultHeight = 56f;
+    private const float StageTileMinHeight = 40f;
+    private const float StageTileDefaultGap = 10f;
+    private const float StageTileMinGap = 4f;
     private const float ResultPanelMaxWidth = 360f;
 
     private static readonly Color HudBackgroundColor = new Color(0.05f, 0.08f, 0.16f, 0.36f);
@@ -32,10 +44,13 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private static readonly Color SubTextColor = new Color(0.80f, 0.88f, 1.00f, 0.78f);
 
     private readonly List<Button> _stageButtons = new List<Button>();
+    private readonly List<VisualElement> _stageRows = new List<VisualElement>();
     private readonly List<VisualElement> _progressNodes = new List<VisualElement>();
     private float _currentProgressPanelWidth = ProgressPanelWidth;
     private float _currentProgressSlotSize = ProgressSlotSize;
     private float _currentProgressSlotGap = ProgressSlotGap;
+    private float _currentStageTileHeight = StageTileDefaultHeight;
+    private float _currentStageTileGap = StageTileDefaultGap;
 
     private UIDocument _document;
     private PanelSettings _panelSettings;
@@ -166,7 +181,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             return;
         }
 
-        ApplySafeArea();
+        _progressControls.style.display = state.ShowProgressControls ? DisplayStyle.Flex : DisplayStyle.None;
+
+        ApplySafeArea(state.Stages.Length, state.ShowProgressControls);
         ApplyPalette(state.Palette);
 
         _stageButton.text = $"STAGE\n{state.StageLabel}";
@@ -174,7 +191,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
         SetOverlayVisible(_stageOverlay, state.StageSelectOpen);
         SetOverlayVisible(_resultOverlay, state.ResultVisible);
-        _progressControls.style.display = state.ShowProgressControls ? DisplayStyle.Flex : DisplayStyle.None;
 
         RefreshStageButtons(state.Stages, state.Palette);
         RefreshProgressRail(state.PlacedBoxes, state.TargetBoxes, state.Palette);
@@ -345,9 +361,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stagePanel = new VisualElement();
         _stagePanel.style.width = new Length(92f, LengthUnit.Percent);
         _stagePanel.style.maxWidth = StagePanelMaxWidth;
-        _stagePanel.style.minHeight = 430f;
-        _stagePanel.style.maxHeight = 560f;
-        _stagePanel.style.marginTop = 156f;
+        _stagePanel.style.minHeight = StagePanelDefaultMinHeight;
+        _stagePanel.style.maxHeight = StagePanelDefaultMaxHeight;
+        _stagePanel.style.marginTop = StagePanelDefaultTopMargin;
         _stagePanel.style.paddingLeft = 24f;
         _stagePanel.style.paddingRight = 24f;
         _stagePanel.style.paddingTop = 20f;
@@ -569,21 +585,22 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     {
         _stageGrid.Clear();
         _stageButtons.Clear();
+        _stageRows.Clear();
         _stageButtonCount = stageCount;
 
-        const int columns = 4;
-        int rows = Mathf.CeilToInt(stageCount / (float)columns);
+        int rows = Mathf.CeilToInt(stageCount / (float)StageGridColumns);
         for (int row = 0; row < rows; row++)
         {
             var rowElement = new VisualElement { pickingMode = PickingMode.Position };
             rowElement.style.flexDirection = FlexDirection.Row;
-            rowElement.style.height = StageTileHeight;
-            rowElement.style.marginBottom = row == rows - 1 ? 0f : 10f;
+            rowElement.style.height = _currentStageTileHeight;
+            rowElement.style.marginBottom = row == rows - 1 ? 0f : _currentStageTileGap;
             _stageGrid.Add(rowElement);
+            _stageRows.Add(rowElement);
 
-            for (int column = 0; column < columns; column++)
+            for (int column = 0; column < StageGridColumns; column++)
             {
-                int index = (row * columns) + column;
+                int index = (row * StageGridColumns) + column;
                 if (index >= stageCount)
                 {
                     var spacer = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -596,7 +613,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
                 int selectedIndex = index;
                 Button button = CreatePanelButton(string.Empty, () => _selectStage?.Invoke(selectedIndex), 14);
-                button.style.height = StageTileHeight;
+                button.style.height = _currentStageTileHeight;
                 button.style.flexGrow = 1f;
                 button.style.marginLeft = 4f;
                 button.style.marginRight = 4f;
@@ -618,7 +635,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         return stage.Selected ? $"{stage.Number:00}\n현재" : $"{stage.Number:00}\n{stage.TargetBoxes}개";
     }
 
-    private void ApplySafeArea()
+    private void ApplySafeArea(int stageCount, bool showProgressControls)
     {
         Rect safeArea = GetPanelSafeArea();
         _safeRoot.style.left = safeArea.x;
@@ -626,6 +643,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _safeRoot.style.width = safeArea.width;
         _safeRoot.style.height = safeArea.height;
         ApplyHudLayout(safeArea.width);
+        ApplyStageSelectLayout(safeArea.height, stageCount, showProgressControls);
         ApplyOverlayBounds(_stageOverlay, safeArea.width, safeArea.height);
         ApplyOverlayBounds(_resultOverlay, safeArea.width, safeArea.height);
     }
@@ -704,6 +722,65 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressShadow.style.width = _currentProgressPanelWidth;
         _progressRail.style.width = _currentProgressPanelWidth;
         _buildLabel.style.right = horizontalPadding + 10f;
+    }
+
+    private void ApplyStageSelectLayout(float safeHeight, int stageCount, bool showProgressControls)
+    {
+        if (_stagePanel == null)
+        {
+            return;
+        }
+
+        float heightTightness = Mathf.Clamp01(Mathf.InverseLerp(820f, 620f, safeHeight));
+        float topMargin = Mathf.Lerp(StagePanelDefaultTopMargin, StagePanelMinTopMargin, heightTightness);
+        float bottomMargin = Mathf.Clamp(safeHeight * 0.065f, StagePanelMinBottomMargin, StagePanelMaxBottomMargin);
+        float maxHeight = Mathf.Min(
+            StagePanelDefaultMaxHeight,
+            Mathf.Max(1f, safeHeight - topMargin - bottomMargin));
+
+        if (maxHeight < StagePanelDefaultMinHeight)
+        {
+            topMargin = Mathf.Max(0f, safeHeight - StagePanelDefaultMinHeight - bottomMargin);
+            maxHeight = Mathf.Max(1f, safeHeight - topMargin - bottomMargin);
+        }
+
+        _stagePanel.style.marginTop = topMargin;
+        _stagePanel.style.minHeight = Mathf.Min(StagePanelDefaultMinHeight, maxHeight);
+        _stagePanel.style.maxHeight = maxHeight;
+
+        int rowCount = Mathf.Max(1, Mathf.CeilToInt(stageCount / (float)StageGridColumns));
+        float tileTightness = Mathf.Clamp01(Mathf.InverseLerp(540f, 460f, maxHeight));
+        float preferredTileHeight = Mathf.Lerp(StageTileDefaultHeight, StageTileMinHeight, tileTightness);
+        float preferredTileGap = Mathf.Lerp(StageTileDefaultGap, StageTileMinGap, tileTightness);
+        float fixedContentHeight = StagePanelFixedContentHeight + (showProgressControls ? StageProgressControlsBlockHeight : 0f);
+        float availableGridHeight = Mathf.Max(1f, maxHeight - fixedContentHeight);
+        float fitTileHeight = (availableGridHeight - (preferredTileGap * (rowCount - 1))) / rowCount;
+
+        _currentStageTileHeight = Mathf.Clamp(
+            Mathf.Min(preferredTileHeight, fitTileHeight),
+            StageTileMinHeight,
+            StageTileDefaultHeight);
+
+        float usedGridHeight = _currentStageTileHeight * rowCount;
+        _currentStageTileGap = rowCount > 1
+            ? Mathf.Clamp((availableGridHeight - usedGridHeight) / (rowCount - 1), 0f, preferredTileGap)
+            : 0f;
+        ApplyStageTileLayout();
+    }
+
+    private void ApplyStageTileLayout()
+    {
+        for (int rowIndex = 0; rowIndex < _stageRows.Count; rowIndex++)
+        {
+            VisualElement row = _stageRows[rowIndex];
+            row.style.height = _currentStageTileHeight;
+            row.style.marginBottom = rowIndex == _stageRows.Count - 1 ? 0f : _currentStageTileGap;
+        }
+
+        for (int i = 0; i < _stageButtons.Count; i++)
+        {
+            _stageButtons[i].style.height = _currentStageTileHeight;
+        }
     }
 
     private VisualElement CreateOverlay()
