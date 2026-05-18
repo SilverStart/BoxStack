@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B074 stage select mobile bottom spacing polish
+Task: B074 late-stage no-undo fairness check
 Runtime Marker: B074
-Latest Commit: 689aedf B073 모바일 WebGL safe-area 좌표 보정
-Dirty Worktree: B074 stage select bottom spacing polish plus AIT dev server helper script/docs
+Latest Commit: e217aef B074 스테이지 팝업 여백과 AIT 서버 스크립트 정리
+Dirty Worktree: clean after B074 playtest verdict docs commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B074 stage select bottom spacing polish plus AIT dev server help
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B074`이다.
-- 최신 커밋은 `689aedf B073 모바일 WebGL safe-area 좌표 보정`이다.
+- 최신 커밋은 `e217aef B074 스테이지 팝업 여백과 AIT 서버 스크립트 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -35,6 +35,9 @@ Dirty Worktree: B074 stage select bottom spacing polish plus AIT dev server help
 - B073 수정 후 `dotnet build BoxStack.slnx` 검증은 경고/오류 없이 통과했다.
 - B074는 모바일에서 스테이지 선택 팝업이 하단 safe-area 끝에 너무 붙어 보이지 않도록 safe-area 높이 기준으로 상단 여백, 하단 여백, 패널 최대 높이, 타일 높이/간격을 다시 계산한다.
 - B074 수정 후 `dotnet build BoxStack.slnx` 검증은 경고/오류 없이 통과했다.
+- 사용자 주도 phone WebGL 확인에서 B074 스테이지 선택 팝업 하단 여백과 B073 safe-area 클리핑 수정은 현재 프로토타입 기준 수용했다.
+- 사용자 주도 확인에서 B074 기준 후반 no-undo 난이도는 현재 기준 이 정도면 충분한 것으로 수용했다.
+- 박스끼리 옆으로 밀어내는 현상을 마찰력으로 더 줄이거나 settled 박스 X 이동을 제약하는 실험은 이번 체크포인트에서는 진행하지 않는다.
 - 반복 mobile WebGL 확인은 Unity AIT 메뉴 대신 공용 `Start-AitUnityDevServer.ps1` 또는 프로젝트 로컬 `tools/start-ait-dev-server.ps1`로 별도 PowerShell 서버를 띄우는 방식으로 진행한다.
 
 ## Active Decisions
@@ -49,7 +52,7 @@ Dirty Worktree: B074 stage select bottom spacing polish plus AIT dev server help
 
 ## Next Action
 
-- `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md` 기준으로 B074 phone WebGL 스테이지 선택 팝업 하단 여백을 점검한다.
+- 현재 문서 변경사항을 커밋하고, 다음 프로토타입 작업 후보를 다시 선택한다.
 
 ## Open Questions
 
@@ -59,8 +62,8 @@ Dirty Worktree: B074 stage select bottom spacing polish plus AIT dev server help
 ## Risks
 
 - `active.md`가 다시 긴 히스토리 누적 문서가 되면 상태 확인 요청마다 토큰을 크게 소모한다.
-- B074 스테이지 선택 팝업 하단 여백은 실제 phone WebGL에서 재확인되기 전까지 수용으로 보지 않는다.
-- 후반 12박스 스테이지는 물리 흔들림이 커지면 타이밍 실력보다 운으로 느껴질 수 있다.
+- B074 phone WebGL 점검은 수용됐지만, 이후 UI 레이아웃을 바꾸면 실제 모바일 WebGL에서 다시 확인해야 한다.
+- 후반 12박스 스테이지는 현재 기준 수용됐지만, 이후 물리/난이도 튜닝을 바꾸면 다시 확인해야 한다.
 
 ## References
 

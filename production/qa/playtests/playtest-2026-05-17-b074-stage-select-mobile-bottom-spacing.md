@@ -29,4 +29,6 @@ Verify that the B074 stage-select popup keeps a comfortable visible bottom margi
 
 ## Verdict
 
-Pending user-led phone WebGL check.
+Accepted by user-led phone WebGL check on 2026-05-18.
+
+The user confirmed the B074 mobile check is complete and did not request a follow-up layout fix. Treat the stage-select bottom spacing and the B073 safe-area clipping fix as accepted for the current prototype baseline.

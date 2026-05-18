@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 ## Next Immediate Action
 
-B074 is now the current runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. The next immediate action is the B074 phone WebGL stage-select bottom-spacing check at `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md`.
+B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. The user-led phone WebGL check accepted the B074 stage-select bottom spacing and safe-area clipping baseline, and the user also accepted the current late-stage no-undo feel as good enough. The next immediate action is to commit the current documentation updates, then choose the next prototype task.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -160,6 +160,9 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-17: User-led phone WebGL check reversed the earlier B071 acceptance: the top-center box indicator, clear result popup, and stage select popup are clipped outside the visible phone screen. B073 changes safe-area handling to convert `Screen.safeArea` pixel coordinates into UI Toolkit panel coordinates before applying `_safeRoot`, overlay bounds, HUD layout, and touch hit-tests. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-05-17: B074 stage-select mobile spacing polish changes `BoxStackPrototypeUi.ApplyStageSelectLayout` so the stage-select popup reserves a computed bottom margin inside the safe area, clamps its maximum height from `safeHeight - topMargin - bottomMargin`, and slightly tightens stage tile height/gaps on shorter mobile layouts. Runtime marker is `B074`; gameplay, stage data, result popup behavior, HUD behavior, and touch routing are otherwise unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-05-17: Added `tools/start-ait-dev-server.ps1` and a user-level reusable script at `C:\Users\Ahneunsung\Documents\PowerShell\Scripts\Start-AitUnityDevServer.ps1` as the preferred repeated phone WebGL testing path. The user Scripts folder is now on the user `PATH`, so new PowerShell windows can run `Start-AitUnityDevServer.ps1` from any AIT Unity project. The scripts launch the AIT Vite server independently from Unity by calling the AIT SDK embedded `pnpm`, so Unity WebGL rebuilds should no longer require restarting the server through the Unity AIT menu. `-CheckOnly` validation passed for the reusable script against `C:\unity\BoxStack`.
+- 2026-05-18: User-led phone WebGL check accepted B074. The stage-select popup bottom spacing is no longer visually pinned to the bottom edge, and the B073 safe-area clipping baseline remains accepted for the current prototype. The verdict is recorded at `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md`.
+- 2026-05-18: Added the B074 late-stage no-undo fairness checklist at `production/qa/playtests/playtest-2026-05-18-b074-late-stage-no-undo-fairness.md`. It targets stages 16-20, with special attention to the 12-box stages 18-20, failure fairness, physics wobble, 5-second clear validation feel, and replay desire.
+- 2026-05-18: User-led B074 late-stage no-undo check accepted the current feel as good enough. No immediate friction increase, settled-box X constraint, clear tolerance change, or late-stage speed/range tuning is planned from this checkpoint.
 
 ## Current Decisions
 
@@ -208,8 +211,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - What non-color approach could reduce block repetition without breaking the smooth stacked color flow?
 - Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
-- What bottom padding feels best on the target portrait app-in-app viewport?
-- Does the safe-area-aware UI Toolkit layout keep HUD and popups clear of Toss webview/status-bar insets on real devices?
+- If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
 - During productization, should `Resources` loading be replaced with Addressables or simpler scene/prefab serialized asset references?
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
@@ -238,14 +240,14 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - The prototype now includes multiple full Korean fonts and duplicate parcel/background PNGs in `Resources`, which improves WebGL parity and visual direction but increases build weight until UI/font and asset-loading paths are replaced or subsetted.
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
-- WebGL sprite parity is confirmed in PC browser, but B074 phone WebGL stage-select bottom-spacing testing is still needed before lowering the real-device UI risk.
-- Later 12-box stages may feel random if physics instability dominates player timing skill.
+- WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
+- Later 12-box stages were accepted for the current B074 baseline, but should be rechecked if physics or difficulty tuning changes.
 - Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
 - Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
-- With undo removed, later 12-box stage fairness depends more directly on movement speed, physics stability, and clear tolerance.
+- With undo removed, later 12-box stage fairness depends more directly on movement speed, physics stability, and clear tolerance; current B074 feel is accepted for now.
 - Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if color, block shape, and interaction feel do not develop a BoxStack-specific identity.
 - The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
-- The new config asset is confirmed in Editor Play and PC WebGL smoke, but B071 phone WebGL testing found real-device UI clipping; B074 must be verified on phone WebGL before this risk is lowered.
+- The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
 - PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
