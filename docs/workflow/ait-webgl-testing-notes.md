@@ -1,6 +1,6 @@
 # AIT WebGL Testing Notes
 
-Last updated: 2026-05-17
+Last updated: 2026-05-18
 
 This note captures the current Apps in Toss / Unity WebGL findings so a new session can continue without rediscovering the same issues.
 
@@ -17,6 +17,7 @@ For normal C# iteration, AI agents should prefer `dotnet build BoxStack.slnx`. D
 - Current runtime UI: UI Toolkit through `BoxStackPrototypeUi`, with `BoxStackPanelSettings` and `BoxStackRuntimeTheme` loaded from `Assets/Resources/Prototype/Ui/`.
 - Current font direction: `DNFBitBitv2.otf` is used for game-like HUD/title/button text, `GmarketSansBold.ttf` for supporting UI text, and `NotoSansKR-VF.ttf` remains as Korean fallback.
 - Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font resources, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
+- Current progress storage boundary: `BoxStackStageProgressStore` owns highest-unlocked-stage persistence and currently uses Unity `PlayerPrefs`.
 - Current runtime marker: `B074`.
 - B071 phone browser testing found a real-device UI clipping issue: the top-center box indicator, clear result popup, and stage select popup can be cut off outside the visible phone screen.
 - B073 changes safe-area handling in `BoxStackPrototypeUi` so `Screen.safeArea` pixel coordinates are converted into UI Toolkit panel coordinates before applying `_safeRoot`, overlay bounds, HUD layout, and touch hit-tests.
@@ -147,7 +148,24 @@ Prototype policy:
 - Keep the duplicate parcel/background PNGs in both `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` during the prototype phase.
 - The `Resources` copies are the WebGL build-included runtime path; deleting them can reintroduce sprite parity failures even though Editor Play has an `AssetDatabase` fallback.
 - The `Assets/Art/Prototype/...` copies remain the source-art/reference location.
-- Replace this duplicate setup during productization with Addressables or serialized scene/prefab references, not during active prototype iteration.
+- Do not replace this duplicate setup during active prototype iteration.
+- Productization default: move small static MVP assets to serialized scene/prefab/ScriptableObject references first.
+- Introduce Addressables only if remote downloads, catalog updates, skin/stage-pack asset groups, memory/build-size pressure, or App-in-Toss packaging policy requires it.
+- The current `Packages/manifest.json` does not include `com.unity.addressables`, so do not add the package until one of those productization triggers exists.
+- Decision note: `docs/architecture/boxstack-prototype-asset-loading-decision.md`.
+
+## WebGL Stage Progress Storage Finding
+
+The current prototype uses `BoxStackStageProgressStore` and Unity `PlayerPrefs` for one value: highest unlocked stage.
+
+Prototype policy:
+
+- Keep `PlayerPrefs` during the prototype because the saved data is only one local integer.
+- Do not add an App-in-Toss storage wrapper until target package testing or production policy proves that `PlayerPrefs` is insufficient.
+- The AIT WebGL template currently exposes `aitSetStorageData`, `aitGetStorageData`, and `aitRemoveStorageData` in `Assets/WebGLTemplates/AITTemplate/Runtime/appsintoss-unity-bridge.js`; those helpers use browser `localStorage` with an `ait_` prefix.
+- Treat that JavaScript bridge as a future integration candidate, not as the current C# runtime path.
+- If production storage is needed later, keep the stage unlock flow unchanged and replace only the internals of `BoxStackStageProgressStore`, or add a small backend abstraction behind it.
+- Decision note: `docs/architecture/boxstack-stage-progress-storage-decision.md`.
 
 Verification:
 
@@ -165,7 +183,7 @@ B071/B073/B074 milestone verification:
 1. 2026-05-17 user-led phone WebGL check found that B071 loads, but the top-center box indicator, clear result popup, and stage select popup are clipped outside the visible phone screen.
 2. B073 corrects safe-area pixel-to-panel coordinate conversion.
 3. B074 adds stage-select bottom-spacing polish after the user found the stage-select popup still feels too close to the bottom edge on phone.
-4. B074 WebGL rebuild and phone retest are required before lowering the phone safe-area/UI risk.
+4. 2026-05-18 user-led phone WebGL check accepted B074 stage-select bottom spacing and safe-area clipping for the current prototype baseline.
 
 ## Phone Browser Smoke Test Checklist
 
@@ -262,4 +280,4 @@ As of B074, the runtime UI uses the accepted Stack-like 2D direction: compact st
 
 For normal development, use `dotnet build BoxStack.slnx` for AI-side C# validation and leave manual playability checks to the user in Unity Editor Play Mode.
 
-The next milestone browser/device checkpoint is `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md`. Rebuild WebGL, confirm marker `B074`, and verify that the top-center box indicator, stage select popup, and result popup stay fully inside the visible phone screen. In stage select, also confirm that the panel keeps a visible bottom margin instead of touching the bottom edge.
+The B074 phone WebGL safe-area checkpoint is accepted. The next WebGL/browser checkpoint should be chosen after the next runtime code or asset-loading change. Documentation-only decisions do not require a new WebGL rebuild.

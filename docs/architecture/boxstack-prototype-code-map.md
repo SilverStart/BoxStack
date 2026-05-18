@@ -1,6 +1,6 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-05-17
+마지막 갱신: 2026-05-18
 런타임 마커: B074
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
@@ -139,7 +139,7 @@
 - `PlayerPrefs`에서 최고 해금 스테이지를 로드.
 - `PlayerPrefs`에 최고 해금 스테이지 번호를 저장.
 
-App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 하는 파일입니다.
+프로토타입에서는 `PlayerPrefs`를 유지합니다. App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 하는 파일이며, 교체 기준은 `docs/architecture/boxstack-stage-progress-storage-decision.md`에 기록합니다.
 
 ### `BoxStackPrototypeState.cs`
 
@@ -277,8 +277,8 @@ App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 
 - 아직 최종 제품 아키텍처가 아니라 프로토타입 코드입니다.
 - `BoxStackPrototype.cs`가 여전히 여러 게임플레이 책임을 함께 가지고 있습니다.
 - 현재 UI는 UXML이 아니라 C# 코드로 생성합니다.
-- 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다. parcel/background PNG는 현재 `Assets/Art/Prototype/...` 원본과 `Assets/Resources/Prototype/...` 런타임 복사본을 함께 유지하고, 제품화 단계에서 Addressables 또는 직렬화된 참조로 교체합니다.
-- 스테이지 진행은 `PlayerPrefs`를 사용합니다.
+- 에셋 로딩은 빠른 프로토타입과 WebGL 포함을 위해 `Resources`를 사용합니다. parcel/background PNG는 현재 `Assets/Art/Prototype/...` 원본과 `Assets/Resources/Prototype/...` 런타임 복사본을 함께 유지합니다. 제품화 전환의 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조이며, 원격 다운로드/카탈로그 업데이트/스킨 또는 스테이지 팩 단위 로딩/빌드 크기 압박/App-in-Toss 패키징 요구가 생길 때만 Addressables 도입을 검토합니다. 결정 근거는 `docs/architecture/boxstack-prototype-asset-loading-decision.md`에 기록합니다.
+- 스테이지 진행은 `PlayerPrefs`를 사용합니다. 현재 저장값은 최고 해금 스테이지 번호 하나뿐이므로 프로토타입 동안은 유지하고, App-in-Toss 생산 환경에서 특정 저장 API가 필요하거나 계정/기기 간 동기화, 별/재화/이벤트 진행 같은 확장 저장값이 생길 때 `BoxStackStageProgressStore` 내부를 교체합니다. 결정 근거는 `docs/architecture/boxstack-stage-progress-storage-decision.md`에 기록합니다.
 - WebGL/mobile 검증은 milestone spot check로 남기고, AI 에이전트의 일반 C# 검증은 `dotnet build BoxStack.slnx`를 우선 사용합니다. 실제 플레이 감각과 UI 체감 검증은 사용자가 Unity Editor Play Mode에서 직접 확인합니다.
 - 런타임 UI는 던파 비트비트체 v2를 HUD/버튼/제목 표시 폰트로, Gmarket Sans Bold를 보조 설명 텍스트로, Noto Sans KR을 fallback으로 사용합니다. UI Toolkit 렌더링 반영을 위해 `unityFont`와 `unityFontDefinition`을 함께 지정합니다.
 - B069는 배송/택배 시각 테마를 걷어내고 Stack-like 2D 디자인 가이드에 맞춰 스테이지별 유사 색 계열 팔레트, 전체 스택 그라데이션을 박스별 구간으로 나눠 굽는 컬러 블록, 코드 생성형 뒷배경 그라데이션, 테두리 없는 반투명 글래스풍 HUD를 사용합니다. B050에서 스택 전체를 하나의 세로 그라데이션처럼 읽히도록 아래 박스는 더 진하고 위/다음 박스는 더 밝게 이어지는 색상 진행을 적용했고, B053에서 각 박스 스프라이트가 해당 색상 흐름의 자기 구간을 직접 갖도록 바꿨습니다. B054에서는 B053의 어두운 블록 테두리 밴드를 제거해 경계선 없는 블록을 테스트했고, B055에서는 시작 색을 배경 최상단에 가까운 아주 진한 색으로 당겨 대비를 키웠습니다. B056에서는 블록 텍스처의 투명 가장자리를 제거하고 전체 픽셀을 불투명 그라데이션으로 채워, 쌓인 박스 사이에 배경색이 얇게 비치는 현상을 줄였습니다. B061에서는 사용자가 수치 조정을 진행할 수 있도록 비주얼은 전체 `WorldSize`로 유지하고 콜라이더만 `WorldSize * 0.96f`로 다시 줄인 상태를 튜닝 시작점으로 두었습니다. B062에서는 상단 중앙 진행 인디케이터의 채움/테두리 색을 현재 스테이지 Primary 역할의 `palette.Accent`와 맞췄고, B063-B065에서는 결과 팝업 스탬프 제거와 버튼 테마 색상을 정리했습니다. B068에서는 스테이지 선택 타일의 크기, 현재/해금/잠김 상태 라벨, 팔레트 기반 버튼 색상을 다듬었고, B069에서는 닫기 버튼도 같은 스테이지 테마 색상 체계에 맞췄습니다. 시각적으로 어색하다고 판단된 B042/B043 접촉 그림자 실험, B045 위쪽/오른쪽 면 분리, B049 박스 모양별 그라데이션 차별화는 적용하지 않습니다. 플레이 중 중앙 피드백 토스트도 B046에서 제거했습니다.

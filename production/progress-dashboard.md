@@ -4,7 +4,7 @@ Last updated: 2026-05-18
 
 ## Next Immediate Action
 
-B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. The user-led phone WebGL check accepted the B074 stage-select bottom spacing and safe-area clipping baseline, and the user also accepted the current late-stage no-undo feel as good enough. The next immediate action is to commit the current documentation updates, then choose the next prototype task.
+B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. The user-led phone WebGL check accepted the B074 stage-select bottom spacing and safe-area clipping baseline, and the user also accepted the current late-stage no-undo feel as good enough. The current documentation task records two productization decisions: keep `Resources` during prototype and prefer serialized references before Addressables for small static MVP assets, and keep `PlayerPrefs` for prototype stage progress until real App-in-Toss storage requirements demand a replacement.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -151,7 +151,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-16: B070 block repetition color-variation experiment was tested after `dotnet build BoxStack.slnx` passed with 0 warnings/errors, but user review found the stacked colors no longer flowed naturally. The experiment was reverted before commit; runtime marker returns to `B069`.
 - 2026-05-16: B071 mobile HUD safe-area overlap prevention narrows the top-center progress panel against the stage badge when the safe-area width is around narrow phone sizes. Runtime marker is `B071`; gameplay, physics, stage palettes, block visuals, stage select, and result popup behavior are unchanged. `dotnet build BoxStack.slnx` passed with 0 warnings/errors; user-led Editor Play confirmation is pending.
 - 2026-05-16: B072 non-color block repetition polish tested subtle generated luminance depth without hue variation, but user review found it visually awkward. The experiment was reverted before commit; runtime marker returns to `B071`.
-- 2026-05-16: Prototype `Resources` duplicate asset policy documented. The parcel/background PNGs in `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` currently match by file size and hash; the duplicate `Resources` copies remain acceptable during the prototype because they guarantee WebGL build inclusion. Productization should replace this with Addressables or serialized asset references instead of deleting the resources during active prototyping.
+- 2026-05-16: Prototype `Resources` duplicate asset policy documented. The parcel/background PNGs in `Assets/Art/Prototype/...` and `Assets/Resources/Prototype/...` currently match by file size and hash; the duplicate `Resources` copies remain acceptable during the prototype because they guarantee WebGL build inclusion. Productization should first prefer serialized scene/prefab/ScriptableObject references and only use Addressables when explicit remote/catalog/grouped asset requirements appear.
 - 2026-05-16: Active session state was refreshed after commit `3103e4c`, keeping runtime marker `B071` and moving the next action back to user-led mobile HUD safe-area confirmation plus later-stage no-undo checks.
 - 2026-05-16: B071 manual checklist added at `production/qa/playtests/playtest-2026-05-16-b071-mobile-hud-safe-area-no-undo-representative-stages.md` for user-led Editor Play checks on mobile HUD safe-area overlap, 4-12 box progress-slot readability, and representative no-undo stage feel.
 - 2026-05-16: User-led Editor Play check accepted B071 as good enough: top HUD safe-area overlap fix, 4-12 box progress-slot readability, and representative no-undo stage feel do not need immediate tuning.
@@ -163,6 +163,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-18: User-led phone WebGL check accepted B074. The stage-select popup bottom spacing is no longer visually pinned to the bottom edge, and the B073 safe-area clipping baseline remains accepted for the current prototype. The verdict is recorded at `production/qa/playtests/playtest-2026-05-17-b074-stage-select-mobile-bottom-spacing.md`.
 - 2026-05-18: Added the B074 late-stage no-undo fairness checklist at `production/qa/playtests/playtest-2026-05-18-b074-late-stage-no-undo-fairness.md`. It targets stages 16-20, with special attention to the 12-box stages 18-20, failure fairness, physics wobble, 5-second clear validation feel, and replay desire.
 - 2026-05-18: User-led B074 late-stage no-undo check accepted the current feel as good enough. No immediate friction increase, settled-box X constraint, clear tolerance change, or late-stage speed/range tuning is planned from this checkpoint.
+- 2026-05-18: Prototype asset loading productization decision recorded at `docs/architecture/boxstack-prototype-asset-loading-decision.md`. Keep `Resources` for the current prototype and WebGL parity path. For productization, first prefer serialized scene/prefab/ScriptableObject references for small static MVP assets; introduce Addressables only when remote downloads, catalog updates, grouped skin/stage-pack loading, memory/build-size pressure, or App-in-Toss packaging policy makes it necessary.
+- 2026-05-18: Stage progress storage productization decision recorded at `docs/architecture/boxstack-stage-progress-storage-decision.md`. Keep `PlayerPrefs` for the current prototype because the saved data is only the highest unlocked stage number, and replace `BoxStackStageProgressStore` internals later only if App-in-Toss policy, account/device sync, expanded progression data, migration, analytics, or server validation requires it.
 
 ## Current Decisions
 
@@ -197,10 +199,10 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference, but the active runtime direction has moved to B065 Stack-like 2D.
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, and minimal HUD without central landing feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
-- Stage unlock state uses PlayerPrefs for prototype speed; replace or wrap it later if App-in-Toss storage policy requires a different persistence layer.
+- Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
 - Prototype UI Toolkit layout should respect mobile safe area for HUD, stage select, and result popup placement before App-in-Toss package testing.
-- WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This is acceptable through prototype work, but should be replaced during productization with Addressables or serialized asset references.
+- WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This is acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management is required.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds.
 - Use a tiny in-game build marker (`B074`, then increment manually when code changes again) during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
 - The current runtime build marker is `B074`; documentation-only or design-asset-only commits do not require a build marker increment.
@@ -212,7 +214,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
-- During productization, should `Resources` loading be replaced with Addressables or simpler scene/prefab serialized asset references?
+- Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
 - Should the committed Delivery Arcade PNG mini pack remain as historical reference only now that the active direction is Stack-like 2D?
@@ -224,7 +226,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
 - Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
 - Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
-- Is PlayerPrefs enough for prototype progression testing before App-in-Toss storage requirements are confirmed?
+- When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
 ## Risks
@@ -237,7 +239,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Camera floor clamp can make the starting view feel too high if the target portrait aspect ratio changes significantly.
 - B017 removed the old fail-popup rescue and mock reward-ad runtime paths from `BoxStackPrototype.cs`; B067 later removed the remaining HUD undo path and `UndosPerStage` tuning field entirely.
 - The previous runtime-created UI Toolkit `PanelSettings` theme warning is fixed by loading the checked-in `BoxStackPanelSettings` asset. One unrelated Visual Studio UDP warning still appears in this local Editor setup.
-- The prototype now includes multiple full Korean fonts and duplicate parcel/background PNGs in `Resources`, which improves WebGL parity and visual direction but increases build weight until UI/font and asset-loading paths are replaced or subsetted.
+- The prototype now includes multiple full Korean fonts and duplicate parcel/background PNGs in `Resources`, which improves WebGL parity and visual direction but increases build weight until UI/font and asset-loading paths are replaced, subsetted, or moved to serialized references during productization.
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
 - WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
@@ -249,7 +251,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - The Delivery Arcade PNG mini pack is committed as design reference but not wired into runtime UI yet; applying it should preserve current safe-area layout, input blocking, and gameplay behavior.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
-- PlayerPrefs is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing it later.
+- `PlayerPrefs` is fine for local prototype persistence, but App-in-Toss production storage requirements may require replacing `BoxStackStageProgressStore` internals later.
 - Prototype progression controls are useful for playtest speed, and are now hidden from non-development user builds; confirm this again before any App-in-Toss package test.
 - Unity batchmode import could not run while the project was already open, but routine AI-side Play Mode verification is no longer required for normal iteration.
 - Unity CLI Connector requires the Unity Editor to be open with this project loaded; if editor control is genuinely needed and port `8090` does not respond, scan `8091` through `8099`. During B024 the live connector was found on port `8093` after `8090` through `8092` timed out.
