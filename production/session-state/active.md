@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B076 visual readability and brand-fit manual checkpoint
+Task: B078 close B074-resolved physics/fairness questions
 Runtime Marker: B074
-Latest Commit: 64d10d3 B075 Delivery Arcade 에셋 참고 결정 기록
-Dirty Worktree: clean after B076 visual readability and brand-fit acceptance commit
+Latest Commit: 2454fd6 B076 시각 가독성 점검 수용 기록
+Dirty Worktree: clean after B077/B078 dashboard open-question cleanup commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: clean after B076 visual readability and brand-fit acceptance com
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B074`이다.
-- 최신 커밋은 `64d10d3 B075 Delivery Arcade 에셋 참고 결정 기록`이다.
+- 최신 커밋은 `2454fd6 B076 시각 가독성 점검 수용 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -43,6 +43,8 @@ Dirty Worktree: clean after B076 visual readability and brand-fit acceptance com
 - 반복 mobile WebGL 확인은 Unity AIT 메뉴 대신 공용 `Start-AitUnityDevServer.ps1` 또는 프로젝트 로컬 `tools/start-ait-dev-server.ps1`로 별도 PowerShell 서버를 띄우는 방식으로 진행한다.
 - `design/ui/delivery-arcade-assets/` PNG 미니팩은 현재 Stack-like 2D 런타임 방향에 적용하지 않는 역사적 디자인 참고 자료로 둔다.
 - B076 수동 점검에서 현재 B074 Stack-like 2D 화면의 폰트 가독성, 블록 판정 가독성, 배경 대비, HUD/stage-select 흐름, replay/브랜드핏은 모두 수용됐다.
+- B077은 B076에서 이미 수용된 폰트/블록 가독성/HUD/stage-select/색 흐름 질문을 dashboard open question에서 닫는 문서 정리다.
+- B078은 B074 후반 no-undo 수용으로 이미 답이 나온 B008/B012/B074 물리·속도·clear 판정 관련 stale 질문을 dashboard open question/risk에서 닫는 문서 정리다.
 
 ## Active Decisions
 
@@ -56,7 +58,7 @@ Dirty Worktree: clean after B076 visual readability and brand-fit acceptance com
 
 ## Next Action
 
-- 다음 작업을 리스트업하고 우선순위를 결정한다.
+- 남은 open question 기준으로 다음 작업을 리스트업하고 우선순위를 결정한다.
 
 ## Open Questions
 

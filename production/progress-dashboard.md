@@ -4,7 +4,7 @@ Last updated: 2026-05-19
 
 ## Next Immediate Action
 
-B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. B076 accepted the current Stack-like 2D visual baseline: fonts, abstract block readability, background contrast, HUD/stage-select flow, replay desire, and perceived BoxStack identity are good enough for the next checkpoint. Next, list the remaining open questions and choose the next prototype/design task.
+B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. B076 accepted the current Stack-like 2D visual baseline. B077 closes the B076-resolved visual open questions, and B078 closes stale B008/B012/B074 physics/fairness questions that the B074 late-stage no-undo check already answered. Next, choose among the remaining unresolved areas: block repetition/depth experiments, background behavior, actual App-in-Toss environment checks, asset productization, or storage policy.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -168,6 +168,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-18: Delivery Arcade PNG mini pack status was closed as historical design reference only in `design/ui/delivery-arcade-assets/README.md`. The current Stack-like 2D runtime should not apply those PNGs unless the project deliberately reopens the Delivery Arcade visual direction.
 - 2026-05-19: B076 visual readability and brand-fit checklist added at `production/qa/playtests/playtest-2026-05-19-b076-visual-readability-brand-fit.md`. It keeps the B074 runtime unchanged and asks the user to check stage 1, 5, 10, 15, and 20 for DNF/Gmarket font readability, abstract block collision readability, background contrast, HUD/stage-select usability, replay desire, and perceived BoxStack identity.
 - 2026-05-19: User-led B076 check accepted all visual readability and brand-fit criteria. Keep the current Stack-like 2D visual baseline, DNF/Gmarket font pairing, abstract block readability, background contrast, HUD/stage-select flow, and no-toast feedback direction for the next checkpoint.
+- 2026-05-19: B077 cleaned up dashboard open questions that B076 already answered: DNF/Gmarket readability, abstract block contact readability, HUD stage-label/stage-select flow, and no-shadow/no-toast color progression are now treated as accepted for the current B074 baseline.
+- 2026-05-19: B078 cleaned up stale B008/B012/B074 physics/fairness open questions. The B074 late-stage no-undo acceptance now covers screen-clamped movement feel, current single-column tolerance plus 5-second clear validation, immediate collapse detection, and the approved B008 softened falling-box impact for the current baseline. Recheck these only after physics, movement, clear tolerance, or difficulty tuning changes.
 
 ## Current Decisions
 
@@ -202,6 +204,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference only. The active runtime direction is Stack-like 2D, so those assets are not an implementation backlog item unless the visual direction is reopened.
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, and minimal HUD without central landing feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B076 accepted the current Stack-like 2D baseline before adding another visual treatment: fonts, block readability, background contrast, HUD/stage-select flow, replay desire, and brand fit are good enough for now.
+- DNF BitBit v2, Gmarket Sans Bold, generated abstract block contact readability, the HUD stage-label/stage-select flow, and the no-shadow/no-toast block color progression are accepted for the current B074/B076 baseline.
+- The B074 late-stage no-undo check accepts the current B008 softened falling-box impact, B012 screen-clamped movement feel, single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for the current baseline. Reopen only if physics, movement, difficulty, or clear rules change.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
@@ -218,16 +222,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
-- Do DNF BitBit v2 and Gmarket Sans Bold improve the game feel without hurting small-text readability on the target phone viewport?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
 - What non-shadow, non-face-split approach should improve block depth without making the block look noisy or less Stack-like?
-- Are generated abstract blocks readable enough for contact/collision judgment on the target phone viewport?
-- Is the HUD stage-label click plus stage select overlay enough for prototype stage testing?
-- Does the current no-shadow/no-toast block color progression read cleanly over the full-screen rear-background gradient?
-- Does screen-clamped centered constant-speed movement keep all box shapes visible while preserving harder-stage speed feel?
-- Are the current single-column tolerance (`0.75`) and 5-second clear validation window fair enough across stages 1, 5, 10, 15, and 20?
-- Does immediate collapse detection feel fair, or does it punish harmless physics wobble too quickly?
-- Does the approved B008 falling-box impact tuning still feel right across stages 1, 5, 10, 15, and 20?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 - Are the Editor/development-only `진행 초기화` and `전체 해금` controls enough for fast stage testing, or should they move behind a less visible debug gesture later?
 
@@ -245,10 +241,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Safe area is handled in the prototype UI Toolkit layer, but real App-in-Toss WebGL/device testing is still needed because Editor Game view may not emulate every inset.
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
 - WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
-- Later 12-box stages were accepted for the current B074 baseline, but should be rechecked if physics or difficulty tuning changes.
-- Screen-clamped movement should keep boxes visible on narrow mobile viewports, but B012 phone testing still needs to confirm the compensated later-stage speed feels fair instead of frantic.
-- Softened falling-box impact felt good enough in B008 phone testing, but B012 representative stage testing should confirm it still works after the movement feel change.
-- With undo removed, later 12-box stage fairness depends more directly on movement speed, physics stability, and clear tolerance; current B074 feel is accepted for now.
+- Later 12-box stages, screen-clamped movement feel, softened falling-box impact, immediate collapse detection, single-column tolerance, and 5-second clear validation are accepted for the current B074 baseline, but should be rechecked if physics, movement, difficulty, or clear rules change.
 - Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if color, block shape, and interaction feel do not develop a BoxStack-specific identity.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.
