@@ -4,7 +4,7 @@ Last updated: 2026-05-19
 
 ## Next Immediate Action
 
-B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. B076 accepted the current Stack-like 2D visual baseline. B077 closes the B076-resolved visual open questions, B078 closes stale B008/B012/B074 physics/fairness questions, B079 keeps the Editor/development-only progress debug controls as the current prototype policy, and B080 keeps the background screen-fixed for prototype readability. Next, choose among the remaining unresolved areas: block repetition/depth experiments, actual App-in-Toss environment checks, MVP asset productization, storage policy, or HUD feedback direction.
+B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. B076 accepted the current Stack-like 2D visual baseline. B077 closes the B076-resolved visual open questions, B078 closes stale B008/B012/B074 physics/fairness questions, B079 keeps the Editor/development-only progress debug controls as the current prototype policy, B080 keeps the background screen-fixed for prototype readability, and B081 stops further block color/luminance/bevel/depth experiments for now. Next, choose among the remaining unresolved areas: actual App-in-Toss environment checks, MVP asset productization, storage policy, or HUD feedback direction.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -172,6 +172,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-19: B078 cleaned up stale B008/B012/B074 physics/fairness open questions. The B074 late-stage no-undo acceptance now covers screen-clamped movement feel, current single-column tolerance plus 5-second clear validation, immediate collapse detection, and the approved B008 softened falling-box impact for the current baseline. Recheck these only after physics, movement, clear tolerance, or difficulty tuning changes.
 - 2026-05-19: B079 closed the prototype progress debug controls question. Keep `진행 초기화` and `전체 해금` available only in Editor/development builds for fast local stage testing, and defer any hidden debug gesture or less-visible access pattern until an external App-in-Toss package/test build actually needs it.
 - 2026-05-19: B080 closed the background behavior question. Keep the current full-screen, screen-fixed Stack-like gradient for prototype readability and mobile stability; reopen scroll/parallax only as a separate visual experiment if the accepted baseline starts to feel too static.
+- 2026-05-19: B081 closed the block repetition/depth visual experiment question for now. Do not continue color, luminance, bevel, texture, shadow, face-split, or per-block variation experiments against the accepted B074/B076 Stack-like block baseline. If BoxStack needs more identity later, prefer non-block-color directions such as scoring rules, motion feel, audio, stage framing, or placement-quality feedback.
 
 ## Current Decisions
 
@@ -207,6 +208,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, and minimal HUD without central landing feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
 - B076 accepted the current Stack-like 2D baseline before adding another visual treatment: fonts, block readability, background contrast, HUD/stage-select flow, replay desire, and brand fit are good enough for now.
 - DNF BitBit v2, Gmarket Sans Bold, generated abstract block contact readability, the HUD stage-label/stage-select flow, and the no-shadow/no-toast block color progression are accepted for the current B074/B076 baseline.
+- B081 freezes block color/luminance/depth experimentation for the current prototype. Keep the accepted flat abstract blocks and smooth stack-gradient color flow; do not reopen lightly beveled, pseudo-3D, texture, shadow, face-split, per-code color variation, or per-order luminance variation unless the overall visual direction is deliberately reopened.
 - The B074 late-stage no-undo check accepts the current B008 softened falling-box impact, B012 screen-clamped movement feel, single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for the current baseline. Reopen only if physics, movement, difficulty, or clear rules change.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
@@ -219,12 +221,9 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 
 ## Open Questions
 
-- Which abstract block visual style best fits BoxStack: clean flat blocks, lightly beveled 2D blocks, or stronger pseudo-3D blocks?
-- What non-color approach could reduce block repetition without breaking the smooth stacked color flow?
 - If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - Should the next HUD playtest keep the active no-toast direction, or should feedback return later only when tied to a real placement-quality scoring signal?
-- What non-shadow, non-face-split approach should improve block depth without making the block look noisy or less Stack-like?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 
 ## Risks
@@ -242,7 +241,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
 - WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
 - Later 12-box stages, screen-clamped movement feel, softened falling-box impact, immediate collapse detection, single-column tolerance, and 5-second clear validation are accepted for the current B074 baseline, but should be rechecked if physics, movement, difficulty, or clear rules change.
-- Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if color, block shape, and interaction feel do not develop a BoxStack-specific identity.
+- Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if interaction feel, scoring rules, stage framing, audio, or placement feedback do not develop a BoxStack-specific identity. Block color/depth experiments are intentionally paused for the current accepted baseline.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
