@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B081 close block color/depth experiment policy
-Runtime Marker: B074
-Latest Commit: fb47f0e B080 프로토타입 정책 질문 정리
-Dirty Worktree: B081 documentation update in progress
+Task: B083 settle-based next-box timing
+Runtime Marker: B083
+Latest Commit: 5fba60e B081 블록 색상 실험 중단 결정 기록
+Dirty Worktree: B082/B083 documentation and runtime update in progress
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: B081 documentation update in progress
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B074`이다.
-- 최신 커밋은 `fb47f0e B080 프로토타입 정책 질문 정리`이다.
+- 현재 런타임 마커는 `B083`이다.
+- 최신 커밋은 `5fba60e B081 블록 색상 실험 중단 결정 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -48,6 +48,8 @@ Dirty Worktree: B081 documentation update in progress
 - B079는 Editor/development 빌드에서만 보이는 `진행 초기화`와 `전체 해금` 버튼을 현재 프로토타입 검증용 정책으로 유지하고, 별도 숨김 제스처는 외부 배포/패키지 테스트 단계에서 필요할 때만 다시 검토하기로 정리한다.
 - B080은 현재 B074/B076 기준에서 배경을 screen-fixed Stack-like gradient로 유지하고, 스택 높이에 따른 스크롤/패럴랙스는 가독성 저하 위험이 있어 별도 시각 실험을 다시 열 때만 검토하기로 정리한다.
 - B081은 블록 반복감/깊이를 개선하기 위한 색상, 명암, bevel, 질감 계열 실험을 더 진행하지 않기로 정리한다. 현재 B074/B076에서 수용한 자연스러운 stack gradient와 flat abstract block 기준을 유지한다.
+- B082는 중앙 착지 피드백 토스트를 현재 프로토타입에서는 되살리지 않기로 정리한다. 피드백은 나중에 placement quality, combo, scoring 같은 실제 규칙이 생겼을 때만 다시 검토한다.
+- B083은 박스를 놓은 뒤 고정 `DropSettleSeconds` 1초를 기다리는 방식 대신, 떨어진 박스와 기존 탑의 선형/각속도가 안정 기준 아래로 내려가 일정 시간 유지될 때 다음 박스를 생성하도록 바꾼다. 런타임 마커는 `B083`으로 올렸다.
 
 ## Active Decisions
 
@@ -61,7 +63,7 @@ Dirty Worktree: B081 documentation update in progress
 
 ## Next Action
 
-- 남은 open question 중 실제 App-in-Toss 환경 확인, MVP 에셋 분류, 저장 정책, HUD 피드백 방향 중 다음 우선순위를 결정한다.
+- B083 드롭 안정 감지 방식이 너무 빠르거나 느리지 않은지 Unity Editor Play에서 확인한다.
 
 ## Open Questions
 

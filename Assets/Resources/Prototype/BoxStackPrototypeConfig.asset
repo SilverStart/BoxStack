@@ -16,7 +16,10 @@ MonoBehaviour:
     BaseMoveRange: 2.45
     BaseMoveSpeed: 1.85
     MoveRangeScreenPadding: 0.12
-    DropSettleSeconds: 1
+    DropMinimumResolveSeconds: 0.2
+    DropStableSeconds: 0.2
+    StackStopLinearVelocity: 0.05
+    StackStopAngularVelocity: 5
     ClearValidationSeconds: 5
     ParcelFriction: 8
     FloorFriction: 8

@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 74;
+    private const int PrototypeBuildNumber = 83;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -723,7 +723,50 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private IEnumerator ResolveDrop(GameObject droppedBox)
     {
-        yield return new WaitForSeconds(Tuning.DropSettleSeconds);
+        float resolveStartedAt = Time.time;
+        float stableStartedAt = -1f;
+
+        while (true)
+        {
+            if (droppedBox == null || BoxIsLost(droppedBox))
+            {
+                EndRun(false, "MISSED");
+                yield break;
+            }
+
+            if (AnyBoxLost())
+            {
+                EndRun(false, "STACK LOST");
+                yield break;
+            }
+
+            if (!StackIsSingleColumn())
+            {
+                EndRun(false, "STACK CROOKED");
+                yield break;
+            }
+
+            BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
+            float elapsed = Time.time - resolveStartedAt;
+            if (elapsed >= tuning.DropMinimumResolveSeconds && StackMotionIsStable(droppedBox))
+            {
+                if (stableStartedAt < 0f)
+                {
+                    stableStartedAt = Time.time;
+                }
+
+                if (Time.time - stableStartedAt >= tuning.DropStableSeconds)
+                {
+                    break;
+                }
+            }
+            else
+            {
+                stableStartedAt = -1f;
+            }
+
+            yield return null;
+        }
 
         if (droppedBox == null || BoxIsLost(droppedBox))
         {
@@ -762,6 +805,43 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _state = BoxStackPrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
+    }
+
+    private bool StackMotionIsStable(GameObject droppedBox)
+    {
+        if (!BoxMotionIsStable(droppedBox))
+        {
+            return false;
+        }
+
+        for (int i = 0; i < _placedBoxes.Count; i++)
+        {
+            if (!BoxMotionIsStable(_placedBoxes[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool BoxMotionIsStable(GameObject box)
+    {
+        if (box == null)
+        {
+            return false;
+        }
+
+        var body = box.GetComponent<Rigidbody2D>();
+        if (body == null || body.IsSleeping())
+        {
+            return true;
+        }
+
+        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
+        float linearThreshold = tuning.StackStopLinearVelocity;
+        return body.linearVelocity.sqrMagnitude <= linearThreshold * linearThreshold
+            && Mathf.Abs(body.angularVelocity) <= tuning.StackStopAngularVelocity;
     }
 
     private void BeginClearValidation()

@@ -13,7 +13,10 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         baseMoveRange: 2.45f,
         baseMoveSpeed: 1.85f,
         moveRangeScreenPadding: 0.12f,
-        dropSettleSeconds: 1.0f,
+        dropMinimumResolveSeconds: 0.2f,
+        dropStableSeconds: 0.2f,
+        stackStopLinearVelocity: 0.05f,
+        stackStopAngularVelocity: 5.0f,
         clearValidationSeconds: 5.0f,
         parcelFriction: 8.0f,
         floorFriction: 8.0f,
@@ -120,7 +123,10 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             float baseMoveRange,
             float baseMoveSpeed,
             float moveRangeScreenPadding,
-            float dropSettleSeconds,
+            float dropMinimumResolveSeconds,
+            float dropStableSeconds,
+            float stackStopLinearVelocity,
+            float stackStopAngularVelocity,
             float clearValidationSeconds,
             float parcelFriction,
             float floorFriction,
@@ -137,7 +143,10 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             BaseMoveRange = baseMoveRange;
             BaseMoveSpeed = baseMoveSpeed;
             MoveRangeScreenPadding = moveRangeScreenPadding;
-            DropSettleSeconds = dropSettleSeconds;
+            DropMinimumResolveSeconds = dropMinimumResolveSeconds;
+            DropStableSeconds = dropStableSeconds;
+            StackStopLinearVelocity = stackStopLinearVelocity;
+            StackStopAngularVelocity = stackStopAngularVelocity;
             ClearValidationSeconds = clearValidationSeconds;
             ParcelFriction = parcelFriction;
             FloorFriction = floorFriction;
@@ -155,7 +164,10 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         public float BaseMoveRange;
         public float BaseMoveSpeed;
         public float MoveRangeScreenPadding;
-        public float DropSettleSeconds;
+        public float DropMinimumResolveSeconds;
+        public float DropStableSeconds;
+        public float StackStopLinearVelocity;
+        public float StackStopAngularVelocity;
         public float ClearValidationSeconds;
         public float ParcelFriction;
         public float FloorFriction;

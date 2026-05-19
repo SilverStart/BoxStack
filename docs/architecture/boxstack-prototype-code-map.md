@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-05-18
-런타임 마커: B074
+마지막 갱신: 2026-05-19
+런타임 마커: B083
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -45,7 +45,8 @@
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 배경/바닥/UI 전달 색을 갱신합니다.
 - `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환합니다.
-- `ResolveDrop`: 떨어진 박스가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
+- `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
+- `StackMotionIsStable` / `BoxMotionIsStable`: 드롭 해소 중 다음 박스를 생성해도 되는지 선형/각속도 임계값으로 판정합니다.
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
@@ -172,6 +173,8 @@
 - `BoxStackPrototype.DropActiveBox`
 - `BoxStackPrototype.ClampDroppingBoxFallSpeed`
 - `BoxStackPrototype.ResolveDrop`
+- `BoxStackPrototype.StackMotionIsStable`
+- `BoxStackPrototype.BoxMotionIsStable`
 - `BoxStackPrototype.CreatePhysicsMaterials`
 - `BoxStackPrototypeConfig.TuningSettings`
 
@@ -256,7 +259,7 @@
 -> `MoveActiveBox`
 -> `DropPressed`
 -> `DropActiveBox`
--> `ResolveDrop`
+-> `ResolveDrop`에서 떨어진 박스와 기존 탑의 움직임이 안정될 때까지 대기
 -> `SpawnNextBox`, `BeginClearValidation`, `EndRun` 중 하나로 이동
 
 ### 스테이지 클리어
@@ -288,4 +291,5 @@
 - B073은 phone WebGL에서 상단 중앙 박스 인디케이터, 결과 팝업, 스테이지 선택 팝업이 화면 밖으로 잘리는 문제를 겨냥해 `Screen.safeArea` 픽셀 좌표를 UI Toolkit 패널 좌표로 변환합니다.
 
 - B074는 스테이지 선택 팝업이 모바일 화면 하단에 너무 붙지 않도록 safe-area 높이 기준의 하단 여백과 패널 최대 높이를 함께 계산합니다.
+- B083은 박스를 놓은 뒤 고정 1초 대기 대신 떨어진 박스와 기존 탑의 선형/각속도가 안정 기준 아래로 유지될 때 다음 박스를 생성합니다.
 - 코드 변경으로 기능 책임, 파일 위치, 주요 메서드, 실행 흐름, 주의점이 달라지면 이 코드 맵도 같은 변경 묶음에서 갱신합니다.
