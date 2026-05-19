@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B078 close B074-resolved physics/fairness questions
+Task: B080 close prototype background behavior policy
 Runtime Marker: B074
-Latest Commit: 2454fd6 B076 시각 가독성 점검 수용 기록
-Dirty Worktree: clean after B077/B078 dashboard open-question cleanup commit
+Latest Commit: 81a5a3d B078 완료 질문 정리
+Dirty Worktree: B079/B080 documentation update in progress
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: clean after B077/B078 dashboard open-question cleanup commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B074`이다.
-- 최신 커밋은 `2454fd6 B076 시각 가독성 점검 수용 기록`이다.
+- 최신 커밋은 `81a5a3d B078 완료 질문 정리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -45,6 +45,8 @@ Dirty Worktree: clean after B077/B078 dashboard open-question cleanup commit
 - B076 수동 점검에서 현재 B074 Stack-like 2D 화면의 폰트 가독성, 블록 판정 가독성, 배경 대비, HUD/stage-select 흐름, replay/브랜드핏은 모두 수용됐다.
 - B077은 B076에서 이미 수용된 폰트/블록 가독성/HUD/stage-select/색 흐름 질문을 dashboard open question에서 닫는 문서 정리다.
 - B078은 B074 후반 no-undo 수용으로 이미 답이 나온 B008/B012/B074 물리·속도·clear 판정 관련 stale 질문을 dashboard open question/risk에서 닫는 문서 정리다.
+- B079는 Editor/development 빌드에서만 보이는 `진행 초기화`와 `전체 해금` 버튼을 현재 프로토타입 검증용 정책으로 유지하고, 별도 숨김 제스처는 외부 배포/패키지 테스트 단계에서 필요할 때만 다시 검토하기로 정리한다.
+- B080은 현재 B074/B076 기준에서 배경을 screen-fixed Stack-like gradient로 유지하고, 스택 높이에 따른 스크롤/패럴랙스는 가독성 저하 위험이 있어 별도 시각 실험을 다시 열 때만 검토하기로 정리한다.
 
 ## Active Decisions
 
@@ -58,7 +60,7 @@ Dirty Worktree: clean after B077/B078 dashboard open-question cleanup commit
 
 ## Next Action
 
-- 남은 open question 기준으로 다음 작업을 리스트업하고 우선순위를 결정한다.
+- 남은 open question 중 실제 App-in-Toss 환경 확인, MVP 에셋 분류, 저장 정책, 블록 깊이/반복감, HUD 피드백 방향 중 다음 우선순위를 결정한다.
 
 ## Open Questions
 
