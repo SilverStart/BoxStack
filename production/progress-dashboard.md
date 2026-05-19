@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-18
+Last updated: 2026-05-19
 
 ## Next Immediate Action
 
-B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. The user-led phone WebGL check accepted the B074 stage-select bottom spacing and safe-area clipping baseline, and the user also accepted the current late-stage no-undo feel as good enough. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. Next, list the remaining open questions and choose the next prototype/design checkpoint.
+B074 is now the current accepted runtime marker. B073 fixed the phone WebGL UI Toolkit safe-area coordinate conversion, and B074 adds a stage-select mobile spacing pass so the popup calculates its bottom margin and height from the visible safe-area height instead of relying on a fixed top offset. B075 closes the Delivery Arcade PNG mini pack as historical design reference only. B076 accepted the current Stack-like 2D visual baseline: fonts, abstract block readability, background contrast, HUD/stage-select flow, replay desire, and perceived BoxStack identity are good enough for the next checkpoint. Next, list the remaining open questions and choose the next prototype/design task.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -166,6 +166,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-18: Prototype asset loading productization decision recorded at `docs/architecture/boxstack-prototype-asset-loading-decision.md`. Keep `Resources` for the current prototype and WebGL parity path. For productization, first prefer serialized scene/prefab/ScriptableObject references for small static MVP assets; introduce Addressables only when remote downloads, catalog updates, grouped skin/stage-pack loading, memory/build-size pressure, or App-in-Toss packaging policy makes it necessary.
 - 2026-05-18: Stage progress storage productization decision recorded at `docs/architecture/boxstack-stage-progress-storage-decision.md`. Keep `PlayerPrefs` for the current prototype because the saved data is only the highest unlocked stage number, and replace `BoxStackStageProgressStore` internals later only if App-in-Toss policy, account/device sync, expanded progression data, migration, analytics, or server validation requires it.
 - 2026-05-18: Delivery Arcade PNG mini pack status was closed as historical design reference only in `design/ui/delivery-arcade-assets/README.md`. The current Stack-like 2D runtime should not apply those PNGs unless the project deliberately reopens the Delivery Arcade visual direction.
+- 2026-05-19: B076 visual readability and brand-fit checklist added at `production/qa/playtests/playtest-2026-05-19-b076-visual-readability-brand-fit.md`. It keeps the B074 runtime unchanged and asks the user to check stage 1, 5, 10, 15, and 20 for DNF/Gmarket font readability, abstract block collision readability, background contrast, HUD/stage-select usability, replay desire, and perceived BoxStack identity.
+- 2026-05-19: User-led B076 check accepted all visual readability and brand-fit criteria. Keep the current Stack-like 2D visual baseline, DNF/Gmarket font pairing, abstract block readability, background contrast, HUD/stage-select flow, and no-toast feedback direction for the next checkpoint.
 
 ## Current Decisions
 
@@ -199,6 +201,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - `docs/architecture/boxstack-prototype-code-map.md` is the current Korean code map for prototype feature ownership and should be reviewed whenever prototype code changes.
 - Delivery Arcade PNG skin assets exist under `design/ui/delivery-arcade-assets/` as a committed historical design reference only. The active runtime direction is Stack-like 2D, so those assets are not an implementation backlog item unless the visual direction is reopened.
 - The next visual direction is Stack-like 2D: abstract blocks, smooth color progression, simple gradient background, and minimal HUD without central landing feedback. Do not bundle gameplay tuning, scoring rules, stars, combo systems, or reward-ad rescue changes into this visual pass.
+- B076 accepted the current Stack-like 2D baseline before adding another visual treatment: fonts, block readability, background contrast, HUD/stage-select flow, replay desire, and brand fit are good enough for now.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
 - Stage select may expose prototype progress test controls while validating difficulty and unlock persistence, but only in Editor/development builds.
@@ -212,7 +215,6 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 
 - Which abstract block visual style best fits BoxStack: clean flat blocks, lightly beveled 2D blocks, or stronger pseudo-3D blocks?
 - What non-color approach could reduce block repetition without breaking the smooth stacked color flow?
-- Should the next playtest measure visual clarity, replay desire, or perceived brand fit?
 - Should the background stay screen-fixed for prototype readability, or eventually scroll/parallax with stack height?
 - If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
