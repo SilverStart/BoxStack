@@ -1,27 +1,26 @@
 # Delivery Arcade UI Asset Mini Pack
 
-Last updated: 2026-05-13
-Status: Prototype asset pass
+Last updated: 2026-05-18
+Status: Historical design reference
 Related spec: `design/ui/boxstack-delivery-arcade-hud-spec-2026-05-13.md`
 
 ## Purpose
 
-This folder contains the first PNG mini pack for the Delivery Arcade HUD direction.
+This folder contains the first PNG mini pack for the earlier Delivery Arcade HUD direction.
 
-The implementation direction is hybrid:
+The active runtime direction has since moved to the Stack-like 2D visual language: abstract color blocks, a minimal faux-glass HUD, no delivery/shipping wording, no undo UI, and no central feedback stamp. Keep this pack as a record of that exploration, not as an implementation backlog item for the current prototype.
 
-- UI Toolkit handles layout, safe area, input blocking, text, and state changes.
-- These PNGs provide the game-like visual skin: labels, tickets, rails, stamps, and result cards.
+If the project intentionally reopens a delivery-themed UI direction later, these assets can be reviewed as reference material. Until then, do not wire them into the runtime UI.
 
 ## Handoff
 
-These assets are a sidecar design update from the UI polish discussion. They are not wired into runtime UI yet, and they should not block the current B021 stage progress storage checkpoint.
+These assets are a sidecar design update from the UI polish discussion. They are not wired into runtime UI, and that is now intentional for the current Stack-like prototype baseline.
 
-When the main implementation session returns to UI polish, review these PNGs first and decide whether to:
+If a future design decision revives the Delivery Arcade direction, review these PNGs first and decide whether to:
 
 1. Apply them as-is through UI Toolkit `backgroundImage`.
 2. Regenerate or refine the set before runtime integration.
-3. Keep the current B016 vector-like Delivery Arcade UI and defer PNG skinning.
+3. Keep them as historical reference only.
 
 ## Assets
 
@@ -38,7 +37,8 @@ When the main implementation session returns to UI polish, review these PNGs fir
 
 ## Usage Notes
 
-- Treat these as prototype direction assets, not final production art.
+- Treat these as historical prototype direction assets, not final production art.
+- Do not apply them to the current Stack-like 2D runtime without a new visual-direction decision.
 - Text should be rendered by UI Toolkit labels on top of the PNGs, not baked into the images.
 - Keep gameplay rules unchanged when applying these assets.
 - Keep the central play lane clear; do not let badges or rails cover the falling box path.
@@ -47,7 +47,7 @@ When the main implementation session returns to UI polish, review these PNGs fir
 
 ## UI Toolkit Mapping
 
-Suggested mapping:
+Historical mapping idea:
 
 - `ui_stage_label_badge.png` becomes the `backgroundImage` of the stage badge `Button`.
 - `ui_undo_ticket.png` becomes the `backgroundImage` of the undo `Button`.
@@ -57,6 +57,8 @@ Suggested mapping:
 - `ui_result_card_clear.png` and `ui_result_card_fail.png` become result popup panel backgrounds.
 
 ## First Implementation Constraints
+
+These constraints apply only if the Delivery Arcade direction is explicitly reopened.
 
 Do:
 

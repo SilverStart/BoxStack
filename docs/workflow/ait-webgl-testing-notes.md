@@ -270,11 +270,11 @@ Current UI resources:
 - `Assets/Resources/Prototype/Ui/BoxStackRuntimeTheme.tss`
 - `design/ui/delivery-arcade-assets/`
 
-The `design/ui/delivery-arcade-assets/` PNG mini pack is a design-side prototype skin. It is committed for review, but it is not wired into the runtime UI yet.
+The `design/ui/delivery-arcade-assets/` PNG mini pack is a historical design-side prototype skin. It is committed for reference, but it is intentionally not wired into the current Stack-like 2D runtime UI.
 
 ## Current Worktree Note
 
-As of B074, the runtime UI uses the accepted Stack-like 2D direction: compact stage badge, top-center progress panel, theme-aware stage select, minimal result popup, no undo UI, and no central landing feedback toast. B073 converts phone `Screen.safeArea` pixels into UI Toolkit panel coordinates before laying out safe-root UI, and B074 adds safe-height-aware stage-select bottom spacing. Game-oriented free fonts are still applied through both `unityFont` and `unityFontDefinition`: DNF BitBit v2 for HUD/title/button text and Gmarket Sans Bold for supporting text. The Delivery Arcade UI PNG mini pack still exists only as design reference under `design/ui/delivery-arcade-assets/`.
+As of B074, the runtime UI uses the accepted Stack-like 2D direction: compact stage badge, top-center progress panel, theme-aware stage select, minimal result popup, no undo UI, and no central landing feedback toast. B073 converts phone `Screen.safeArea` pixels into UI Toolkit panel coordinates before laying out safe-root UI, and B074 adds safe-height-aware stage-select bottom spacing. Game-oriented free fonts are still applied through both `unityFont` and `unityFontDefinition`: DNF BitBit v2 for HUD/title/button text and Gmarket Sans Bold for supporting text. The Delivery Arcade UI PNG mini pack remains historical reference only under `design/ui/delivery-arcade-assets/`; do not apply it unless the Delivery Arcade direction is explicitly reopened.
 
 ## Next Suggested Task
 

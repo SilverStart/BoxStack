@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B074 prototype asset loading/storage productization decisions
+Task: B075 Delivery Arcade PNG historical reference decision
 Runtime Marker: B074
-Latest Commit: pending B074 제품화 결정 문서 커밋
-Dirty Worktree: clean after B074 asset loading/storage decision docs commit
+Latest Commit: ca6d503 B074 제품화 전환 결정 기록
+Dirty Worktree: clean after B075 Delivery Arcade PNG historical reference decision commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: clean after B074 asset loading/storage decision docs commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B074`이다.
-- 최신 커밋은 `8545856 B074 플레이테스트 수용 기록`이다.
+- 최신 커밋은 `ca6d503 B074 제품화 전환 결정 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -41,6 +41,7 @@ Dirty Worktree: clean after B074 asset loading/storage decision docs commit
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으므로, 제품화 트리거가 생기기 전에는 새 패키지를 추가하지 않는다.
 - 스테이지 진행 저장은 현재 최고 해금 스테이지 번호 하나만 `BoxStackStageProgressStore`를 통해 `PlayerPrefs`에 저장한다. 프로토타입 동안은 유지하고, App-in-Toss 생산 환경의 특정 저장 API 요구, 계정/기기 간 동기화, 별/재화/이벤트 진행 같은 확장 저장값이 생길 때만 내부 저장 방식을 교체한다.
 - 반복 mobile WebGL 확인은 Unity AIT 메뉴 대신 공용 `Start-AitUnityDevServer.ps1` 또는 프로젝트 로컬 `tools/start-ait-dev-server.ps1`로 별도 PowerShell 서버를 띄우는 방식으로 진행한다.
+- `design/ui/delivery-arcade-assets/` PNG 미니팩은 현재 Stack-like 2D 런타임 방향에 적용하지 않는 역사적 디자인 참고 자료로 둔다.
 
 ## Active Decisions
 
@@ -54,7 +55,7 @@ Dirty Worktree: clean after B074 asset loading/storage decision docs commit
 
 ## Next Action
 
-- 현재 에셋 로딩/스테이지 진행 저장 제품화 결정 문서 변경사항을 검토하고 커밋 여부를 결정한다.
+- 다음 작업을 리스트업하고 우선순위를 결정한다.
 
 ## Open Questions
 
