@@ -27,8 +27,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         linearDamping: 0.6f,
         angularDamping: 0.8f,
         lostHeight: -4.0f,
-        lostHorizontalDistance: 4.0f,
-        stackLineTolerance: 0.75f);
+        lostHorizontalDistance: 4.0f);
 
     private static readonly StageSettings[] DefaultStages =
     {
@@ -137,8 +136,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             float linearDamping,
             float angularDamping,
             float lostHeight,
-            float lostHorizontalDistance,
-            float stackLineTolerance)
+            float lostHorizontalDistance)
         {
             BaseMoveRange = baseMoveRange;
             BaseMoveSpeed = baseMoveSpeed;
@@ -158,7 +156,6 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             AngularDamping = angularDamping;
             LostHeight = lostHeight;
             LostHorizontalDistance = lostHorizontalDistance;
-            StackLineTolerance = stackLineTolerance;
         }
 
         public float BaseMoveRange;
@@ -179,7 +176,6 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         public float AngularDamping;
         public float LostHeight;
         public float LostHorizontalDistance;
-        public float StackLineTolerance;
     }
 
     [Serializable]

@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-05-19
-런타임 마커: B083
+런타임 마커: B084
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -194,7 +194,8 @@
 먼저 볼 곳:
 - `BoxStackPrototype.AnyBoxLost`
 - `BoxStackPrototype.BoxIsLost`
-- `BoxStackPrototype.StackIsSingleColumn`
+- `BoxStackPrototype.StackHasMultipleFloorContacts`
+- `BoxStackPrototype.BoxIsTouchingFloor`
 - `BoxStackPrototype.BeginClearValidation`
 
 
@@ -292,4 +293,5 @@
 
 - B074는 스테이지 선택 팝업이 모바일 화면 하단에 너무 붙지 않도록 safe-area 높이 기준의 하단 여백과 패널 최대 높이를 함께 계산합니다.
 - B083은 박스를 놓은 뒤 고정 1초 대기 대신 떨어진 박스와 기존 탑의 선형/각속도가 안정 기준 아래로 유지될 때 다음 박스를 생성합니다.
+- B084는 single-column x 허용 오차 실패를 제거하고, 두 개 이상의 박스가 바닥 콜라이더에 닿으면 실패하도록 바꿉니다. `STACK SPREAD` 실패에서는 떨어진 원인 박스를 삭제하지 않고 남겨 정지시켜 실패 이유가 보이게 합니다. 실패 이후 기존 `ResolveDrop` 코루틴이 이어져 다시 `Playing`으로 돌아가지 않도록 상태 guard를 둡니다.
 - 코드 변경으로 기능 책임, 파일 위치, 주요 메서드, 실행 흐름, 주의점이 달라지면 이 코드 맵도 같은 변경 묶음에서 갱신합니다.

@@ -31,7 +31,6 @@ MonoBehaviour:
     AngularDamping: 0.8
     LostHeight: -4
     LostHorizontalDistance: 4
-    StackLineTolerance: 0.75
   stages:
   - Number: 1
     TargetBoxes: 4

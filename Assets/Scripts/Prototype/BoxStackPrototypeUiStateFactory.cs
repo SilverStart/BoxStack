@@ -55,9 +55,12 @@ internal sealed class BoxStackPrototypeUiStateFactory
                 : "20스테이지를 모두 클리어했어요";
         }
 
-        return statusText == "STACK CROOKED"
-            ? "한 줄로 쌓이지 않았어요"
-            : "박스가 떨어졌어요";
+        if (statusText == "STACK SPREAD")
+        {
+            return "바닥에 박스가 두 개 닿았어요";
+        }
+
+        return "박스가 떨어졌어요";
     }
 
     private static string GetResultButtonLabel(bool won, bool hasNextStage)

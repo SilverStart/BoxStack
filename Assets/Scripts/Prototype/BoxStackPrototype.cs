@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 83;
+    private const int PrototypeBuildNumber = 84;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -34,6 +34,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Sprite _backgroundSprite;
     private SpriteRenderer _floorRenderer;
     private SpriteRenderer _backgroundRenderer;
+    private Collider2D _floorCollider;
     private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
@@ -200,9 +201,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
             {
                 EndRun(false, "STACK LOST");
             }
-            else if (!StackIsSingleColumn())
+            else if (StackHasMultipleFloorContacts())
             {
-                EndRun(false, "STACK CROOKED");
+                EndRun(false, "STACK SPREAD");
             }
         }
         else if (_state == BoxStackPrototypeState.ResolvingDrop)
@@ -211,9 +212,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
             {
                 EndRun(false, "STACK LOST");
             }
-            else if (!StackIsSingleColumn())
+            else if (StackHasMultipleFloorContacts())
             {
-                EndRun(false, "STACK CROOKED");
+                EndRun(false, "STACK SPREAD");
             }
         }
         else if (_state == BoxStackPrototypeState.ValidatingClear)
@@ -358,6 +359,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         var collider = floor.AddComponent<BoxCollider2D>();
         collider.size = new Vector2(6.2f, FloorHeight);
         collider.sharedMaterial = _floorPhysicsMaterial;
+        _floorCollider = collider;
 
         UpdateMinimumCameraY();
     }
@@ -695,8 +697,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0f;
 
-        StartCoroutine(ResolveDrop(_activeBox));
         _droppingBox = _activeBox;
+        StartCoroutine(ResolveDrop(_droppingBox));
         _activeBox = null;
     }
 
@@ -728,6 +730,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         while (true)
         {
+            if (_state != BoxStackPrototypeState.ResolvingDrop)
+            {
+                yield break;
+            }
+
             if (droppedBox == null || BoxIsLost(droppedBox))
             {
                 EndRun(false, "MISSED");
@@ -740,9 +747,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
                 yield break;
             }
 
-            if (!StackIsSingleColumn())
+            if (StackHasMultipleFloorContacts(droppedBox))
             {
-                EndRun(false, "STACK CROOKED");
+                EndRun(false, "STACK SPREAD");
                 yield break;
             }
 
@@ -768,6 +775,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield return null;
         }
 
+        if (_state != BoxStackPrototypeState.ResolvingDrop)
+        {
+            yield break;
+        }
+
         if (droppedBox == null || BoxIsLost(droppedBox))
         {
             EndRun(false, "MISSED");
@@ -787,18 +799,27 @@ public sealed class BoxStackPrototype : MonoBehaviour
             body.gravityScale = Tuning.SettledGravityScale;
         }
 
-        _placedBoxes.Add(droppedBox);
+        if (!_placedBoxes.Contains(droppedBox))
+        {
+            _placedBoxes.Add(droppedBox);
+        }
+
         _droppingBox = null;
 
-        if (!StackIsSingleColumn())
+        if (StackHasMultipleFloorContacts())
         {
-            EndRun(false, "STACK CROOKED");
+            EndRun(false, "STACK SPREAD");
             yield break;
         }
 
         if (_placedBoxes.Count >= CurrentTargetBoxes)
         {
             BeginClearValidation();
+            yield break;
+        }
+
+        if (_state != BoxStackPrototypeState.ResolvingDrop)
+        {
             yield break;
         }
 
@@ -859,9 +880,9 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (!StackIsSingleColumn())
+        if (StackHasMultipleFloorContacts())
         {
-            EndRun(false, "STACK CROOKED");
+            EndRun(false, "STACK SPREAD");
             return;
         }
 
@@ -895,7 +916,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (_droppingBox != null && !_placedBoxes.Contains(_droppingBox))
         {
-            Destroy(_droppingBox);
+            if (status == "STACK SPREAD")
+            {
+                _placedBoxes.Add(_droppingBox);
+            }
+            else
+            {
+                Destroy(_droppingBox);
+            }
         }
 
         _droppingBox = null;
@@ -938,29 +966,44 @@ public sealed class BoxStackPrototype : MonoBehaviour
         return false;
     }
 
-    private bool StackIsSingleColumn()
+    private bool StackHasMultipleFloorContacts(GameObject extraBox = null)
     {
-        if (_placedBoxes.Count == 0)
-        {
-            return true;
-        }
-
-        if (_placedBoxes[0] == null)
+        if (_floorCollider == null)
         {
             return false;
         }
 
-        float referenceX = _placedBoxes[0].transform.position.x;
-        for (int i = 1; i < _placedBoxes.Count; i++)
+        int floorContactCount = 0;
+        for (int i = 0; i < _placedBoxes.Count; i++)
         {
-            GameObject box = _placedBoxes[i];
-            if (box == null || Mathf.Abs(box.transform.position.x - referenceX) > Tuning.StackLineTolerance)
+            if (BoxIsTouchingFloor(_placedBoxes[i]))
             {
-                return false;
+                floorContactCount++;
+                if (floorContactCount >= 2)
+                {
+                    return true;
+                }
             }
         }
 
-        return true;
+        GameObject boxToCheck = extraBox != null ? extraBox : _droppingBox;
+        if (BoxIsTouchingFloor(boxToCheck))
+        {
+            floorContactCount++;
+        }
+
+        return floorContactCount >= 2;
+    }
+
+    private bool BoxIsTouchingFloor(GameObject box)
+    {
+        if (box == null || _floorCollider == null)
+        {
+            return false;
+        }
+
+        var collider = box.GetComponent<Collider2D>();
+        return collider != null && collider.IsTouching(_floorCollider);
     }
 
     private bool BoxIsLost(GameObject box)
