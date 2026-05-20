@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: B084 floor-contact failure rule
+Task: Next task selection after B084 late-stage acceptance
 Runtime Marker: B084
-Latest Commit: 29ed9ba B083 스택 안정 후 다음 박스 생성
-Dirty Worktree: B084 runtime and documentation update in progress
+Latest Commit: e14c89c B084 바닥 접촉 실패 판정
+Dirty Worktree: B084 checklist acceptance documentation pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B084 runtime and documentation update in progress
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B084`이다.
-- 최신 커밋은 `29ed9ba B083 스택 안정 후 다음 박스 생성`이다.
+- 최신 커밋은 `e14c89c B084 바닥 접촉 실패 판정`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -50,7 +50,7 @@ Dirty Worktree: B084 runtime and documentation update in progress
 
 ## Next Action
 
-- B084 실패 규칙과 실패 후 새 박스 생성 방지 동작은 사용자 테스트에서 문제 없음으로 확인되었다. 현재 변경 묶음을 커밋한 뒤 다음 작업을 확인한다.
+- B084 이후 후반 12박스 스테이지 난이도와 클리어 납득감 재확인은 사용자 수동 확인에서 문제 없음으로 수용되었고, 결과를 `production/qa/playtests/playtest-2026-05-20-b084-late-stage-floor-contact-fairness.md`에 기록했다. 다음 행동은 현재 문서 변경을 커밋한 뒤, 실제 App-in-Toss WebView 기준 확인 또는 다음 남은 작업을 선택하는 것이다.
 
 ## Open Questions
 
@@ -61,7 +61,7 @@ Dirty Worktree: B084 runtime and documentation update in progress
 
 - `active.md`가 다시 긴 히스토리 누적 문서가 되면 상태 확인 요청마다 토큰을 크게 소모한다.
 - B074 phone WebGL 평가는 수용됐지만, 이후 UI 레이아웃을 바꾸면 실제 모바일 WebGL에서 다시 확인해야 한다.
-- B084는 실패 판단 규칙을 바꾸므로 후반 12박스 스테이지 난이도와 클리어 납득감을 다시 확인해야 한다.
+- B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
 
 ## References
 
