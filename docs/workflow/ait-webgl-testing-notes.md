@@ -1,6 +1,6 @@
 # AIT WebGL Testing Notes
 
-Last updated: 2026-05-18
+Last updated: 2026-05-21
 
 This note captures the current Apps in Toss / Unity WebGL findings so a new session can continue without rediscovering the same issues.
 
@@ -18,10 +18,11 @@ For normal C# iteration, AI agents should prefer `dotnet build BoxStack.slnx`. D
 - Current font direction: `DNFBitBitv2.otf` is used for game-like HUD/title/button text, `GmarketSansBold.ttf` for supporting UI text, and `NotoSansKR-VF.ttf` remains as Korean fallback.
 - Current asset loading boundary: `BoxStackPrototypeAssetLoader` owns prototype config, font resources, parcel/background sprite loading, Editor-only PNG fallback, runtime sprite creation, placeholder parcel creation, solid sprite creation, and visible-alpha rect calculation.
 - Current progress storage boundary: `BoxStackStageProgressStore` owns highest-unlocked-stage persistence and currently uses Unity `PlayerPrefs`.
-- Current runtime marker: `B074`.
+- Current runtime marker: `B084`.
 - B071 phone browser testing found a real-device UI clipping issue: the top-center box indicator, clear result popup, and stage select popup can be cut off outside the visible phone screen.
 - B073 changes safe-area handling in `BoxStackPrototypeUi` so `Screen.safeArea` pixel coordinates are converted into UI Toolkit panel coordinates before applying `_safeRoot`, overlay bounds, HUD layout, and touch hit-tests.
 - B074 changes the stage-select popup layout so mobile height calculations reserve a computed bottom margin inside the safe area and slightly reduce stage tile height/gaps when vertical space is tight.
+- B084 WebGL was rebuilt through `tools/build-webgl.ps1` and served through the long-lived AIT Vite server. The root `ait-build/index.html` now points to the B084 build hashes, so phone/browser reloads should show `B084` instead of the older B074 build.
 
 ## Dev Server Finding
 
@@ -116,6 +117,31 @@ If the page works briefly and then connection is refused, re-check whether port 
 
 ```powershell
 Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue
+```
+
+## Batch WebGL Build
+
+For repeatable WebGL builds, use the project-local batch build wrapper:
+
+```powershell
+.\tools\build-webgl.ps1 -Development
+```
+
+The script runs Unity `6000.0.73f1` in batchmode through `Assets/Editor/BoxStackWebGlBuilder.cs`, builds WebGL into `webgl/`, syncs `Build`, `TemplateData`, and `Runtime` into `ait-build/public`, and updates `ait-build/index.html` so it references the new hashed Unity build files.
+
+Unity Editor must not have `C:\unity\BoxStack` open while this runs, because Unity cannot open the same project in Editor and batchmode at the same time.
+
+If a Unity build already completed and only the AIT Vite files need to be refreshed, run:
+
+```powershell
+.\tools\build-webgl.ps1 -SkipUnityBuild
+```
+
+After either command completes, keep the AIT dev server running and refresh:
+
+```text
+http://localhost:5173/index.html?v=B084-build-check
+http://172.30.1.14:5173/index.html?v=B084-build-check
 ```
 
 ## WebGL Visual Asset Finding

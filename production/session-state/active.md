@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Next task selection after B084 late-stage acceptance
+Task: Commit current WebGL automation and B085 rejection records
 Runtime Marker: B084
-Latest Commit: e14c89c B084 바닥 접촉 실패 판정
-Dirty Worktree: B084 checklist acceptance documentation pending commit
+Latest Commit: 619ac6c B084 후반 스테이지 점검 수용 기록
+Dirty Worktree: WebGL build automation, B084 WebView checklist, and B085 rejection records pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B084 checklist acceptance documentation pending commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B084`이다.
-- 최신 커밋은 `e14c89c B084 바닥 접촉 실패 판정`이다.
+- 최신 커밋은 `619ac6c B084 후반 스테이지 점검 수용 기록`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -32,6 +32,8 @@ Dirty Worktree: B084 checklist acceptance documentation pending commit
 - B083은 박스를 놓은 뒤 고정 `DropSettleSeconds` 1초를 기다리는 방식 대신, 떨어진 박스와 기존 탑의 선형/각속도가 안정 기준 아래로 내려가 일정 시간 유지될 때 다음 박스를 생성하도록 바꿨다.
 - B084는 좌우 single-column 허용 오차를 넘으면 즉시 실패하던 규칙을 제거하고, 두 개 이상의 박스가 바닥 콜라이더에 닿으면 실패하도록 바꾼다. `STACK SPREAD` 실패에서는 원인 박스를 삭제하지 않고 남겨 정지시켜, 팝업 뒤에서도 실패 이유가 보이게 한다. 실패 이후 기존 `ResolveDrop` 코루틴이 이어져 새 박스를 생성하지 않도록 상태 guard도 추가했고, 사용자 테스트에서 실패 후 새 박스가 생성되지 않는 것을 확인했다.
 - `StackLineTolerance` 튜닝 값은 B084 규칙에서 더 이상 쓰지 않으므로 config와 config asset에서 제거한다.
+- B085의 이미 놓인 박스 x축 속도 감쇠/제한 실험은 모바일 테스트에서 부자연스럽게 느껴져 되돌렸다. 현재는 B084 물리/실패 판정 기준을 유지한다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준을 B084로 되돌렸으므로 다음 모바일/WebGL 확인 전에는 새 WebGL 빌드가 필요하다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다.
 - 스테이지 진행 저장은 현재 최고 해금 스테이지 번호 하나만 `BoxStackStageProgressStore`를 통해 `PlayerPrefs`에 저장한다.
@@ -50,7 +52,7 @@ Dirty Worktree: B084 checklist acceptance documentation pending commit
 
 ## Next Action
 
-- B084 이후 후반 12박스 스테이지 난이도와 클리어 납득감 재확인은 사용자 수동 확인에서 문제 없음으로 수용되었고, 결과를 `production/qa/playtests/playtest-2026-05-20-b084-late-stage-floor-contact-fairness.md`에 기록했다. 다음 행동은 현재 문서 변경을 커밋한 뒤, 실제 App-in-Toss WebView 기준 확인 또는 다음 남은 작업을 선택하는 것이다.
+- 다음 행동은 WebGL 배치 빌드 자동화, B084 App-in-Toss WebView 체크리스트, B085 lateral stabilization rejected 기록을 커밋하는 것이다. 커밋 이후 다음 작업을 선택하거나, 모바일/WebGL 확인이 필요하면 B084 기준으로 새 WebGL 빌드를 만든다.
 
 ## Open Questions
 
