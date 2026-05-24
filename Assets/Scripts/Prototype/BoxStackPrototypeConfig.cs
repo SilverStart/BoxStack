@@ -24,6 +24,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         settledGravityScale: 1.6f,
         droppingGravityScale: 1.1f,
         maxDroppingFallSpeed: 4.5f,
+        dropPreContactVelocityResetDistance: 0.12f,
         linearDamping: 0.6f,
         angularDamping: 0.8f,
         lostHeight: -4.0f,
@@ -133,6 +134,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             float settledGravityScale,
             float droppingGravityScale,
             float maxDroppingFallSpeed,
+            float dropPreContactVelocityResetDistance,
             float linearDamping,
             float angularDamping,
             float lostHeight,
@@ -152,6 +154,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
             SettledGravityScale = settledGravityScale;
             DroppingGravityScale = droppingGravityScale;
             MaxDroppingFallSpeed = maxDroppingFallSpeed;
+            DropPreContactVelocityResetDistance = dropPreContactVelocityResetDistance;
             LinearDamping = linearDamping;
             AngularDamping = angularDamping;
             LostHeight = lostHeight;
@@ -172,6 +175,7 @@ public sealed class BoxStackPrototypeConfig : ScriptableObject
         public float SettledGravityScale;
         public float DroppingGravityScale;
         public float MaxDroppingFallSpeed;
+        public float DropPreContactVelocityResetDistance;
         public float LinearDamping;
         public float AngularDamping;
         public float LostHeight;

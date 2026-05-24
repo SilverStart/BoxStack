@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 84;
+    private const int PrototypeBuildNumber = 86;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -38,6 +38,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
+    private bool _dropPreContactVelocityResetUsed;
     private GameObject _background;
     private BoxStackPrototypeUi _prototypeUi;
     private Font _displayFont;
@@ -229,6 +230,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_state == BoxStackPrototypeState.ResolvingDrop)
         {
+            ResetDroppingBoxVelocityBeforeStackContact();
             ClampDroppingBoxFallSpeed();
         }
     }
@@ -698,8 +700,61 @@ public sealed class BoxStackPrototype : MonoBehaviour
         body.angularVelocity = 0f;
 
         _droppingBox = _activeBox;
+        _dropPreContactVelocityResetUsed = false;
         StartCoroutine(ResolveDrop(_droppingBox));
         _activeBox = null;
+    }
+
+    private void ResetDroppingBoxVelocityBeforeStackContact()
+    {
+        if (_dropPreContactVelocityResetUsed || _droppingBox == null || _placedBoxes.Count == 0)
+        {
+            return;
+        }
+
+        float resetDistance = Tuning.DropPreContactVelocityResetDistance;
+        if (resetDistance <= 0f)
+        {
+            return;
+        }
+
+        var body = _droppingBox.GetComponent<Rigidbody2D>();
+        if (body == null || body.linearVelocity.y >= 0f)
+        {
+            return;
+        }
+
+        if (!_droppingBox.TryGetComponent(out BoxCollider2D droppingCollider))
+        {
+            return;
+        }
+
+        Bounds droppingBounds = droppingCollider.bounds;
+        for (int i = 0; i < _placedBoxes.Count; i++)
+        {
+            GameObject placedBox = _placedBoxes[i];
+            if (placedBox == null || !placedBox.TryGetComponent(out BoxCollider2D placedCollider))
+            {
+                continue;
+            }
+
+            Bounds placedBounds = placedCollider.bounds;
+            bool horizontallyOverlaps = droppingBounds.min.x < placedBounds.max.x
+                && droppingBounds.max.x > placedBounds.min.x;
+            if (!horizontallyOverlaps)
+            {
+                continue;
+            }
+
+            float verticalGap = droppingBounds.min.y - placedBounds.max.y;
+            if (verticalGap >= 0f && verticalGap <= resetDistance)
+            {
+                Vector2 velocity = body.linearVelocity;
+                body.linearVelocity = new Vector2(velocity.x, 0f);
+                _dropPreContactVelocityResetUsed = true;
+                return;
+            }
+        }
     }
 
     private void ClampDroppingBoxFallSpeed()

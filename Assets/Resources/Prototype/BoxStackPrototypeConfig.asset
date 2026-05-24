@@ -27,6 +27,7 @@ MonoBehaviour:
     SettledGravityScale: 1.6
     DroppingGravityScale: 1.1
     MaxDroppingFallSpeed: 4.5
+    DropPreContactVelocityResetDistance: 0.12
     LinearDamping: 0.6
     AngularDamping: 0.8
     LostHeight: -4

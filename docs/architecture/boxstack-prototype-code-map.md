@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-05-23
-런타임 마커: B084
+마지막 갱신: 2026-05-24
+런타임 마커: B086
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -45,6 +45,7 @@
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 배경/바닥/UI 전달 색을 갱신합니다.
 - `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환합니다.
+- `ResetDroppingBoxVelocityBeforeStackContact`: 낙하 박스가 기존 박스와 거의 닿기 직전일 때 y축 속도를 1회 0으로 리셋해 충돌 충격을 줄입니다.
 - `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
 - `StackMotionIsStable` / `BoxMotionIsStable`: 드롭 해소 중 다음 박스를 생성해도 되는지 선형/각속도 임계값으로 판정합니다.
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
@@ -65,7 +66,7 @@
 - 스테이지별 박스 시퀀스.
 - 스테이지별 속도/범위 배율.
 - 기본 이동 범위와 이동 속도.
-- 마찰, 중력, 감쇠, 낙하 속도 제한.
+- 마찰, 중력, 감쇠, 낙하 속도 제한, 기존 스택 접촉 직전 낙하 속도 리셋 거리.
 - 클리어 검증 시간.
 - 단일 컬럼 허용 오차.
 
@@ -171,6 +172,7 @@
 
 먼저 볼 곳:
 - `BoxStackPrototype.DropActiveBox`
+- `BoxStackPrototype.ResetDroppingBoxVelocityBeforeStackContact`
 - `BoxStackPrototype.ClampDroppingBoxFallSpeed`
 - `BoxStackPrototype.ResolveDrop`
 - `BoxStackPrototype.StackMotionIsStable`
@@ -178,7 +180,7 @@
 - `BoxStackPrototype.CreatePhysicsMaterials`
 - `BoxStackPrototypeConfig.TuningSettings`
 
-박스가 떨어질 때의 중력, 최대 낙하 속도, 마찰, 감쇠, 정착 판정을 처리합니다.
+박스가 떨어질 때의 중력, 최대 낙하 속도, 기존 스택 접촉 직전 속도 리셋, 마찰, 감쇠, 정착 판정을 처리합니다.
 
 ### 블록 비주얼
 
@@ -295,4 +297,5 @@
 - B083은 박스를 놓은 뒤 고정 1초 대기 대신 떨어진 박스와 기존 탑의 선형/각속도가 안정 기준 아래로 유지될 때 다음 박스를 생성합니다.
 - B084는 single-column x 허용 오차 실패를 제거하고, 두 개 이상의 박스가 바닥 콜라이더에 닿으면 실패하도록 바꿉니다. `STACK SPREAD` 실패에서는 떨어진 원인 박스를 삭제하지 않고 남겨 정지시켜 실패 이유가 보이게 합니다. 실패 이후 기존 `ResolveDrop` 코루틴이 이어져 다시 `Playing`으로 돌아가지 않도록 상태 guard를 둡니다.
 - B085의 놓인 박스 x축 속도 감쇠/제한 실험은 테스트 결과 부자연스러워 적용하지 않습니다. 현재 활성 런타임 기준은 B084입니다.
+- B086은 낙하 속도 상한은 유지하되, 낙하 박스가 기존 박스와 거의 닿기 직전 y축 속도를 1회 0으로 리셋해 박스끼리 충돌 충격으로 서로 좌우로 밀어내는 현상을 줄입니다. 기존에 놓인 박스의 x축 속도나 Rigidbody constraint는 건드리지 않으며, 사용자 확인에서 B085보다 자연스럽다고 수용했습니다.
 - 코드 변경으로 기능 책임, 파일 위치, 주요 메서드, 실행 흐름, 주의점이 달라지면 이 코드 맵도 같은 변경 묶음에서 갱신합니다.
