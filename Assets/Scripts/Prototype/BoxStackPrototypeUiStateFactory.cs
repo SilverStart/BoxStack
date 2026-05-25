@@ -50,17 +50,15 @@ internal sealed class BoxStackPrototypeUiStateFactory
     {
         if (won)
         {
-            return hasNextStage
-                ? $"스테이지 {stageNumber} 클리어\n다음 스테이지가 열렸어요"
-                : "20스테이지를 모두 클리어했어요";
+            return "탑이 안정됐어요";
         }
 
         if (statusText == "STACK SPREAD")
         {
-            return "바닥에 박스가 두 개 닿았어요";
+            return "탑이 무너졌어요";
         }
 
-        return "박스가 떨어졌어요";
+        return "탑 밖으로 박스가 떨어졌어요";
     }
 
     private static string GetResultButtonLabel(bool won, bool hasNextStage)

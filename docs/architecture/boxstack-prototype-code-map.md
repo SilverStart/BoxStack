@@ -222,7 +222,7 @@
 - `BoxStackPrototypeUiStateFactory.GetResultBody`
 - `BoxStackPrototypeUiStateFactory.GetResultButtonLabel`
 
-결과 팝업 문구 변경이 필요할 때 이 파일을 먼저 확인합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
+결과 팝업 문구 변경이 필요할 때 이 파일을 먼저 확인합니다. B088 기준 결과 팝업 본문은 클리어를 `탑이 안정됐어요`, `STACK SPREAD` 실패를 `탑이 무너졌어요`로 짧게 표현합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
 
 ### UI 레이아웃과 스타일
 

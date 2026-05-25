@@ -2,9 +2,9 @@
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: BoxStack identity direction outline
-Runtime Marker: B086
-Latest Commit: c4c35d7 문서 상태 동기화와 WebGL 보류 기록
-Dirty Worktree: BoxStack identity direction document in progress
+Runtime Marker: B088
+Latest Commit: ca05d4e BoxStack 정체성 방향 정리
+Dirty Worktree: B088 tower-state result copy accepted, pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,7 +19,7 @@ Dirty Worktree: BoxStack identity direction document in progress
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B086`이다.
+- 현재 런타임 마커는 `B088`이다.
 - 최신 커밋은 `abd8b6c B086 접촉 직전 낙하 충격 완화`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
@@ -34,7 +34,9 @@ Dirty Worktree: BoxStack identity direction document in progress
 - `StackLineTolerance` 튜닝 값은 B084 규칙에서 더 이상 쓰지 않으므로 config와 config asset에서 제거한다.
 - B085의 이미 놓인 박스 x축 속도 감쇠/제한 실험은 모바일 테스트에서 부자연스럽게 느껴져 되돌렸다. 현재는 B084 물리/실패 판정 기준을 유지한다.
 - B086은 낙하 속도 상한을 유지하면서, 떨어지는 박스가 기존 박스와 거의 닿기 직전 y축 속도를 1회 0으로 리셋해 박스끼리 충돌로 서로 좌우로 밀어내는 현상을 줄인다. 기존에 놓인 박스의 x축 속도나 Rigidbody constraint는 건드리지 않는다. 사용자 확인에서 B085보다 훨씬 괜찮다고 수용했다.
-- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B086으로 바뀌었으므로 현재 B086 기준 새 WebGL 빌드가 필요하다. 첫 batchmode 시도는 같은 프로젝트를 연 Unity Editor가 있어 중단되었다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
+- 착지 정확도 감각을 진행 슬롯 색/테두리로 아주 작게 표시하는 B087 실험은 체감 변화가 약하고 굳이 필요 없는 효과로 판단되어 적용하지 않는다. 현재 런타임은 B086 기준으로 유지한다.
+- B088은 타워 안정성 드라마 후보의 첫 번째 작은 실험이다. 새 HUD/게이지 없이 결과 팝업 문구만 탑 상태와 연결해, 클리어 본문은 `탑이 안정됐어요`, 바닥 접촉 실패 본문은 `탑이 무너졌어요`로 통일한다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B088로 바뀌었으므로 이후 phone/WebGL 확인 전에는 B088 기준 새 WebGL 빌드가 필요하다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
@@ -55,7 +57,7 @@ Dirty Worktree: BoxStack identity direction document in progress
 
 ## Next Action
 
-- `design/ui/boxstack-identity-directions-2026-05-25.md` 기준으로 1순위 후보인 착지 정확도 감각을 실제 프로토타입 실험으로 진행할지 결정한다. 첫 실험은 기존 HUD 안에서 아주 작게 피드백하고, 중앙 토스트/새 블록 외형/점수 경제는 추가하지 않는 방향이 좋다.
+- B088 결과 팝업 문구 변경을 커밋한다. 이후 다음 정체성 후보를 계속 진행한다면 스테이지 성격/프레이밍 쪽을 검토한다.
 
 ## Open Questions
 
