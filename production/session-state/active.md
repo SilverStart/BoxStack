@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Commit accepted B086 pre-contact drop velocity reset
+Task: BoxStack identity direction outline
 Runtime Marker: B086
-Latest Commit: b47f619 WebGL 빌드 자동화와 B085 회고 기록
-Dirty Worktree: Accepted B086 pre-contact drop velocity reset pending commit
+Latest Commit: abd8b6c B086 접촉 직전 낙하 충격 완화
+Dirty Worktree: Documentation sync for deferred WebGL and decision reviews pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: Accepted B086 pre-contact drop velocity reset pending commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B086`이다.
-- 최신 커밋은 `b47f619 WebGL 빌드 자동화와 B085 회고 기록`이다.
+- 최신 커밋은 `abd8b6c B086 접촉 직전 낙하 충격 완화`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -34,10 +34,11 @@ Dirty Worktree: Accepted B086 pre-contact drop velocity reset pending commit
 - `StackLineTolerance` 튜닝 값은 B084 규칙에서 더 이상 쓰지 않으므로 config와 config asset에서 제거한다.
 - B085의 이미 놓인 박스 x축 속도 감쇠/제한 실험은 모바일 테스트에서 부자연스럽게 느껴져 되돌렸다. 현재는 B084 물리/실패 판정 기준을 유지한다.
 - B086은 낙하 속도 상한을 유지하면서, 떨어지는 박스가 기존 박스와 거의 닿기 직전 y축 속도를 1회 0으로 리셋해 박스끼리 충돌로 서로 좌우로 밀어내는 현상을 줄인다. 기존에 놓인 박스의 x축 속도나 Rigidbody constraint는 건드리지 않는다. 사용자 확인에서 B085보다 훨씬 괜찮다고 수용했다.
-- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B086으로 바뀌었으므로 다음 모바일/WebGL 확인 전에는 새 WebGL 빌드가 필요하다.
-- `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다.
-- `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다.
-- 스테이지 진행 저장은 현재 최고 해금 스테이지 번호 하나만 `BoxStackStageProgressStore`를 통해 `PlayerPrefs`에 저장한다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B086으로 바뀌었으므로 현재 B086 기준 새 WebGL 빌드가 필요하다. 첫 batchmode 시도는 같은 프로젝트를 연 Unity Editor가 있어 중단되었다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
+- 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
+- `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
+- `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
+- 스테이지 진행 저장은 현재 최고 해금 스테이지 번호 하나만 `BoxStackStageProgressStore`를 통해 `PlayerPrefs`에 저장한다. `docs/architecture/boxstack-stage-progress-storage-decision.md` 기준으로 현재 프로토타입에서는 충분하며, App-in-Toss 정책, 계정/기기 동기화, 저장 데이터 확장, migration/analytics/anti-tamper/server validation 요구가 생길 때만 내부를 교체한다.
 - 반복 mobile WebGL 확인은 Unity AIT 메뉴 대신 공용 `Start-AitUnityDevServer.ps1` 또는 프로젝트 로컬 `tools/start-ait-dev-server.ps1`로 별도 PowerShell 서버를 띄우는 방식을 우선한다.
 - `design/ui/delivery-arcade-assets/` PNG 미니팩은 현재 Stack-like 2D 방향에 적용하지 않는 역사적 디자인 참고 자료로 둔다.
 
@@ -53,12 +54,12 @@ Dirty Worktree: Accepted B086 pre-contact drop velocity reset pending commit
 
 ## Next Action
 
-- 다음 행동은 수용된 B086 pre-contact drop velocity reset 변경과 문서 기록을 커밋하는 것이다. 모바일/WebGL 확인이 필요하면 커밋 이후 B086 기준으로 새 WebGL 빌드를 만든다.
+- WebGL 재빌드와 phone/App-in-Toss WebView 확인은 나중으로 미룬다. 다음 비-WebGL 작업은 현재 Stack-like 2D가 너무 단순한 클론처럼 보일 위험을 줄이기 위해, 색상/블록 외 실험 없이 BoxStack만의 정체성을 키울 후보(상호작용 감각, 점수/스테이지 프레이밍, 오디오, 배치 품질 피드백 등)를 정리하는 것이다.
 
 ## Open Questions
 
 - 실제 App-in-Toss MVP 에셋 목록이 고정되면 어떤 에셋은 직렬화 참조로 두고 어떤 에셋만 Addressables 후보로 둘지 분류해야 한다.
-- 실제 App-in-Toss 저장 정책이 확정되면 `PlayerPrefs`를 계속 써도 되는지, 아니면 AIT 저장 브리지나 서버 저장으로 교체해야 하는지 확인해야 한다.
+- 실제 App-in-Toss 저장 정책이 확정되면 `PlayerPrefs`를 계속 써도 되는지, 아니면 AIT 저장 브리지나 서버 저장으로 교체해야 하는지 확인해야 한다. 현재 프로토타입에서는 교체하지 않는다.
 
 ## Risks
 
