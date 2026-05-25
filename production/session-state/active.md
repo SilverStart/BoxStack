@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: BoxStack identity direction outline
 Runtime Marker: B086
-Latest Commit: abd8b6c B086 접촉 직전 낙하 충격 완화
-Dirty Worktree: Documentation sync for deferred WebGL and decision reviews pending commit
+Latest Commit: c4c35d7 문서 상태 동기화와 WebGL 보류 기록
+Dirty Worktree: BoxStack identity direction document in progress
 <!-- /STATUS -->
 
 # Active Session State
@@ -38,6 +38,7 @@ Dirty Worktree: Documentation sync for deferred WebGL and decision reviews pendi
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
+- BoxStack 고유 정체성 후보는 `design/ui/boxstack-identity-directions-2026-05-25.md`에 정리 중이다. 색상/블록 외형 실험은 재개하지 않고, 우선순위는 착지 정확도 감각, 타워 안정성 드라마, 스테이지 프레이밍, 기록 추구, 오디오/햅틱 순서다.
 - 스테이지 진행 저장은 현재 최고 해금 스테이지 번호 하나만 `BoxStackStageProgressStore`를 통해 `PlayerPrefs`에 저장한다. `docs/architecture/boxstack-stage-progress-storage-decision.md` 기준으로 현재 프로토타입에서는 충분하며, App-in-Toss 정책, 계정/기기 동기화, 저장 데이터 확장, migration/analytics/anti-tamper/server validation 요구가 생길 때만 내부를 교체한다.
 - 반복 mobile WebGL 확인은 Unity AIT 메뉴 대신 공용 `Start-AitUnityDevServer.ps1` 또는 프로젝트 로컬 `tools/start-ait-dev-server.ps1`로 별도 PowerShell 서버를 띄우는 방식을 우선한다.
 - `design/ui/delivery-arcade-assets/` PNG 미니팩은 현재 Stack-like 2D 방향에 적용하지 않는 역사적 디자인 참고 자료로 둔다.
@@ -54,7 +55,7 @@ Dirty Worktree: Documentation sync for deferred WebGL and decision reviews pendi
 
 ## Next Action
 
-- WebGL 재빌드와 phone/App-in-Toss WebView 확인은 나중으로 미룬다. 다음 비-WebGL 작업은 현재 Stack-like 2D가 너무 단순한 클론처럼 보일 위험을 줄이기 위해, 색상/블록 외 실험 없이 BoxStack만의 정체성을 키울 후보(상호작용 감각, 점수/스테이지 프레이밍, 오디오, 배치 품질 피드백 등)를 정리하는 것이다.
+- `design/ui/boxstack-identity-directions-2026-05-25.md` 기준으로 1순위 후보인 착지 정확도 감각을 실제 프로토타입 실험으로 진행할지 결정한다. 첫 실험은 기존 HUD 안에서 아주 작게 피드백하고, 중앙 토스트/새 블록 외형/점수 경제는 추가하지 않는 방향이 좋다.
 
 ## Open Questions
 
