@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-05-26
+Last updated: 2026-05-27
 
 ## Next Immediate Action
 
-B090 stage-select number tile pass is accepted: the B089 short challenge labels are removed, and stage-select tiles now focus on large `01`, `02`, `03` numbers that fill each tile. Next, commit the accepted B090 change.
+B091 clear-record result copy is accepted: when a stage clear also advances the player's highest progress, the result popup adds `최고 기록 갱신` under `탑이 안정됐어요`. Next, commit the accepted B091 change.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -193,6 +193,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-26: A small precision-landing progress-slot feedback pass was tried and rejected before commit. The change was too subtle to read during play and did not feel necessary, so the prototype remains on the B086 runtime baseline without landing-quality slot effects.
 - 2026-05-26: B088 tower-state result copy was added and accepted as a smaller identity experiment. Result popup body text now uses `탑이 안정됐어요` for clear and `탑이 무너졌어요` for floor-contact failure, without adding HUD meters, central toasts, scoring, or physics changes.
 - 2026-05-26: B089's short stage challenge labels were judged unnecessary before commit and removed. B090 instead makes stage-select tiles number-first, showing large `01`-style labels only. User confirmed this feels better. Gameplay tuning, stage config data, block visuals, result copy, and WebGL build output are unchanged.
+- 2026-05-26: B091 starts the record-chase direction with a minimal result-copy cue. A clear that reaches the current highest unlocked stage now marks the result body as `탑이 안정됐어요` plus `최고 기록 갱신`; replay clears below the current progress keep the plain stable-tower copy. No new score, combo, placement-quality counter, storage key, or WebGL build output is added.
+- 2026-05-27: User-led Editor Play check accepted the B091 `최고 기록 갱신` result-copy cue as not too heavy. Keep the record direction at this lightweight copy-only level for now.
 
 ## Current Decisions
 
@@ -234,6 +236,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Do not keep the rejected precision-landing progress-slot color/border effect as an active direction. If placement quality is revisited, it needs a clearer purpose than a subtle HUD-only effect.
 - B088 keeps the next identity test to result-copy only: no new tower stability meter, no central toast, and no physics/timing changes.
 - B090 keeps the stage-select grid lightweight by making each tile a large number tile. It does not add a new description row, long copy, chapter screen, scoring rule, or stage config data field.
+- B091 keeps record pursuit lightweight by using the existing highest-unlocked stage progress as an in-session/new-progress cue. It does not add persistent score tables, perfect/risky landing counters, daily challenges, or a new storage schema.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
@@ -242,7 +245,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This remains acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management, memory/build-size pressure, or App-in-Toss packaging policy requires it.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds. For repeatable WebGL builds, close the Unity Editor for this project and run `tools/build-webgl.ps1 -Development`; use `tools/build-webgl.ps1 -SkipUnityBuild` only to resync an already-created `webgl` build into the AIT Vite path.
 - Use a tiny in-game build marker during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B090`; documentation-only or design-asset-only commits do not require a build marker increment.
+- The current runtime build marker is `B091`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
@@ -265,7 +268,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
 - WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
 - Later 12-box stages, screen-clamped movement feel, softened falling-box impact, immediate collapse detection, floor-contact failure readability, and 5-second clear validation are accepted for the B084 baseline. B085 placed-box lateral velocity damping was tested and rejected as unnatural, so it should not be treated as an active tuning direction. B086 pre-contact drop velocity reset is accepted by user-led testing and should be rechecked only after another physics, movement, clear validation, or failure-rule change.
-- A B085 WebGL build was produced for mobile testing before the experiment was rejected. Because the runtime baseline is now B090, create a fresh WebGL build before any further phone/WebGL confirmation, but this check is intentionally deferred while non-WebGL decisions continue.
+- A B085 WebGL build was produced for mobile testing before the experiment was rejected. Because the runtime baseline is now B091, create a fresh WebGL build before any further phone/WebGL confirmation, but this check is intentionally deferred while non-WebGL decisions continue.
 - Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if interaction feel, scoring rules, stage framing, audio, or placement feedback do not develop a BoxStack-specific identity. Block color/depth experiments are intentionally paused for the current accepted baseline.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.

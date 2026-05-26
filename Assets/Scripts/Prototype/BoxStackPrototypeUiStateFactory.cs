@@ -28,7 +28,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             context.State == BoxStackPrototypeState.StageSelect,
             resultVisible,
             resultVisible ? GetResultTitle(won, hasNextStage) : string.Empty,
-            resultVisible ? GetResultBody(won, hasNextStage, currentStage.Number, context.StatusText) : string.Empty,
+            resultVisible ? GetResultBody(won, context.LastClearWasNewBest, context.StatusText) : string.Empty,
             resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
             context.ShowProgressControls,
             context.Palette,
@@ -45,11 +45,11 @@ internal sealed class BoxStackPrototypeUiStateFactory
         return hasNextStage ? "클리어!" : "전체 클리어!";
     }
 
-    private static string GetResultBody(bool won, bool hasNextStage, int stageNumber, string statusText)
+    private static string GetResultBody(bool won, bool lastClearWasNewBest, string statusText)
     {
         if (won)
         {
-            return "탑이 안정됐어요";
+            return lastClearWasNewBest ? "탑이 안정됐어요\n최고 기록 갱신" : "탑이 안정됐어요";
         }
 
         if (statusText == "STACK SPREAD")
@@ -92,6 +92,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             int targetBoxes,
             BoxStackPrototypeState state,
             string statusText,
+            bool lastClearWasNewBest,
             bool showProgressControls,
             BoxStackPrototypePalette palette)
         {
@@ -104,6 +105,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             TargetBoxes = targetBoxes;
             State = state;
             StatusText = statusText;
+            LastClearWasNewBest = lastClearWasNewBest;
             ShowProgressControls = showProgressControls;
             Palette = palette;
         }
@@ -117,6 +119,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
         internal int TargetBoxes { get; }
         internal BoxStackPrototypeState State { get; }
         internal string StatusText { get; }
+        internal bool LastClearWasNewBest { get; }
         internal bool ShowProgressControls { get; }
         internal BoxStackPrototypePalette Palette { get; }
     }

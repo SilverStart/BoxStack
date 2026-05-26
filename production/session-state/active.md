@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Stage select number tile pass
-Runtime Marker: B090
-Latest Commit: 00912cd B088 탑 상태 결과 문구 적용
-Dirty Worktree: B090 stage-select large number tiles accepted, pending commit
+Task: Clear record result copy pass
+Runtime Marker: B091
+Latest Commit: 1378e88 B090 스테이지 선택 숫자 타일 확대
+Dirty Worktree: B091 clear-record result copy accepted, pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: B090 stage-select large number tiles accepted, pending commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B090`이다.
-- 최신 커밋은 `00912cd B088 탑 상태 결과 문구 적용`이다.
+- 현재 런타임 마커는 `B091`이다.
+- 최신 커밋은 `1378e88 B090 스테이지 선택 숫자 타일 확대`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -37,7 +37,8 @@ Dirty Worktree: B090 stage-select large number tiles accepted, pending commit
 - 착지 정확도 감각을 진행 슬롯 색/테두리로 아주 작게 표시하는 B087 실험은 체감 변화가 약하고 굳이 필요 없는 효과로 판단되어 적용하지 않는다. 현재 런타임은 B086 기준으로 유지한다.
 - B088은 타워 안정성 드라마 후보의 첫 번째 작은 실험이다. 새 HUD/게이지 없이 결과 팝업 문구만 탑 상태와 연결해, 클리어 본문은 `탑이 안정됐어요`, 바닥 접촉 실패 본문은 `탑이 무너졌어요`로 통일한다.
 - B089에서 시도한 스테이지 도전 라벨은 철회했다. B090은 스테이지 선택 타일을 `01`, `02`, `03` 같은 큰 번호 중심으로 바꾸고, 현재/해금/잠김 상태는 라벨 텍스트 대신 색과 비활성 상태로 구분한다. 사용자 확인에서 이 방향이 더 낫다고 수용했다.
-- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B090으로 바뀌었으므로 이후 phone/WebGL 확인 전에는 B090 기준 새 WebGL 빌드가 필요하다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
+- B091은 기록 추구 후보의 첫 번째 작은 실험이다. 별도 점수/콤보/정확도 기록은 만들지 않고, 스테이지 클리어가 기존 최고 진행 지점을 갱신하는 경우 결과 팝업 본문에 `최고 기록 갱신` 한 줄만 추가한다. 사용자 확인에서 이 문구는 수용되었다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B091로 바뀌었으므로 이후 phone/WebGL 확인 전에는 B091 기준 새 WebGL 빌드가 필요하다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
@@ -58,7 +59,7 @@ Dirty Worktree: B090 stage-select large number tiles accepted, pending commit
 
 ## Next Action
 
-- B090 스테이지 선택 숫자 타일 변경을 커밋한다. 이후 다음 정체성 후보를 이어가되, 스테이지 라벨/설명 추가는 다시 시도하지 않는다.
+- B091 새 최고 진행 기록 결과 문구 수용 상태를 문서와 함께 커밋한다.
 
 ## Open Questions
 

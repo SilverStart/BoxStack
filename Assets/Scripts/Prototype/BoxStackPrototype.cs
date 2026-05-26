@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 90;
+    private const int PrototypeBuildNumber = 91;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -58,6 +58,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int _attempts;
     private int _currentStageIndex;
     private int _highestUnlockedStageIndex;
+    private bool _lastClearWasNewBest;
     private string _statusText = "READY";
 
     private static readonly Color StackLikeBackgroundColor = new Color(0.12f, 0.18f, 0.35f);
@@ -284,6 +285,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             CurrentTargetBoxes,
             _state,
             _statusText,
+            _lastClearWasNewBest,
             ShouldShowProgressTestControls(),
             _currentPalette)));
     }
@@ -394,6 +396,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _cameraVelocityY = 0f;
         _clearValidationEndTime = 0f;
         _attempts++;
+        _lastClearWasNewBest = false;
         _state = BoxStackPrototypeState.Playing;
         _statusText = $"RUN {_attempts}";
         SpawnNextBox();
@@ -958,6 +961,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _state = won ? BoxStackPrototypeState.Won : BoxStackPrototypeState.Failed;
         _statusText = status;
+        _lastClearWasNewBest = won && _currentStageIndex >= _highestUnlockedStageIndex;
         if (won)
         {
             UnlockNextStage();
