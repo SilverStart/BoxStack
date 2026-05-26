@@ -15,7 +15,6 @@ internal sealed class BoxStackPrototypeUiStateFactory
             BoxStackPrototypeConfig.StageSettings stage = context.GetStage(i);
             stages[i] = new BoxStackPrototypeUi.StageButtonState(
                 stage.Number,
-                stage.TargetBoxes,
                 i <= context.HighestUnlockedStageIndex,
                 i == context.CurrentStageIndex);
         }

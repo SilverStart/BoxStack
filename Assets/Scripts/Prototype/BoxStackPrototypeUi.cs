@@ -34,6 +34,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private const float StageTileMinHeight = 40f;
     private const float StageTileDefaultGap = 10f;
     private const float StageTileMinGap = 4f;
+    private const int StageTileNumberFontSize = 30;
     private const float ResultPanelMaxWidth = 360f;
 
     private static readonly Color HudBackgroundColor = new Color(0.05f, 0.08f, 0.16f, 0.36f);
@@ -89,16 +90,14 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     internal readonly struct StageButtonState
     {
-        internal StageButtonState(int number, int targetBoxes, bool unlocked, bool selected)
+        internal StageButtonState(int number, bool unlocked, bool selected)
         {
             Number = number;
-            TargetBoxes = targetBoxes;
             Unlocked = unlocked;
             Selected = selected;
         }
 
         internal int Number { get; }
-        internal int TargetBoxes { get; }
         internal bool Unlocked { get; }
         internal bool Selected { get; }
     }
@@ -617,8 +616,12 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
                 button.style.flexGrow = 1f;
                 button.style.marginLeft = 4f;
                 button.style.marginRight = 4f;
-                button.style.whiteSpace = WhiteSpace.Normal;
-                ApplyDisplayText(button, 15, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+                button.style.paddingLeft = 0f;
+                button.style.paddingRight = 0f;
+                button.style.paddingTop = 0f;
+                button.style.paddingBottom = 0f;
+                button.style.whiteSpace = WhiteSpace.NoWrap;
+                ApplyDisplayText(button, StageTileNumberFontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
                 rowElement.Add(button);
                 _stageButtons.Add(button);
             }
@@ -627,12 +630,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private static string GetStageButtonLabel(StageButtonState stage)
     {
-        if (!stage.Unlocked)
-        {
-            return $"{stage.Number:00}\n잠김";
-        }
-
-        return stage.Selected ? $"{stage.Number:00}\n현재" : $"{stage.Number:00}\n{stage.TargetBoxes}개";
+        return $"{stage.Number:00}";
     }
 
     private void ApplySafeArea(int stageCount, bool showProgressControls)
