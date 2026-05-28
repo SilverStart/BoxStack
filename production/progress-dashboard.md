@@ -4,7 +4,7 @@ Last updated: 2026-05-27
 
 ## Next Immediate Action
 
-B094 audio is accepted: the ascending placement scale, clear cue, and failure cue are loud enough and sufficient for the current prototype. Do not expand audio, haptics, mixer routing, or imported SFX unless a later productization pass explicitly reopens sound.
+B094 audio is accepted and committed as `ed2b76c B094 상승 음계 사운드 적용`: the ascending placement scale, clear cue, and failure cue are loud enough and sufficient for the current prototype. Do not expand audio, haptics, mixer routing, or imported SFX unless a later productization pass explicitly reopens sound.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
