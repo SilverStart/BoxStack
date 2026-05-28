@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 91;
+    private const int PrototypeBuildNumber = 94;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -41,6 +41,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private bool _dropPreContactVelocityResetUsed;
     private GameObject _background;
     private BoxStackPrototypeUi _prototypeUi;
+    private BoxStackPrototypeAudio _prototypeAudio;
     private Font _displayFont;
     private Font _bodyFont;
     private Font _fallbackFont;
@@ -151,6 +152,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         LoadStageProgress();
         ApplyCurrentStagePalette();
         EnsurePrototypeUi();
+        EnsurePrototypeAudio();
         RestartGame();
     }
 
@@ -268,6 +270,18 @@ public sealed class BoxStackPrototype : MonoBehaviour
             HandleCurrentResultButton);
     }
 
+    private void EnsurePrototypeAudio()
+    {
+        if (_prototypeAudio != null)
+        {
+            return;
+        }
+
+        var audioObject = new GameObject("BoxStack Prototype Audio");
+        audioObject.transform.SetParent(transform, false);
+        _prototypeAudio = audioObject.AddComponent<BoxStackPrototypeAudio>();
+    }
+
     private void RefreshPrototypeUi()
     {
         if (_prototypeUi == null)
@@ -343,6 +357,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         camera.transform.rotation = Quaternion.identity;
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = StackLikeBackgroundColor;
+        if (FindFirstObjectByType<AudioListener>() == null)
+        {
+            camera.gameObject.AddComponent<AudioListener>();
+        }
+
         return camera;
     }
 
@@ -870,6 +889,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
+        PlayPlacementFeedback(_placedBoxes.Count - 1);
+
         if (_placedBoxes.Count >= CurrentTargetBoxes)
         {
             BeginClearValidation();
@@ -987,7 +1008,33 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _droppingBox = null;
         FreezePlacedBoxPhysics();
+        PlayResultFeedback(won);
         RefreshPrototypeUi();
+    }
+
+    private void PlayPlacementFeedback(int placedBoxIndex)
+    {
+        if (_prototypeAudio != null)
+        {
+            _prototypeAudio.PlayPlacement(placedBoxIndex);
+        }
+    }
+
+    private void PlayResultFeedback(bool won)
+    {
+        if (_prototypeAudio == null)
+        {
+            return;
+        }
+
+        if (won)
+        {
+            _prototypeAudio.PlayClear();
+        }
+        else
+        {
+            _prototypeAudio.PlayFailure();
+        }
     }
 
     private void FreezePlacedBoxPhysics()

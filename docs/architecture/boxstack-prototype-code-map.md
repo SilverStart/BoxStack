@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-05-26
-런타임 마커: B091
+런타임 마커: B094
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -16,7 +16,7 @@
 4. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
 5. 보조 파일
-   - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 스테이지 진행 저장, 공유 상태 enum을 확인합니다.
+   - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
 
@@ -34,6 +34,7 @@
 - 성공/실패 판정.
 - 스테이지 선택과 스테이지 해금 흐름.
 - 현재 게임 상태를 UI 계층으로 전달.
+- 배치 안정, 클리어, 실패 시점에 작은 합성 효과음을 호출.
 
 주요 메서드:
 - `Bootstrap`: 씬 로드 후 프로토타입 오브젝트가 없으면 생성합니다.
@@ -120,6 +121,25 @@
 - `BoxStackPrototypeAssetLoader.CreateStackBlockPlaceholder`
 - `BoxStackPrototypeAssetLoader.LoadPrototypeSprite`
 - `BoxStackPrototypeAssetLoader.GetVisibleTextureRect`
+
+### `BoxStackPrototypeAudio.cs`
+
+프로토타입 전용 합성 효과음 경계입니다.
+
+담당 기능:
+- 별도 음원 파일 없이 런타임에서 짧은 톤 클립 생성.
+- 안정 배치용 도-레-미-파-솔-라-시-도 계열의 짧은 피아노풍 톤 재생.
+- 스테이지 클리어용 짧은 상승 chime 재생.
+- 실패용 낮은 thud 재생.
+
+먼저 확인할 변경:
+- `BoxStackPrototypeAudio.PlayPlacement`
+- `BoxStackPrototypeAudio.PlayClear`
+- `BoxStackPrototypeAudio.PlayFailure`
+- `BoxStackPrototypeAudio.CreateToneClip`
+- `BoxStackPrototypeAudio.CreatePianoToneClip`
+
+B094 기준 이 파일은 오디오 정체성 후보를 아주 작게 확인하기 위한 프로토타입 코드입니다. 배치음은 실제 피아노 샘플이 아니라 런타임 합성 피아노풍 톤이며, 놓인 박스 순서에 따라 C major 음계를 한 단계씩 올립니다. B094는 B093보다 마스터 볼륨과 각 cue 볼륨을 올려 Editor Play에서 더 잘 들리게 합니다. 오디오 에셋, Audio Mixer, 햅틱, 플랫폼 브리지는 아직 추가하지 않습니다.
 
 ### `BoxStackPrototypeBoxVisualCatalog.cs`
 
@@ -263,6 +283,7 @@
 -> `DropPressed`
 -> `DropActiveBox`
 -> `ResolveDrop`에서 떨어진 박스와 기존 탑의 움직임이 안정될 때까지 대기
+-> 안정 배치가 확정되면 놓인 박스 순서로 `BoxStackPrototypeAudio.PlayPlacement`
 -> `SpawnNextBox`, `BeginClearValidation`, `EndRun` 중 하나로 이동
 
 ### 스테이지 클리어
@@ -272,6 +293,7 @@
 -> `UpdateClearValidation`
 -> 스택이 `ClearValidationSeconds` 동안 유지됨
 -> `EndRun(true)`
+-> `BoxStackPrototypeAudio.PlayClear`
 
 
 `DropActiveBox`가 드롭 직전 스냅샷 저장

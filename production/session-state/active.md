@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Clear record result copy pass
-Runtime Marker: B091
-Latest Commit: 1378e88 B090 스테이지 선택 숫자 타일 확대
-Dirty Worktree: B091 clear-record result copy accepted, pending commit
+Task: Audio volume pass
+Runtime Marker: B094
+Latest Commit: 99d94f1 B091 최고 기록 결과 문구 추가
+Dirty Worktree: B094 audio direction accepted, pending documentation/code commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: B091 clear-record result copy accepted, pending commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B091`이다.
-- 최신 커밋은 `1378e88 B090 스테이지 선택 숫자 타일 확대`이다.
+- 현재 런타임 마커는 `B094`이다.
+- 최신 커밋은 `99d94f1 B091 최고 기록 결과 문구 추가`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -38,7 +38,10 @@ Dirty Worktree: B091 clear-record result copy accepted, pending commit
 - B088은 타워 안정성 드라마 후보의 첫 번째 작은 실험이다. 새 HUD/게이지 없이 결과 팝업 문구만 탑 상태와 연결해, 클리어 본문은 `탑이 안정됐어요`, 바닥 접촉 실패 본문은 `탑이 무너졌어요`로 통일한다.
 - B089에서 시도한 스테이지 도전 라벨은 철회했다. B090은 스테이지 선택 타일을 `01`, `02`, `03` 같은 큰 번호 중심으로 바꾸고, 현재/해금/잠김 상태는 라벨 텍스트 대신 색과 비활성 상태로 구분한다. 사용자 확인에서 이 방향이 더 낫다고 수용했다.
 - B091은 기록 추구 후보의 첫 번째 작은 실험이다. 별도 점수/콤보/정확도 기록은 만들지 않고, 스테이지 클리어가 기존 최고 진행 지점을 갱신하는 경우 결과 팝업 본문에 `최고 기록 갱신` 한 줄만 추가한다. 사용자 확인에서 이 문구는 수용되었다.
-- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌지만, 런타임 기준이 B091로 바뀌었으므로 이후 phone/WebGL 확인 전에는 B091 기준 새 WebGL 빌드가 필요하다. 사용자가 WebGL 쪽 테스트는 나중에 해도 된다고 결정했으므로 당장 다음 작업에서는 제외한다.
+- B092는 오디오/햅틱 후보 중 오디오만 아주 작게 확인하는 실험이다. 별도 음원 파일, Audio Mixer, 햅틱, 플랫폼 브리지는 추가하지 않고, 런타임 합성 효과음으로 안정 배치 click, 클리어 chime, 실패 thud만 재생한다.
+- B093은 B092 배치 click을 도-레-미-파-솔-라-시-도 순서로 한 단계씩 올라가는 피아노풍 합성 톤으로 바꾼다. 실제 피아노 음원 파일은 추가하지 않고, 후반 9번째 이상 박스는 다음 옥타브의 레/미/파처럼 계속 상승한다.
+- B094는 B093 음계 구조를 유지하면서 마스터 볼륨과 배치/클리어/실패 cue 볼륨을 올려 Editor Play에서 더 잘 들리게 한다. 사용자 확인에서 피드백 사운드는 마음에 들고 이 정도면 충분하다고 수용했다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B094 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
@@ -59,18 +62,20 @@ Dirty Worktree: B091 clear-record result copy accepted, pending commit
 
 ## Next Action
 
-- B091 새 최고 진행 기록 결과 문구 수용 상태를 문서와 함께 커밋한다.
+- B094 사운드 방향은 수용 상태로 유지한다. 다음 정체성 작업은 오디오/햅틱 확장이 아니라, 필요 시 다른 후보를 별도로 작게 검토한다.
 
 ## Open Questions
 
 - 실제 App-in-Toss MVP 에셋 목록이 고정되면 어떤 에셋은 직렬화 참조로 두고 어떤 에셋만 Addressables 후보로 둘지 분류해야 한다.
 - 실제 App-in-Toss 저장 정책이 확정되면 `PlayerPrefs`를 계속 써도 되는지, 아니면 AIT 저장 브리지나 서버 저장으로 교체해야 하는지 확인해야 한다. 현재 프로토타입에서는 교체하지 않는다.
+- WebGL/App-in-Toss에서 오디오 자동 재생, 음소거, 지연이 Editor Play와 다르게 동작하는지 마지막 실기기 단계에서 확인해야 한다.
 
 ## Risks
 
 - `active.md`가 다시 긴 히스토리 누적 문서가 되면 상태 확인 요청마다 토큰을 크게 소모한다.
 - B074 phone WebGL 평가는 수용됐지만, 이후 UI 레이아웃을 바꾸면 실제 모바일 WebGL에서 다시 확인해야 한다.
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
+- B094 사운드는 현재 수용됐지만, WebGL/App-in-Toss 실기기 단계에서는 자동 재생/음소거/지연 차이를 마지막에 확인해야 한다.
 
 ## References
 
