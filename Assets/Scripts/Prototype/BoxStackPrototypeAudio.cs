@@ -57,7 +57,7 @@ public sealed class BoxStackPrototypeAudio : MonoBehaviour
         _audioSource.volume = MasterVolume;
 
         _placementScaleClips = CreatePlacementScaleClips(16);
-        _clearClip = CreateToneClip("BoxStack Clear Chime", 0.16f, 660f, 990f, 0.72f);
+        _clearClip = CreatePianoGlissandoClip("BoxStack Clear Glissando", 8, 0.055f, 0.18f);
         _failureClip = CreateToneClip("BoxStack Failure Thud", 0.13f, 150f, 95f, 0.84f);
     }
 
@@ -117,6 +117,76 @@ public sealed class BoxStackPrototypeAudio : MonoBehaviour
         var clip = AudioClip.Create(clipName, sampleCount, 1, SampleRate, false);
         clip.SetData(samples, 0);
         return clip;
+    }
+
+    private static AudioClip CreatePianoGlissandoClip(
+        string clipName,
+        int noteCount,
+        float noteStrideSeconds,
+        float noteDurationSeconds)
+    {
+        int safeNoteCount = Mathf.Max(1, noteCount);
+        int sampleCount = Mathf.Max(
+            1,
+            Mathf.RoundToInt(SampleRate * ((noteStrideSeconds * (safeNoteCount - 1)) + noteDurationSeconds)));
+        int noteSampleCount = Mathf.Max(1, Mathf.RoundToInt(SampleRate * noteDurationSeconds));
+        float[] samples = new float[sampleCount];
+
+        for (int noteIndex = 0; noteIndex < safeNoteCount; noteIndex++)
+        {
+            int startSample = Mathf.RoundToInt(SampleRate * noteStrideSeconds * noteIndex);
+            AddPianoTone(samples, startSample, noteSampleCount, GetMajorScaleFrequency(noteIndex));
+        }
+
+        Normalize(samples, 0.92f);
+
+        var clip = AudioClip.Create(clipName, sampleCount, 1, SampleRate, false);
+        clip.SetData(samples, 0);
+        return clip;
+    }
+
+    private static void AddPianoTone(float[] samples, int startSample, int noteSampleCount, float frequency)
+    {
+        float phase = 0f;
+        for (int i = 0; i < noteSampleCount; i++)
+        {
+            int sampleIndex = startSample + i;
+            if (sampleIndex < 0 || sampleIndex >= samples.Length)
+            {
+                continue;
+            }
+
+            float progress = noteSampleCount <= 1 ? 1f : i / (float)(noteSampleCount - 1);
+            phase += frequency / SampleRate;
+
+            float attack = Mathf.Clamp01(progress / 0.018f);
+            float decay = Mathf.Exp(-progress * 7.0f);
+            float envelope = attack * decay;
+            float fundamental = Mathf.Sin(phase * Mathf.PI * 2f);
+            float secondHarmonic = Mathf.Sin(phase * Mathf.PI * 4f) * 0.34f;
+            float thirdHarmonic = Mathf.Sin(phase * Mathf.PI * 6f) * 0.13f;
+            samples[sampleIndex] += (fundamental + secondHarmonic + thirdHarmonic) * envelope;
+        }
+    }
+
+    private static void Normalize(float[] samples, float targetPeak)
+    {
+        float peak = 0f;
+        for (int i = 0; i < samples.Length; i++)
+        {
+            peak = Mathf.Max(peak, Mathf.Abs(samples[i]));
+        }
+
+        if (peak <= 0f)
+        {
+            return;
+        }
+
+        float scale = targetPeak / peak;
+        for (int i = 0; i < samples.Length; i++)
+        {
+            samples[i] *= scale;
+        }
     }
 
     private static AudioClip CreateToneClip(

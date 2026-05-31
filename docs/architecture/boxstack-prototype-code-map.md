@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-05-26
-런타임 마커: B094
+런타임 마커: B095
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -129,7 +129,7 @@
 담당 기능:
 - 별도 음원 파일 없이 런타임에서 짧은 톤 클립 생성.
 - 안정 배치용 도-레-미-파-솔-라-시-도 계열의 짧은 피아노풍 톤 재생.
-- 스테이지 클리어용 짧은 상승 chime 재생.
+- 스테이지 클리어용 도-레-미-파-솔-라-시-도 피아노풍 glissando 재생.
 - 실패용 낮은 thud 재생.
 
 먼저 확인할 변경:
@@ -138,8 +138,9 @@
 - `BoxStackPrototypeAudio.PlayFailure`
 - `BoxStackPrototypeAudio.CreateToneClip`
 - `BoxStackPrototypeAudio.CreatePianoToneClip`
+- `BoxStackPrototypeAudio.CreatePianoGlissandoClip`
 
-B094 기준 이 파일은 오디오 정체성 후보를 아주 작게 확인하기 위한 프로토타입 코드입니다. 배치음은 실제 피아노 샘플이 아니라 런타임 합성 피아노풍 톤이며, 놓인 박스 순서에 따라 C major 음계를 한 단계씩 올립니다. B094는 B093보다 마스터 볼륨과 각 cue 볼륨을 올려 Editor Play에서 더 잘 들리게 합니다. 오디오 에셋, Audio Mixer, 햅틱, 플랫폼 브리지는 아직 추가하지 않습니다.
+B095 기준 이 파일은 오디오 정체성 후보를 아주 작게 확인하기 위한 프로토타입 코드입니다. 배치음은 실제 피아노 샘플이 아니라 런타임 합성 피아노풍 톤이며, 놓인 박스 순서에 따라 C major 음계를 한 단계씩 올립니다. B095는 성공 결과음을 짧은 chime 대신 도-레-미-파-솔-라-시-도 연속 상승 glissando로 바꿔 성공감을 더 강하게 만듭니다. 오디오 에셋, Audio Mixer, 햅틱, 플랫폼 브리지는 아직 추가하지 않습니다.
 
 ### `BoxStackPrototypeBoxVisualCatalog.cs`
 

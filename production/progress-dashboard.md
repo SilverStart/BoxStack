@@ -4,7 +4,7 @@ Last updated: 2026-05-27
 
 ## Next Immediate Action
 
-B094 audio is accepted and committed as `ed2b76c B094 상승 음계 사운드 적용`: the ascending placement scale, clear cue, and failure cue are loud enough and sufficient for the current prototype. Do not expand audio, haptics, mixer routing, or imported SFX unless a later productization pass explicitly reopens sound.
+B095 success audio is accepted: the clear cue now uses the same synthesized piano-like scale as placement, playing a quick do-re-mi-fa-sol-la-si-do glissando that feels stronger without being too much. Next, decide whether to push `design` or move to remaining productization checks.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -198,6 +198,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-05-27: B092 adds the first tiny audio identity pass. Stable placement plays a quiet click, clear plays a short rising chime, and failure plays a low thud. The sounds are synthesized at runtime, so no audio asset pipeline, Audio Mixer, haptics, or WebGL/App-in-Toss bridge is introduced yet.
 - 2026-05-27: B093 changes the stable-placement sound from a generic click to an ascending do-re-mi-fa-sol-la-si-do style C-major piano-like synthesized tone. No sampled piano assets are added; stages with more than eight boxes continue into the next octave.
 - 2026-05-27: B094 raises synthesized audio volume because the B093 cues were too quiet in Unity Editor Play. The event set and ascending placement scale stay unchanged. User accepted this audio direction as enough for now.
+- 2026-05-31: B095 changes only the success result sound from a short rising chime to a quick do-re-mi-fa-sol-la-si-do synthesized piano-like glissando. Placement scale audio and failure thud stay on the accepted B094 baseline. User verified and accepted this result sound.
 
 ## Current Decisions
 
@@ -243,6 +244,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B092 keeps the audio signature lightweight and reversible: use generated runtime SFX only for stable placement, clear, and failure. Do not add music, haptics, mixer groups, imported audio assets, or platform-specific audio bridges until the tiny cue set feels worthwhile in Editor Play.
 - B093 placement audio should feel like a small rising piano scale tied to stack progress, not background music. Keep it synthesized and quiet until Editor Play proves the idea is worth replacing with real SFX assets.
 - B094 makes the synthesized cues easier to hear in Editor Play by increasing master and cue volume. User accepted the current feedback sound; keep audio at this level and do not expand into haptics, music, mixer groups, or imported SFX yet.
+- B095 strengthens the clear result with a fast ascending glissando and is accepted in Editor Play. Keep the success cue at this level unless later real-device testing exposes audio latency or mute-policy issues.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
 - Stage unlock state uses `PlayerPrefs` through `BoxStackStageProgressStore` for prototype speed. Keep it for now because it stores only one local highest-unlocked-stage integer; replace the store internals later only if App-in-Toss production storage policy, account/device sync, larger progression data, migration, analytics, anti-tamper, or server validation requires a different persistence layer.
@@ -251,14 +253,14 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This remains acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management, memory/build-size pressure, or App-in-Toss packaging policy requires it.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds. For repeatable WebGL builds, close the Unity Editor for this project and run `tools/build-webgl.ps1 -Development`; use `tools/build-webgl.ps1 -SkipUnityBuild` only to resync an already-created `webgl` build into the AIT Vite path.
 - Use a tiny in-game build marker during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B094`; documentation-only or design-asset-only commits do not require a build marker increment.
+- The current runtime build marker is `B095`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
 - If the target App-in-Toss webview differs from the tested phone WebGL viewport, should the B074 bottom padding be retested there?
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
-- Does WebGL/App-in-Toss require a different user-gesture or mute policy for B094 audio playback than Unity Editor Play Mode?
+- Does WebGL/App-in-Toss require a different user-gesture or mute policy for B095 audio playback than Unity Editor Play Mode?
 
 ## Risks
 
@@ -275,9 +277,9 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - AIT Dev Server now launches from the Unity menu after the PATH fix, but repeated Unity WebGL rebuilds can stop that Unity-owned server. Use the reusable `Start-AitUnityDevServer.ps1` script, or `tools/start-ait-dev-server.ps1` inside this project, in a separate PowerShell window for a longer-lived dev server during phone testing.
 - WebGL sprite parity is confirmed in PC browser, and B074 phone WebGL stage-select bottom-spacing testing is accepted for the current prototype baseline.
 - Later 12-box stages, screen-clamped movement feel, softened falling-box impact, immediate collapse detection, floor-contact failure readability, and 5-second clear validation are accepted for the B084 baseline. B085 placed-box lateral velocity damping was tested and rejected as unnatural, so it should not be treated as an active tuning direction. B086 pre-contact drop velocity reset is accepted by user-led testing and should be rechecked only after another physics, movement, clear validation, or failure-rule change.
-- A B085 WebGL build was produced for mobile testing before the experiment was rejected, and a B091 WebGL build was later produced for parity. Because the runtime baseline is now B094, create a fresh WebGL build before any further phone/WebGL confirmation, but this check is intentionally deferred until the final real-device stage.
+- A B085 WebGL build was produced for mobile testing before the experiment was rejected, and a B091 WebGL build was later produced for parity. Because the runtime baseline is now B095, create a fresh WebGL build before any further phone/WebGL confirmation, but this check is intentionally deferred until the final real-device stage.
 - Stack-like 2D should reduce the app-like UI read, but it may feel too close to a plain clone if interaction feel, scoring rules, stage framing, audio, or placement feedback do not develop a BoxStack-specific identity. Block color/depth experiments are intentionally paused for the current accepted baseline.
-- B094 audio is accepted in Editor Play, but WebGL/App-in-Toss real-device audio behavior may still differ through mute policy, user-gesture requirements, or latency; check this only at the final real-device stage.
+- B095 clear glissando is accepted in Editor Play, but WebGL/App-in-Toss real-device audio behavior may still differ through mute policy, user-gesture requirements, or latency; check this only at the final real-device stage.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
 - The new config asset is confirmed in Editor Play and PC WebGL smoke. B071 phone WebGL testing found real-device UI clipping, and B073/B074 lowered that risk for the current prototype through user-led phone WebGL acceptance.
 - Reward-style rescue is currently disabled, but reintroducing it too early could make failure feel monetized before the stage difficulty is accepted as fair.
