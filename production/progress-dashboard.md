@@ -4,7 +4,7 @@ Last updated: 2026-05-27
 
 ## Next Immediate Action
 
-B095 success audio is accepted: the clear cue now uses the same synthesized piano-like scale as placement, playing a quick do-re-mi-fa-sol-la-si-do glissando that feels stronger without being too much. Next, decide whether to push `design` or move to remaining productization checks.
+B095 success audio is accepted and committed as `07f8909 B095 성공 결과음 글리산도 적용`: the clear cue now uses the same synthesized piano-like scale as placement, playing a quick do-re-mi-fa-sol-la-si-do glissando that feels stronger without being too much. Next, decide whether to push `design` or move to remaining productization checks.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
