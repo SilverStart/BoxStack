@@ -25,8 +25,8 @@ MonoBehaviour:
     FloorFriction: 8
     ParcelBounciness: 0
     SettledGravityScale: 1.6
-    DroppingGravityScale: 1.1
-    MaxDroppingFallSpeed: 4.5
+    DroppingGravityScale: 1.25
+    MaxDroppingFallSpeed: 5.2
     DropPreContactVelocityResetDistance: 0.12
     LinearDamping: 0.6
     AngularDamping: 0.8
