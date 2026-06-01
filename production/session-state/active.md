@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Clear result glissando audio pass
-Runtime Marker: B095
-Latest Commit: 07f8909 B095 성공 결과음 글리산도 적용
-Dirty Worktree: Clean after B095 clear result glissando commit
+Task: Stage block width progression pass
+Runtime Marker: B096
+Latest Commit: 70a78cb B095 이후 상태 문서 동기화
+Dirty Worktree: B096 stage block width progression accepted, pending commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: Clean after B095 clear result glissando commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B095`이다.
-- 최신 커밋은 `c899956 B094 이후 상태 문서 동기화`이다.
+- 현재 런타임 마커는 `B096`이다.
+- 최신 커밋은 `70a78cb B095 이후 상태 문서 동기화`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -42,7 +42,8 @@ Dirty Worktree: Clean after B095 clear result glissando commit
 - B093은 B092 배치 click을 도-레-미-파-솔-라-시-도 순서로 한 단계씩 올라가는 피아노풍 합성 톤으로 바꾼다. 실제 피아노 음원 파일은 추가하지 않고, 후반 9번째 이상 박스는 다음 옥타브의 레/미/파처럼 계속 상승한다.
 - B094는 B093 음계 구조를 유지하면서 마스터 볼륨과 배치/클리어/실패 cue 볼륨을 올려 Editor Play에서 더 잘 들리게 한다. 사용자 확인에서 피드백 사운드는 마음에 들고 이 정도면 충분하다고 수용했다.
 - B095는 성공 결과음을 더 강하게 만들기 위해 기존 짧은 clear chime을 도-레-미-파-솔-라-시-도 연속 상승 피아노풍 glissando로 바꾼다. 배치음과 실패음은 B094 기준을 유지한다. 사용자 확인에서 이대로 괜찮다고 수용했다.
-- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B095 확인은 우선 Unity Editor Play Mode에서 진행한다.
+- B096은 스테이지별 블록 시퀀스에서 좌우로 넓어지는 블록을 제거하고, 기본 정사각형 블록에서 좁은 블록과 더 좁은 블록으로만 난이도를 올린다. 사용자 확인에서 전체적으로 문제 없다고 수용했다.
+- B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B096 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
 - `com.unity.addressables`는 현재 `Packages/manifest.json`에 없으며, 제품화 트리거가 생기기 전에는 패키지를 추가하지 않는다. 제품화 기본 후보는 Addressables가 아니라 씬/프리팹/ScriptableObject 직렬화 참조다.
@@ -63,7 +64,7 @@ Dirty Worktree: Clean after B095 clear result glissando commit
 
 ## Next Action
 
-- B095 성공 결과음은 수용 상태로 유지한다. 다음 작업은 push 여부 결정 또는 제품화 전 저장/에셋 분류 같은 남은 후보 중에서 고른다.
+- B096 스테이지별 블록 폭 규칙 변경은 사용자 확인에서 수용됐다. 다음 작업은 커밋 후 push 여부 결정 또는 남은 제품화 후보 중에서 고른다.
 
 ## Open Questions
 
@@ -76,7 +77,7 @@ Dirty Worktree: Clean after B095 clear result glissando commit
 - `active.md`가 다시 긴 히스토리 누적 문서가 되면 상태 확인 요청마다 토큰을 크게 소모한다.
 - B074 phone WebGL 평가는 수용됐지만, 이후 UI 레이아웃을 바꾸면 실제 모바일 WebGL에서 다시 확인해야 한다.
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
-- B095 성공 결과음은 Editor Play에서 수용됐지만, WebGL/App-in-Toss 실기기 단계에서는 자동 재생/음소거/지연 차이를 마지막에 확인해야 한다.
+- B096 블록 폭 난이도는 Editor Play에서 수용됐지만, 이후 목표 박스 수나 물리 튜닝을 바꾸면 초반/중반/후반 대표 스테이지를 다시 확인해야 한다.
 
 ## References
 

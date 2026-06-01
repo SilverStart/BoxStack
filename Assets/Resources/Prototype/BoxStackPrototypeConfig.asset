@@ -45,91 +45,91 @@ MonoBehaviour:
     RangeMultiplier: 0.8
   - Number: 3
     TargetBoxes: 6
-    BoxSequence: BBWBBB
+    BoxSequence: BBNBBB
     SpeedMultiplier: 0.85
     RangeMultiplier: 0.85
   - Number: 4
     TargetBoxes: 6
-    BoxSequence: BTBBWB
+    BoxSequence: BNBBNB
     SpeedMultiplier: 0.9
     RangeMultiplier: 0.9
   - Number: 5
     TargetBoxes: 7
-    BoxSequence: BBWBTBB
+    BoxSequence: BBNBNBB
     SpeedMultiplier: 0.95
     RangeMultiplier: 0.95
   - Number: 6
     TargetBoxes: 7
-    BoxSequence: WBBTBBW
+    BoxSequence: NBBNBBN
     SpeedMultiplier: 1
     RangeMultiplier: 1
   - Number: 7
     TargetBoxes: 8
-    BoxSequence: BBTBWBBB
+    BoxSequence: BBNBNBBB
     SpeedMultiplier: 1
     RangeMultiplier: 1
   - Number: 8
     TargetBoxes: 8
-    BoxSequence: WBTBBWBT
+    BoxSequence: NBNBBNBN
     SpeedMultiplier: 1.05
     RangeMultiplier: 1
   - Number: 9
     TargetBoxes: 8
-    BoxSequence: BTTBWBBW
+    BoxSequence: BNNBNBBN
     SpeedMultiplier: 1.05
     RangeMultiplier: 1.05
   - Number: 10
     TargetBoxes: 9
-    BoxSequence: BBWTBBWBB
+    BoxSequence: BBNNBNBBB
     SpeedMultiplier: 1.1
     RangeMultiplier: 1.05
   - Number: 11
     TargetBoxes: 9
-    BoxSequence: WTBBTBWBB
+    BoxSequence: NNBBNBNBB
     SpeedMultiplier: 1.1
     RangeMultiplier: 1.1
   - Number: 12
     TargetBoxes: 9
-    BoxSequence: BWBTWBTBB
+    BoxSequence: BNBNNBNBB
     SpeedMultiplier: 1.15
     RangeMultiplier: 1.1
   - Number: 13
     TargetBoxes: 10
-    BoxSequence: BBTWBTBWBB
+    BoxSequence: BBNNBNBNBB
     SpeedMultiplier: 1.15
     RangeMultiplier: 1.15
   - Number: 14
     TargetBoxes: 10
-    BoxSequence: WBTBTWBBTB
+    BoxSequence: NBNNBNBBNB
     SpeedMultiplier: 1.2
     RangeMultiplier: 1.15
   - Number: 15
     TargetBoxes: 10
-    BoxSequence: BTWBBTWTBB
+    BoxSequence: BNNBBNSNBB
     SpeedMultiplier: 1.2
     RangeMultiplier: 1.2
   - Number: 16
     TargetBoxes: 11
-    BoxSequence: WBBTWBTBWBB
+    BoxSequence: NBBNSBNBNBB
     SpeedMultiplier: 1.25
     RangeMultiplier: 1.2
   - Number: 17
     TargetBoxes: 11
-    BoxSequence: BTBWTBBWTBB
+    BoxSequence: BNBSNBBNSBB
     SpeedMultiplier: 1.25
     RangeMultiplier: 1.25
   - Number: 18
     TargetBoxes: 12
-    BoxSequence: BWTBBWTBTWBB
+    BoxSequence: BNSBBNSBNNBB
     SpeedMultiplier: 1.3
     RangeMultiplier: 1.25
   - Number: 19
     TargetBoxes: 12
-    BoxSequence: WTBTWBBTWBTB
+    BoxSequence: NSBNNBBNSBNB
     SpeedMultiplier: 1.35
     RangeMultiplier: 1.3
   - Number: 20
     TargetBoxes: 12
-    BoxSequence: BTWTBWTBWTBB
+    BoxSequence: BNSNBSNBSNBB
     SpeedMultiplier: 1.4
     RangeMultiplier: 1.3

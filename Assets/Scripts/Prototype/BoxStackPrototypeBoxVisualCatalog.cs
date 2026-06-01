@@ -27,8 +27,8 @@ internal sealed class BoxStackPrototypeBoxVisualCatalog
     private static readonly BoxAssetDefinition[] BoxAssetDefinitions =
     {
         new BoxAssetDefinition("parcel_box_basic_01", new Vector2(1.0f, 1.0f)),
-        new BoxAssetDefinition("parcel_box_wide_01", new Vector2(1.18f, 0.88f)),
-        new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.18f))
+        new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.88f, 1.0f)),
+        new BoxAssetDefinition("parcel_box_tall_01", new Vector2(0.76f, 1.0f))
     };
 
     private readonly List<BoxStackPrototypeBoxVisual> _boxVisuals = new List<BoxStackPrototypeBoxVisual>();
@@ -138,9 +138,10 @@ internal sealed class BoxStackPrototypeBoxVisualCatalog
     {
         switch (boxCode)
         {
-            case 'W':
-                return 1;
+            case 'N':
             case 'T':
+                return 1;
+            case 'S':
                 return 2;
             default:
                 return 0;
