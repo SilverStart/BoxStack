@@ -4,7 +4,7 @@ Last updated: 2026-06-02
 
 ## Next Immediate Action
 
-B097 faster drop tempo is accepted in Editor Play: falling boxes use slightly higher drop gravity and a higher fall-speed cap while keeping the B086 pre-contact y-velocity reset. Next, commit the accepted change, then decide whether to push `design` or continue with remaining productization checks.
+B097 faster drop tempo is accepted and committed as `500efa2 B097 낙하 템포 상향 조정`: falling boxes use slightly higher drop gravity and a higher fall-speed cap while keeping the B086 pre-contact y-velocity reset. Next, decide whether to push `design` or continue with remaining productization checks.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 

@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: Faster drop tempo tuning pass
 Runtime Marker: B097
-Latest Commit: f3bd1c1 B096 이후 상태 문서 동기화
-Dirty Worktree: B097 faster drop tempo tuning accepted, pending commit
+Latest Commit: 500efa2 B097 낙하 템포 상향 조정
+Dirty Worktree: Clean after B097 faster drop tempo commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B097 faster drop tempo tuning accepted, pending commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B097`이다.
-- 최신 커밋은 `f3bd1c1 B096 이후 상태 문서 동기화`이다.
+- 최신 커밋은 `500efa2 B097 낙하 템포 상향 조정`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
