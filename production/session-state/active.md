@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: Stage block width progression pass
 Runtime Marker: B096
-Latest Commit: 70a78cb B095 이후 상태 문서 동기화
-Dirty Worktree: B096 stage block width progression accepted, pending commit
+Latest Commit: 7f30143 B096 스테이지 블록 폭 난이도 조정
+Dirty Worktree: Clean after B096 stage block width progression commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: B096 stage block width progression accepted, pending commit
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B096`이다.
-- 최신 커밋은 `70a78cb B095 이후 상태 문서 동기화`이다.
+- 최신 커밋은 `7f30143 B096 스테이지 블록 폭 난이도 조정`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.

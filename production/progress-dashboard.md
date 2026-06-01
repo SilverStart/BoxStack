@@ -4,7 +4,7 @@ Last updated: 2026-06-02
 
 ## Next Immediate Action
 
-B096 stage block-width progression is accepted in Editor Play: stage sequences remove horizontally wide blocks, keep base blocks square, and scale difficulty only toward narrow and extra-narrow blocks. Next, commit the accepted change, then decide whether to push `design` or continue with remaining productization checks.
+B096 stage block-width progression is accepted and committed as `7f30143 B096 스테이지 블록 폭 난이도 조정`: stage sequences remove horizontally wide blocks, keep base blocks square, and scale difficulty only toward narrow and extra-narrow blocks. Next, decide whether to push `design` or continue with remaining productization checks.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
