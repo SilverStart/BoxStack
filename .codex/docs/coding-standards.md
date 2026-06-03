@@ -2,6 +2,10 @@
 
 - All game code must include doc comments on public APIs
 - 코드에 작성하는 모든 주석과 public API doc comment 본문은 한글로 작성한다.
+- BoxStack 현재 코드베이스는 기존 Unity C# private field 스타일인
+  `_camelCase`를 유지한다. Starter-pack의
+  `Assets/_Project/Scripts/CLAUDE.md`에 있는 `private` 필드 `_` prefix 금지
+  규칙은 이 프로젝트에 소급 적용하지 않는다.
 - Every system must have a corresponding architecture decision record in `docs/architecture/`
 - Gameplay values must be data-driven (external config), never hardcoded
 - All public methods must be unit-testable (dependency injection over singletons)

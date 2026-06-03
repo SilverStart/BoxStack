@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 97;
+    private const int PrototypeBuildNumber = 98;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -23,7 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private const float FloorHeight = 0.35f;
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
-    private readonly BoxStackStageProgressStore _stageProgressStore = new BoxStackStageProgressStore();
+    private readonly BoxStackStageProgress _stageProgress = new BoxStackStageProgress(new BoxStackStageProgressStore());
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
@@ -57,8 +57,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _clearValidationEndTime;
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
-    private int _currentStageIndex;
-    private int _highestUnlockedStageIndex;
     private bool _lastClearWasNewBest;
     private string _statusText = "READY";
 
@@ -88,7 +86,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         get
         {
-            return GetStage(_currentStageIndex);
+            return GetStage(_stageProgress.CurrentStageIndex);
         }
     }
 
@@ -293,8 +291,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             PrototypeBuildNumber,
             StageCount,
             GetStage,
-            _currentStageIndex,
-            _highestUnlockedStageIndex,
+            _stageProgress.CurrentStageIndex,
+            _stageProgress.HighestUnlockedStageIndex,
             _placedBoxes.Count,
             CurrentTargetBoxes,
             _state,
@@ -335,7 +333,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (won)
         {
-            _currentStageIndex = 0;
+            _stageProgress.SelectFirstStage();
         }
 
         RestartGame();
@@ -424,30 +422,26 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void ChangeStage(int direction)
     {
-        int nextStageIndex = Mathf.Clamp(_currentStageIndex + direction, 0, _highestUnlockedStageIndex);
-        if (nextStageIndex == _currentStageIndex)
+        if (!_stageProgress.TryMove(direction))
         {
             return;
         }
 
-        _currentStageIndex = nextStageIndex;
         ApplyCurrentStagePalette();
         RestartGame();
     }
 
     private void SelectStage(int stageIndex)
     {
-        stageIndex = Mathf.Clamp(stageIndex, 0, StageCount - 1);
-        if (!IsStageUnlocked(stageIndex))
+        if (!_stageProgress.TrySelect(stageIndex, StageCount, out bool stageChanged))
         {
             return;
         }
 
         CloseStageSelect();
 
-        if (stageIndex != _currentStageIndex)
+        if (stageChanged)
         {
-            _currentStageIndex = stageIndex;
             ApplyCurrentStagePalette();
         }
 
@@ -482,30 +476,22 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private bool HasNextStage()
     {
-        return _currentStageIndex < StageCount - 1;
-    }
-
-    private bool IsStageUnlocked(int stageIndex)
-    {
-        return stageIndex <= _highestUnlockedStageIndex;
+        return _stageProgress.HasNextStage(StageCount);
     }
 
     private void LoadStageProgress()
     {
-        _highestUnlockedStageIndex = _stageProgressStore.LoadHighestUnlockedStageIndex(StageCount);
-        _currentStageIndex = Mathf.Clamp(_currentStageIndex, 0, _highestUnlockedStageIndex);
+        _stageProgress.Load(StageCount);
     }
 
-    private void SaveStageProgress()
+    private int GetStageNumber(int stageIndex)
     {
-        _stageProgressStore.SaveHighestUnlockedStageNumber(GetStage(_highestUnlockedStageIndex).Number);
+        return GetStage(stageIndex).Number;
     }
 
     private void ResetStageProgress()
     {
-        _highestUnlockedStageIndex = 0;
-        _currentStageIndex = 0;
-        SaveStageProgress();
+        _stageProgress.Reset(GetStageNumber);
         CloseStageSelect();
         ApplyCurrentStagePalette();
         RestartGame();
@@ -513,20 +499,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void UnlockAllStagesForPlaytest()
     {
-        _highestUnlockedStageIndex = StageCount - 1;
-        SaveStageProgress();
+        _stageProgress.UnlockAll(StageCount, GetStageNumber);
         RefreshPrototypeUi();
     }
 
     private void UnlockNextStage()
     {
-        if (!HasNextStage() || _highestUnlockedStageIndex > _currentStageIndex)
-        {
-            return;
-        }
-
-        _highestUnlockedStageIndex = Mathf.Clamp(_currentStageIndex + 1, 0, StageCount - 1);
-        SaveStageProgress();
+        _stageProgress.UnlockNextStage(StageCount, GetStageNumber);
     }
 
     private void SpawnNextBox()
@@ -982,7 +961,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _state = won ? BoxStackPrototypeState.Won : BoxStackPrototypeState.Failed;
         _statusText = status;
-        _lastClearWasNewBest = won && _currentStageIndex >= _highestUnlockedStageIndex;
+        _lastClearWasNewBest = won && _stageProgress.CurrentStageIndex >= _stageProgress.HighestUnlockedStageIndex;
         if (won)
         {
             UnlockNextStage();
@@ -1169,7 +1148,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void ApplyCurrentStagePalette()
     {
-        _currentPalette = BoxStackPrototypePalette.FromStageIndex(_currentStageIndex);
+        _currentPalette = BoxStackPrototypePalette.FromStageIndex(_stageProgress.CurrentStageIndex);
 
         if (_camera != null)
         {

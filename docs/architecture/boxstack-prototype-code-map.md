@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-05-26
-런타임 마커: B097
+마지막 갱신: 2026-06-03
+런타임 마커: B098
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -16,7 +16,7 @@
 4. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
 5. 보조 파일
-   - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 저장, 공유 상태 enum을 확인합니다.
+   - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
 
@@ -32,7 +32,7 @@
 - 활성 박스 생성과 드롭 전 좌우 이동.
 - 박스 낙하, 정착, 클리어 검증 흐름.
 - 성공/실패 판정.
-- 스테이지 선택과 스테이지 해금 흐름.
+- 스테이지 선택과 스테이지 해금 흐름 호출.
 - 현재 게임 상태를 UI 계층으로 전달.
 - 배치 안정, 클리어, 실패 시점에 작은 합성 효과음을 호출.
 
@@ -156,13 +156,16 @@ B097 기준 이 파일은 오디오 정체성 후보를 아주 작게 확인하�
 
 ### `BoxStackStageProgressStore.cs`
 
-스테이지 진행 저장 경계입니다.
+스테이지 진행 상태와 저장 경계입니다.
 
 담당 기능:
+- `BoxStackStageProgress`가 현재 스테이지 인덱스와 최고 해금 스테이지 인덱스를 보관.
+- 스테이지 이동, 선택, 첫 스테이지 선택, 다음 스테이지 존재 여부, 스테이지 해금 여부 판정.
+- 진행 초기화, 전체 해금, 성공 시 다음 스테이지 해금.
 - `PlayerPrefs`에서 최고 해금 스테이지를 로드.
 - `PlayerPrefs`에 최고 해금 스테이지 번호를 저장.
 
-프로토타입에서는 `PlayerPrefs`를 유지합니다. App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 하는 파일이며, 교체 기준은 `docs/architecture/boxstack-stage-progress-storage-decision.md`에 기록합니다.
+B098 기준으로 `BoxStackPrototype`은 이 클래스를 통해 스테이지 진행 상태를 조작합니다. 프로토타입에서는 `PlayerPrefs`를 유지합니다. App-in-Toss 또는 다른 제품 저장소로 교체할 때 먼저 확인해야 하는 파일이며, 교체 기준은 `docs/architecture/boxstack-stage-progress-storage-decision.md`에 기록합니다.
 
 ### `BoxStackPrototypeState.cs`
 
@@ -231,10 +234,11 @@ B097 기준 이 파일은 오디오 정체성 후보를 아주 작게 확인하�
 - `BoxStackPrototype.UnlockNextStage`
 - `BoxStackPrototype.UnlockAllStagesForPlaytest`
 - `BoxStackPrototype.ResetStageProgress`
+- `BoxStackStageProgress`
 - `BoxStackStageProgressStore`
 - `BoxStackPrototypeUi.RefreshStageButtons`
 
-스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
+스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B098 기준 현재/최고 해금 인덱스와 선택/해금/초기화 판단은 `BoxStackStageProgress`가 맡고, `BoxStackStageProgressStore`는 `PlayerPrefs` 저장만 맡습니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
 
 ### UI 문구
 

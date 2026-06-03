@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Faster drop tempo tuning pass
-Runtime Marker: B097
-Latest Commit: 500efa2 B097 낙하 템포 상향 조정
-Dirty Worktree: Clean after B097 faster drop tempo commit
+Task: Stage progress production refactor pass
+Runtime Marker: B098
+Latest Commit: afd80b9 B097 이후 상태 문서 동기화
+Dirty Worktree: Dirty with production refactor plan docs in progress
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: Clean after B097 faster drop tempo commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B097`이다.
-- 최신 커밋은 `500efa2 B097 낙하 템포 상향 조정`이다.
+- 현재 런타임 마커는 `B098`이다.
+- 최신 커밋은 `afd80b9 B097 이후 상태 문서 동기화`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -44,6 +44,9 @@ Dirty Worktree: Clean after B097 faster drop tempo commit
 - B095는 성공 결과음을 더 강하게 만들기 위해 기존 짧은 clear chime을 도-레-미-파-솔-라-시-도 연속 상승 피아노풍 glissando로 바꾼다. 배치음과 실패음은 B094 기준을 유지한다. 사용자 확인에서 이대로 괜찮다고 수용했다.
 - B096은 스테이지별 블록 시퀀스에서 좌우로 넓어지는 블록을 제거하고, 기본 정사각형 블록에서 좁은 블록과 더 좁은 블록으로만 난이도를 올린다. 사용자 확인에서 전체적으로 문제 없다고 수용했다.
 - B097은 B086의 접촉 직전 y속도 리셋을 유지한 채 낙하 중력과 최대 낙하속도만 조금 올려 박스가 내려오는 템포를 빠르게 한다. 사용자 확인에서 현재 속도로 결정했다.
+- B097 기준으로 핵심 조작감과 작은 정체성 실험이 충분히 안정됐으므로, 다음 작업 방향은 전면 재작성 없이 프로토타입 런타임을 단계적으로 프로덕션 코드 경계로 나누는 것이다. 계획은 `docs/architecture/boxstack-production-refactor-plan.md`에 둔다.
+- B098은 프로덕션 리팩토링의 첫 코드 단계로, `BoxStackPrototype`에 있던 현재 스테이지/최고 해금 스테이지 인덱스와 선택/해금/초기화 흐름을 `BoxStackStageProgress`로 분리한다. `BoxStackStageProgressStore`의 `PlayerPrefs` 저장 방식과 저장 키는 유지한다.
+- B098 사용자 Editor Play 확인은 완료됐다. 스테이지 선택, 클리어 후 다음 스테이지 해금, `진행 초기화`, `전체 해금`, 최종 클리어 후 처음부터 흐름 모두 문제 없음으로 수용했다.
 - B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B097 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
@@ -62,10 +65,12 @@ Dirty Worktree: Clean after B097 faster drop tempo commit
 - phone WebGL 반복 확인이 필요하면 공용 `Start-AitUnityDevServer.ps1` 또는 `tools/start-ait-dev-server.ps1`를 먼저 실행하고, Unity에서는 WebGL 빌드만 다시 만든 뒤 브라우저를 새로고침한다.
 - Unity CLI Connector는 에디터 직접 조작/검사가 필요할 때만 사용하고, 단순 Play Mode 검증용으로는 사용하지 않는다.
 - 상태 확인/다음 작업 리스트업에서는 문서 전체 읽기를 피하고 `rg` 검색 결과와 직전 주요 구간만 사용한다.
+- 프로덕션 리팩토링은 B097 플레이 감각을 보존하는 경계 분리로 진행한다. `Resources`, `PlayerPrefs`, Addressables, Audio Mixer, 햅틱, 서버 저장은 별도 제품 요구가 확정되기 전에는 건드리지 않는다.
+- BoxStack 현재 프로젝트는 기존 코드 스타일을 우선하므로 Unity C# private field는 `_camelCase`를 허용한다. Starter-pack의 `_` prefix 금지 규칙은 이 프로젝트에 소급 적용하지 않는다. 다만 하네스/운영 규칙 개선은 필요 시 starter-pack 원본에도 계속 반영한다.
 
 ## Next Action
 
-- B097 낙하 템포 튜닝은 사용자 확인에서 수용됐다. 다음 작업은 커밋 후 push 여부 결정 또는 남은 제품화 후보 중에서 고른다.
+- B098 스테이지 진행 상태 분리는 사용자 확인에서 수용됐다. 다음 작업은 B098 커밋 후, 프로덕션 리팩토링 다음 단계인 클리어/실패 규칙 분리로 이어갈지 결정한다.
 
 ## Open Questions
 
@@ -79,10 +84,13 @@ Dirty Worktree: Clean after B097 faster drop tempo commit
 - B074 phone WebGL 평가는 수용됐지만, 이후 UI 레이아웃을 바꾸면 실제 모바일 WebGL에서 다시 확인해야 한다.
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
 - B097 낙하 속도 상승은 Editor Play에서 수용됐지만, 이후 물리/이동/블록 폭 튜닝을 바꾸면 착지 충격과 좌우 밀림을 다시 확인해야 한다.
+- 프로덕션 리팩토링 중 씬/프리팹 이동이나 대규모 파일 rename을 너무 이르게 진행하면 Unity 참조 churn이 커질 수 있으므로, 먼저 작은 책임 분리부터 진행한다.
+- B098 스테이지 진행 상태 분리는 사용자 확인에서 수용됐다. 다음 리팩토링 단계에서 클리어/실패 규칙을 건드리면 스테이지 클리어/실패 흐름을 다시 확인해야 한다.
 
 ## References
 
 - 긴 세션 히스토리: `production/session-state/history.md`
 - 진행 대시보드: `production/progress-dashboard.md`
 - 프로토타입 코드맵: `docs/architecture/boxstack-prototype-code-map.md`
+- 프로덕션 리팩토링 계획: `docs/architecture/boxstack-production-refactor-plan.md`
 - Unity CLI 사용 정책: `docs/workflow/unity-cli-connector.md`

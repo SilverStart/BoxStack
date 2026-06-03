@@ -30,6 +30,15 @@ other coding agents.
 
 - 일반 C# 코드 변경 후 기본 자동 검증은 `dotnet build BoxStack.slnx`를
   우선 사용한다.
+- 검증 도구나 생성 프로젝트 파일의 한계 때문에 설계상 맞는 코드 구조를
+  임시로 흐리거나 우회하지 않는다.
+- 새 파일, 별도 클래스, 폴더 구조가 설계상 맞다면 그 구조를 유지하고,
+  검증 실패는 코드 구조 변경이 아니라 검증 환경 문제로 분리해 보고한다.
+- Unity 프로젝트 파일 재생성, Editor refresh, csproj 갱신처럼 검증 환경
+  문제가 있을 때는 코드 구조를 바꾸기 전에 사용자에게 원인과 선택지를
+  설명하고 승인을 받는다.
+- 임시 우회가 정말 필요할 때는 먼저 이유, 범위, 되돌릴 방법을 설명하고
+  사용자 승인을 받은 뒤 진행한다.
 - AI 에이전트는 검증만을 목적으로 Unity CLI Connector를 사용해 Unity
   Editor Play Mode를 실행하거나 조작하지 않는다.
 - 실제 게임 플레이 감각, UI 체감, 난이도, 터치/조작감 검증은 사용자가
@@ -62,6 +71,9 @@ other coding agents.
   서로 모순되거나, 사용자가 명시적으로 전체 검토를 요청한 경우로 제한한다.
 - When a user preference affects future AI behavior across tools, update this
   document and reference it from tool-specific guidance when useful.
+- When updating shared harness or operating rules in this project, also check
+  whether the same rule should be mirrored into the starter-pack source at
+  `C:\unity\starter-packs` so future projects inherit the improvement.
 - Project documentation should be written in Korean by default. Keep source
   identifiers, API names, file paths, and quoted external terms unchanged when
   translating or maintaining documentation.
