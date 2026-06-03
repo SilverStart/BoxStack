@@ -4,7 +4,7 @@ Last updated: 2026-06-03
 
 ## Next Immediate Action
 
-B098 stage progress refactor is accepted in user-led Unity Editor Play. Next, commit the B098 refactor/docs, then decide whether to continue with the next production refactor step: clear/fail rule separation.
+B098 stage progress refactor is accepted and committed as `2cbc926 B098 스테이지 진행 상태 분리`. Next, decide whether to continue with the next production refactor step: clear/fail rule separation.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 

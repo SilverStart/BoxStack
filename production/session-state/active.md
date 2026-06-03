@@ -3,8 +3,8 @@ Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
 Task: Stage progress production refactor pass
 Runtime Marker: B098
-Latest Commit: afd80b9 B097 이후 상태 문서 동기화
-Dirty Worktree: Dirty with production refactor plan docs in progress
+Latest Commit: 2cbc926 B098 스테이지 진행 상태 분리
+Dirty Worktree: Clean after B098 stage progress refactor commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -20,7 +20,7 @@ Dirty Worktree: Dirty with production refactor plan docs in progress
 ## Current Snapshot
 
 - 현재 런타임 마커는 `B098`이다.
-- 최신 커밋은 `afd80b9 B097 이후 상태 문서 동기화`이다.
+- 최신 커밋은 `2cbc926 B098 스테이지 진행 상태 분리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -70,7 +70,7 @@ Dirty Worktree: Dirty with production refactor plan docs in progress
 
 ## Next Action
 
-- B098 스테이지 진행 상태 분리는 사용자 확인에서 수용됐다. 다음 작업은 B098 커밋 후, 프로덕션 리팩토링 다음 단계인 클리어/실패 규칙 분리로 이어갈지 결정한다.
+- B098 스테이지 진행 상태 분리는 사용자 확인 후 `2cbc926 B098 스테이지 진행 상태 분리`로 커밋됐다. 다음 작업은 프로덕션 리팩토링 다음 단계인 클리어/실패 규칙 분리로 이어갈지 결정한다.
 
 ## Open Questions
 
