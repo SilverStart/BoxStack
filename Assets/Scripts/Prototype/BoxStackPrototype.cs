@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 100;
+    private const int PrototypeBuildNumber = 101;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -29,6 +29,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
+    private BoxStackBoxFactory _boxFactory;
     private GameObject _activeBox;
     private GameObject _droppingBox;
     private Camera _camera;
@@ -138,6 +139,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void Start()
     {
         _boxVisualCatalog = new BoxStackPrototypeBoxVisualCatalog(_assetLoader, BoxSize);
+        _boxFactory = new BoxStackBoxFactory(_assetLoader, _boxVisualCatalog);
         LoadPrototypeConfig();
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
@@ -507,61 +509,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _moveStartedAt = Time.time;
 
         _activeTint = GetStackBlockTint(_placedBoxes.Count, true);
-        _activeBox = CreatePrototypeBox($"Prototype Stack Block {_placedBoxes.Count + 1}", _activeTint);
+        _activeBox = _boxFactory.CreateBox(
+            $"Prototype Stack Block {_placedBoxes.Count + 1}",
+            CurrentStage.BoxSequence,
+            _placedBoxes.Count,
+            CurrentTargetBoxes,
+            UseStackLikeAbstractVisuals,
+            _activeTint,
+            _currentPalette,
+            _parcelPhysicsMaterial,
+            Tuning);
         _activeBox.transform.position = new Vector3(0f, _spawnHeight, 0f);
-    }
-
-    private GameObject CreatePrototypeBox(string boxName, Color tint)
-    {
-        BoxStackPrototypeBoxVisual boxVisual = _boxVisualCatalog.GetVisual(CurrentStage.BoxSequence, _placedBoxes.Count);
-        var box = new GameObject(boxName);
-
-        var visual = new GameObject("Visual");
-        visual.transform.SetParent(box.transform, false);
-
-        var renderer = visual.AddComponent<SpriteRenderer>();
-        bool useGeneratedStackVisual = UseStackLikeAbstractVisuals && boxVisual.IsPlaceholder;
-        Sprite sprite = boxVisual.Sprite;
-        Rect visibleTextureRect = boxVisual.VisibleTextureRect;
-        Vector2 visualWorldSize = boxVisual.WorldSize;
-        Vector2 colliderSize = boxVisual.WorldSize * 0.98f;
-        Color rendererColor = boxVisual.IsPlaceholder ? tint : Color.white;
-        if (useGeneratedStackVisual)
-        {
-            sprite = CreateStackBlockSprite(_placedBoxes.Count);
-            visibleTextureRect = _assetLoader.GetVisibleTextureRect(sprite);
-            rendererColor = Color.white;
-        }
-
-        renderer.sprite = sprite;
-        renderer.color = rendererColor;
-        renderer.sortingOrder = 10 + _placedBoxes.Count;
-        FitSpriteToWorldSize(visual.transform, sprite, visibleTextureRect, visualWorldSize);
-
-        var collider = box.AddComponent<BoxCollider2D>();
-        collider.size = colliderSize;
-        collider.sharedMaterial = _parcelPhysicsMaterial;
-
-        var body = box.AddComponent<Rigidbody2D>();
-        body.bodyType = RigidbodyType2D.Kinematic;
-        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
-        body.gravityScale = tuning.SettledGravityScale;
-        body.mass = 1f;
-        body.linearDamping = tuning.LinearDamping;
-        body.angularDamping = tuning.AngularDamping;
-        body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
-
-        return box;
-    }
-
-    private Sprite CreateStackBlockSprite(int boxIndex)
-    {
-        int targetBoxes = Mathf.Max(1, CurrentTargetBoxes);
-        float bottomProgress = Mathf.Clamp01(boxIndex / (float)targetBoxes);
-        float topProgress = Mathf.Clamp01((boxIndex + 1) / (float)targetBoxes);
-        return _assetLoader.CreateStackBlockPlaceholder(
-            _currentPalette.GetStackGradientColor(bottomProgress),
-            _currentPalette.GetStackGradientColor(topProgress));
     }
 
     private void CreatePhysicsMaterials()
@@ -745,11 +703,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
-        var renderer = droppedBox.GetComponentInChildren<SpriteRenderer>();
-        if (renderer != null && _boxVisualCatalog.IsPlaceholderSprite(renderer.sprite))
+        Color placedTint = GetStackBlockTint(_placedBoxes.Count, false);
+        if (_boxFactory.TryApplyPlacedTint(droppedBox, placedTint))
         {
-            _placedTint = GetStackBlockTint(_placedBoxes.Count, false);
-            renderer.color = _placedTint;
+            _placedTint = placedTint;
         }
 
         var body = droppedBox.GetComponent<Rigidbody2D>();

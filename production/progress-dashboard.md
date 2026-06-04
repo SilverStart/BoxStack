@@ -4,7 +4,7 @@ Last updated: 2026-06-05
 
 ## Next Immediate Action
 
-B100 drop physics refactor is accepted. Next production refactor candidate: separate box creation/visual application while preserving the accepted B097/B100 gameplay feel.
+B101 box creation factory refactor is accepted. Next production refactor candidate: prepare scene/prefab composition boundaries for camera, floor/background, UI, and audio while preserving the accepted B097/B101 gameplay feel.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -208,6 +208,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-06-04: B099 user-led Editor Play verification passed. Normal clear, missed drop, placed-box loss, two-floor-contact failure, failure during clear validation, stage unlock, and replay behavior were checked with no issue.
 - 2026-06-05: B100 implements the next production refactor step. Drop-start Rigidbody switching, B086 pre-contact y-velocity reset, B097 fall-speed clamp, stack-motion stability checks, and placed-box physics freeze now live in `BoxStackDropPhysics`, while `BoxStackPrototype` keeps run orchestration, clear/fail transitions, UI/audio, and stage progression. `dotnet build BoxStack.slnx` passed with 0 warnings/errors after Unity refreshed the generated project file.
 - 2026-06-05: B100 user-led Editor Play verification passed. Normal drop flow, pre-contact impact softening, fall-speed cap, next-box timing after stability, failure flow, clear flow, and representative early/mid/late stage drop feel were checked with no issue.
+- 2026-06-05: B101 implements the next production refactor step. Box object creation, visual selection/application, collider/Rigidbody initialization, and Stack-like abstract block gradient sprite generation now live in `BoxStackBoxFactory`, while `BoxStackPrototype` keeps spawn timing, movement, drop/clear/fail orchestration, UI/audio, and stage progression. The new production-candidate class intentionally avoids the `Prototype` name. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-06-05: B101 user-led Editor Play verification passed. Early/mid/late stage box spawning, visuals, drop feel, failure flow, and clear flow were checked with no issue.
 
 ## Current Decisions
 
@@ -261,6 +263,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B098 is accepted by user-led Editor Play testing. Keep this refactor as a behavior-preserving production boundary split.
 - B099 keeps the accepted clear/failure rules but moves run-rule evaluation out of `BoxStackPrototype` into `BoxStackRunRules`. Keep this as a behavior-preserving boundary split; later rule changes should happen as separate tuning/design work.
 - B100 keeps the accepted B086/B097 drop feel but moves drop physics handling out of `BoxStackPrototype` into `BoxStackDropPhysics`. Keep this as a behavior-preserving boundary split; later physics changes should happen as separate tuning/design work.
+- B101 keeps accepted box visuals, collider sizing, B086/B097 drop feel, clear/fail rules, and stage progression while moving box construction into `BoxStackBoxFactory`. Keep this as a behavior-preserving production boundary split; later box-generation changes should happen as separate design/tuning work.
 - BoxStack keeps the existing Unity C# private field naming style (`_camelCase`) for this project. The starter-pack rule that forbids private-field `_` prefixes is not applied retroactively here, while shared harness/operating-rule improvements should still be mirrored to the starter-pack source when useful.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -270,7 +273,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This remains acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management, memory/build-size pressure, or App-in-Toss packaging policy requires it.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds. For repeatable WebGL builds, close the Unity Editor for this project and run `tools/build-webgl.ps1 -Development`; use `tools/build-webgl.ps1 -SkipUnityBuild` only to resync an already-created `webgl` build into the AIT Vite path.
 - Use a tiny in-game build marker during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B100`; documentation-only or design-asset-only commits do not require a build marker increment.
+- The current runtime build marker is `B101`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
@@ -302,6 +305,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B097 raises drop speed and is accepted in Editor Play, but later physics, movement, or block-width changes should recheck that the B086 pre-contact reset still prevents harsh box-to-box impact and excessive sideways shove.
 - B099 is behavior-preserving and accepted, but later changes to `BoxStackRunRules` should recheck normal clear, missed drop, stack lost, multiple-floor-contact failure, and failure during clear validation.
 - B100 is behavior-preserving and accepted, but later changes to `BoxStackDropPhysics` should recheck normal drop flow, B086 pre-contact y-velocity reset feel, fall-speed cap, stability-based next-box timing, result-time physics freeze, and representative early/mid/late stage drop feel.
+- B101 is behavior-preserving and accepted, but later changes to `BoxStackBoxFactory` or its visual/catalog dependencies should recheck early/mid/late stage box spawning, visual tint/gradient continuity, collider feel, normal drop, failure flow, and clear flow.
 - The prototype runtime is large enough that continued feature work inside `BoxStackPrototype.cs` will increase production migration cost; refactor in small verified steps before adding more product features.
 - Large early folder/class renames could create Unity `.meta` and scene/prefab reference churn, so prefer responsibility extraction before broad naming cleanup unless a rename is explicitly scoped.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.

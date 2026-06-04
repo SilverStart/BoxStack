@@ -1,4 +1,4 @@
-// Prototype run rules - keeps accepted clear/failure checks outside the main prototype controller.
+// 런 규칙 - 수용된 클리어/실패 판정을 메인 진행자 밖에 둔다.
 
 using System.Collections.Generic;
 using UnityEngine;

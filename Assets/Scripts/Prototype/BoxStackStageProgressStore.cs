@@ -1,4 +1,4 @@
-// 프로토타입 진행 저장소 - App-in-Toss 저장 방식으로 교체하기 위한 경계.
+// 스테이지 진행 저장소 - App-in-Toss 저장 방식으로 교체하기 위한 경계.
 
 using UnityEngine;
 

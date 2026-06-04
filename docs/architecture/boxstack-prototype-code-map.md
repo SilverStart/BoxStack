@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-05
-런타임 마커: B100
+런타임 마커: B101
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -15,11 +15,13 @@
    - 박스 이탈, 드롭 실패, 바닥 다중 접촉 실패 판정을 확인합니다.
 4. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-5. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+5. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+   - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
+6. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-6. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+7. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-7. 보조 파일
+8. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -33,7 +35,7 @@
 - 카메라와 바닥 생성.
 - Stack-like 2D 스테이지 팔레트, 추상 배경, 바닥, 전체 스택 그라데이션 구간을 쓰는 블록 색상 흐름 설정.
 - 입력 처리.
-- 활성 박스 생성과 드롭 전 좌우 이동.
+- 활성 박스 생성 요청과 드롭 전 좌우 이동.
 - 박스 낙하, 정착, 클리어 검증 흐름.
 - 성공/실패 판정 결과를 받아 런 상태를 전환.
 - 스테이지 선택과 스테이지 해금 흐름 호출.
@@ -45,7 +47,7 @@
 - `Start`: 설정과 에셋을 로드하고, 카메라/바닥/UI/진행 상태를 준비한 뒤 현재 스테이지를 시작합니다.
 - `Update`: 현재 상태에 맞는 입력과 게임 판정을 처리합니다.
 - `RestartGame`: 현재 판을 정리하고 선택된 스테이지를 다시 시작합니다.
-- `CreatePrototypeBox`: 현재 스테이지 박스 비주얼, 콜라이더, 2D Rigidbody를 묶어 블록 오브젝트를 만듭니다. Stack-like 추상 블록은 박스마다 전체 스택 그라데이션의 자기 구간을 새 스프라이트로 생성하고, 보이는 스프라이트 영역은 전체 `WorldSize`로 유지하되 콜라이더는 현재 코드값인 `WorldSize * 0.98f`를 사용합니다.
+- `SpawnNextBox`: 현재 스테이지와 박스 순번을 기준으로 `BoxStackBoxFactory`에 활성 박스 생성을 위임하고, 생성된 박스를 드롭 전 위치에 둡니다.
 - `MoveActiveBox`: 드롭 전 박스를 일정 속도로 좌우 이동시킵니다.
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 배경/바닥/UI 전달 색을 갱신합니다.
@@ -93,6 +95,23 @@ B099 기준으로 `BoxStackPrototype`은 이 클래스에 실패 판정을 위�
 - `FreezePlacedBoxPhysics`
 
 B100 기준으로 `BoxStackPrototype`은 이 클래스에 드롭 물리 세부 처리를 위임합니다. B086/B097 낙하 감각은 유지하며, 드롭 코루틴의 상태 전환, 실패/성공 처리, 결과 UI/오디오, 스테이지 해금은 여전히 `BoxStackPrototype`이 조정합니다.
+
+### `BoxStackBoxFactory.cs`
+
+현재 런타임의 박스 생성 경계입니다.
+
+담당 기능:
+- 스테이지 박스 코드와 박스 순번을 기준으로 비주얼을 선택.
+- Stack-like 추상 블록일 때 박스별 그라데이션 스프라이트 생성.
+- `SpriteRenderer`, `BoxCollider2D`, `Rigidbody2D` 초기 설정.
+- 정착 후 placeholder 블록 tint 적용.
+
+먼저 확인할 변경:
+- `CreateBox`
+- `TryApplyPlacedTint`
+- `CreateStackBlockSprite`
+
+B101 기준으로 `BoxStackPrototype`은 박스를 언제 생성하고 어디에 배치할지만 조정하고, 박스 오브젝트 조립과 비주얼/물리 컴포넌트 초기화는 `BoxStackBoxFactory`가 맡습니다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했습니다. 사용자 확인에서 초기/중반/후반 스테이지의 박스 생성, 비주얼, 드롭, 실패/클리어 흐름이 정상으로 수용됐습니다. 기존 `BoxStackPrototypeAssetLoader`, `BoxStackPrototypeBoxVisualCatalog`, `BoxStackPrototypePalette` 의존성은 아직 남아 있으므로 이후 제품 런타임 이름/폴더 정리 단계에서 다시 확인합니다.
 
 ### `BoxStackPrototypeConfig.cs`
 
