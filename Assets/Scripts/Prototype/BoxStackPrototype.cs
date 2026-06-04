@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 99;
+    private const int PrototypeBuildNumber = 100;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -25,6 +25,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgress _stageProgress = new BoxStackStageProgress(new BoxStackStageProgressStore());
     private readonly BoxStackRunRules _runRules = new BoxStackRunRules();
+    private readonly BoxStackDropPhysics _dropPhysics = new BoxStackDropPhysics();
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
@@ -39,7 +40,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
-    private bool _dropPreContactVelocityResetUsed;
     private GameObject _background;
     private BoxStackPrototypeUi _prototypeUi;
     private BoxStackPrototypeAudio _prototypeAudio;
@@ -224,8 +224,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         if (_state == BoxStackPrototypeState.ResolvingDrop)
         {
-            ResetDroppingBoxVelocityBeforeStackContact();
-            ClampDroppingBoxFallSpeed();
+            _dropPhysics.ResetVelocityBeforeStackContact(_droppingBox, _placedBoxes, Tuning);
+            _dropPhysics.ClampFallSpeed(_droppingBox, Tuning);
         }
     }
 
@@ -687,89 +687,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _state = BoxStackPrototypeState.ResolvingDrop;
         _statusText = "DROP";
 
-        var body = _activeBox.GetComponent<Rigidbody2D>();
-        body.bodyType = RigidbodyType2D.Dynamic;
-        body.gravityScale = Tuning.DroppingGravityScale;
-        body.linearVelocity = Vector2.zero;
-        body.angularVelocity = 0f;
+        _dropPhysics.BeginDrop(_activeBox, Tuning);
 
         _droppingBox = _activeBox;
-        _dropPreContactVelocityResetUsed = false;
         StartCoroutine(ResolveDrop(_droppingBox));
         _activeBox = null;
-    }
-
-    private void ResetDroppingBoxVelocityBeforeStackContact()
-    {
-        if (_dropPreContactVelocityResetUsed || _droppingBox == null || _placedBoxes.Count == 0)
-        {
-            return;
-        }
-
-        float resetDistance = Tuning.DropPreContactVelocityResetDistance;
-        if (resetDistance <= 0f)
-        {
-            return;
-        }
-
-        var body = _droppingBox.GetComponent<Rigidbody2D>();
-        if (body == null || body.linearVelocity.y >= 0f)
-        {
-            return;
-        }
-
-        if (!_droppingBox.TryGetComponent(out BoxCollider2D droppingCollider))
-        {
-            return;
-        }
-
-        Bounds droppingBounds = droppingCollider.bounds;
-        for (int i = 0; i < _placedBoxes.Count; i++)
-        {
-            GameObject placedBox = _placedBoxes[i];
-            if (placedBox == null || !placedBox.TryGetComponent(out BoxCollider2D placedCollider))
-            {
-                continue;
-            }
-
-            Bounds placedBounds = placedCollider.bounds;
-            bool horizontallyOverlaps = droppingBounds.min.x < placedBounds.max.x
-                && droppingBounds.max.x > placedBounds.min.x;
-            if (!horizontallyOverlaps)
-            {
-                continue;
-            }
-
-            float verticalGap = droppingBounds.min.y - placedBounds.max.y;
-            if (verticalGap >= 0f && verticalGap <= resetDistance)
-            {
-                Vector2 velocity = body.linearVelocity;
-                body.linearVelocity = new Vector2(velocity.x, 0f);
-                _dropPreContactVelocityResetUsed = true;
-                return;
-            }
-        }
-    }
-
-    private void ClampDroppingBoxFallSpeed()
-    {
-        if (_droppingBox == null)
-        {
-            return;
-        }
-
-        var body = _droppingBox.GetComponent<Rigidbody2D>();
-        if (body == null)
-        {
-            return;
-        }
-
-        Vector2 velocity = body.linearVelocity;
-        float maxDroppingFallSpeed = Tuning.MaxDroppingFallSpeed;
-        if (velocity.y < -maxDroppingFallSpeed)
-        {
-            body.linearVelocity = new Vector2(velocity.x, -maxDroppingFallSpeed);
-        }
     }
 
     private IEnumerator ResolveDrop(GameObject droppedBox)
@@ -792,7 +714,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
             BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
             float elapsed = Time.time - resolveStartedAt;
-            if (elapsed >= tuning.DropMinimumResolveSeconds && StackMotionIsStable(droppedBox))
+            if (elapsed >= tuning.DropMinimumResolveSeconds && _dropPhysics.StackMotionIsStable(droppedBox, _placedBoxes, tuning))
             {
                 if (stableStartedAt < 0f)
                 {
@@ -867,43 +789,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         SpawnNextBox();
     }
 
-    private bool StackMotionIsStable(GameObject droppedBox)
-    {
-        if (!BoxMotionIsStable(droppedBox))
-        {
-            return false;
-        }
-
-        for (int i = 0; i < _placedBoxes.Count; i++)
-        {
-            if (!BoxMotionIsStable(_placedBoxes[i]))
-            {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private bool BoxMotionIsStable(GameObject box)
-    {
-        if (box == null)
-        {
-            return false;
-        }
-
-        var body = box.GetComponent<Rigidbody2D>();
-        if (body == null || body.IsSleeping())
-        {
-            return true;
-        }
-
-        BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
-        float linearThreshold = tuning.StackStopLinearVelocity;
-        return body.linearVelocity.sqrMagnitude <= linearThreshold * linearThreshold
-            && Mathf.Abs(body.angularVelocity) <= tuning.StackStopAngularVelocity;
-    }
-
     private void BeginClearValidation()
     {
         _state = BoxStackPrototypeState.ValidatingClear;
@@ -961,7 +846,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _droppingBox = null;
-        FreezePlacedBoxPhysics();
+        _dropPhysics.FreezePlacedBoxPhysics(_placedBoxes);
         PlayResultFeedback(won);
         RefreshPrototypeUi();
     }
@@ -988,28 +873,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         else
         {
             _prototypeAudio.PlayFailure();
-        }
-    }
-
-    private void FreezePlacedBoxPhysics()
-    {
-        for (int i = 0; i < _placedBoxes.Count; i++)
-        {
-            GameObject box = _placedBoxes[i];
-            if (box == null)
-            {
-                continue;
-            }
-
-            var body = box.GetComponent<Rigidbody2D>();
-            if (body == null)
-            {
-                continue;
-            }
-
-            body.linearVelocity = Vector2.zero;
-            body.angularVelocity = 0f;
-            body.simulated = false;
         }
     }
 

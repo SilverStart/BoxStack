@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-06-04
-런타임 마커: B099
+마지막 갱신: 2026-06-05
+런타임 마커: B100
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -13,11 +13,13 @@
    - 메인 게임 흐름을 확인합니다. 초기화, 입력, 박스 이동, 낙하 처리, 성공/실패, 카메라, 스테이지 흐름, UI 갱신 호출이 여기 있습니다.
 3. `Assets/Scripts/Prototype/BoxStackRunRules.cs`
    - 박스 이탈, 드롭 실패, 바닥 다중 접촉 실패 판정을 확인합니다.
-4. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+4. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+   - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
+5. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-5. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+6. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-6. 보조 파일
+7. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -47,10 +49,8 @@
 - `MoveActiveBox`: 드롭 전 박스를 일정 속도로 좌우 이동시킵니다.
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 배경/바닥/UI 전달 색을 갱신합니다.
-- `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환합니다.
-- `ResetDroppingBoxVelocityBeforeStackContact`: 낙하 박스가 기존 박스와 거의 닿기 직전일 때 y축 속도를 1회 0으로 리셋해 충돌 충격을 줄입니다.
+- `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환하라고 `BoxStackDropPhysics`에 위임하고, 드롭 해소 코루틴을 시작합니다.
 - `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
-- `StackMotionIsStable` / `BoxMotionIsStable`: 드롭 해소 중 다음 박스를 생성해도 되는지 선형/각속도 임계값으로 판정합니다.
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
@@ -73,6 +73,26 @@
 - `BoxIsLost`
 
 B099 기준으로 `BoxStackPrototype`은 이 클래스에 실패 판정을 위임합니다. 룰 자체는 B084/B097 기준을 유지하며, 상태 전환, 결과 UI/오디오, 스테이지 해금은 여전히 `BoxStackPrototype.EndRun` 이후 흐름에서 처리합니다.
+
+### `BoxStackDropPhysics.cs`
+
+현재 프로토타입의 드롭 중 Rigidbody/Collider 기반 물리 처리 경계입니다.
+
+담당 기능:
+- 활성 박스를 실제 낙하 박스로 전환.
+- B086 접촉 직전 y속도 0 리셋.
+- B097 최대 낙하 속도 제한.
+- 드롭 해소 중 스택 안정 판정.
+- 성공/실패 결과 진입 시 배치된 박스 물리 정지.
+
+먼저 확인할 변경:
+- `BeginDrop`
+- `ResetVelocityBeforeStackContact`
+- `ClampFallSpeed`
+- `StackMotionIsStable`
+- `FreezePlacedBoxPhysics`
+
+B100 기준으로 `BoxStackPrototype`은 이 클래스에 드롭 물리 세부 처리를 위임합니다. B086/B097 낙하 감각은 유지하며, 드롭 코루틴의 상태 전환, 실패/성공 처리, 결과 UI/오디오, 스테이지 해금은 여전히 `BoxStackPrototype`이 조정합니다.
 
 ### `BoxStackPrototypeConfig.cs`
 
@@ -217,15 +237,16 @@ B098 기준으로 `BoxStackPrototype`은 이 클래스를 통해 스테이지 �
 
 먼저 볼 곳:
 - `BoxStackPrototype.DropActiveBox`
-- `BoxStackPrototype.ResetDroppingBoxVelocityBeforeStackContact`
-- `BoxStackPrototype.ClampDroppingBoxFallSpeed`
 - `BoxStackPrototype.ResolveDrop`
-- `BoxStackPrototype.StackMotionIsStable`
-- `BoxStackPrototype.BoxMotionIsStable`
+- `BoxStackDropPhysics.BeginDrop`
+- `BoxStackDropPhysics.ResetVelocityBeforeStackContact`
+- `BoxStackDropPhysics.ClampFallSpeed`
+- `BoxStackDropPhysics.StackMotionIsStable`
+- `BoxStackDropPhysics.FreezePlacedBoxPhysics`
 - `BoxStackPrototype.CreatePhysicsMaterials`
 - `BoxStackPrototypeConfig.TuningSettings`
 
-박스가 떨어질 때의 중력, 최대 낙하 속도, 기존 스택 접촉 직전 속도 리셋, 마찰, 감쇠, 정착 판정을 처리합니다.
+박스가 떨어질 때의 중력, 최대 낙하 속도, 기존 스택 접촉 직전 속도 리셋, 마찰, 감쇠, 정착 판정을 처리합니다. B100 기준 드롭 중 물리 세부 처리는 `BoxStackDropPhysics`가 맡고, `BoxStackPrototype`은 언제 드롭을 시작하고 다음 흐름으로 넘길지만 조정합니다.
 
 ### 블록 비주얼
 
