@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-06-03
-런타임 마커: B098
+마지막 갱신: 2026-06-04
+런타임 마커: B099
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -11,11 +11,13 @@
    - 스테이지별 목표 박스 수, 이동 속도, 이동 범위, 마찰, 중력, 감쇠, 클리어 판정 시간 같은 조정값을 먼저 확인합니다.
 2. `Assets/Scripts/Prototype/BoxStackPrototype.cs`
    - 메인 게임 흐름을 확인합니다. 초기화, 입력, 박스 이동, 낙하 처리, 성공/실패, 카메라, 스테이지 흐름, UI 갱신 호출이 여기 있습니다.
-3. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+3. `Assets/Scripts/Prototype/BoxStackRunRules.cs`
+   - 박스 이탈, 드롭 실패, 바닥 다중 접촉 실패 판정을 확인합니다.
+4. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-4. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+5. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-5. 보조 파일
+6. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -31,7 +33,7 @@
 - 입력 처리.
 - 활성 박스 생성과 드롭 전 좌우 이동.
 - 박스 낙하, 정착, 클리어 검증 흐름.
-- 성공/실패 판정.
+- 성공/실패 판정 결과를 받아 런 상태를 전환.
 - 스테이지 선택과 스테이지 해금 흐름 호출.
 - 현재 게임 상태를 UI 계층으로 전달.
 - 배치 안정, 클리어, 실패 시점에 작은 합성 효과음을 호출.
@@ -53,6 +55,25 @@
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
 
+### `BoxStackRunRules.cs`
+
+현재 프로토타입의 런 단위 성공/실패 판정 경계입니다.
+
+담당 기능:
+- 떨어진 박스가 빗나갔는지 판정.
+- 기존 스택 박스가 화면 아래/옆 이탈 기준을 넘었는지 판정.
+- 바닥 콜라이더에 닿은 박스가 2개 이상인지 판정.
+- 실패 상태 문자열 `MISSED`, `STACK LOST`, `STACK SPREAD`를 한곳에서 관리.
+
+먼저 확인할 변경:
+- `TryEvaluateDroppedBoxFailure`
+- `TryEvaluateStackFailure`
+- `AnyBoxLost`
+- `StackHasMultipleFloorContacts`
+- `BoxIsLost`
+
+B099 기준으로 `BoxStackPrototype`은 이 클래스에 실패 판정을 위임합니다. 룰 자체는 B084/B097 기준을 유지하며, 상태 전환, 결과 UI/오디오, 스테이지 해금은 여전히 `BoxStackPrototype.EndRun` 이후 흐름에서 처리합니다.
+
 ### `BoxStackPrototypeConfig.cs`
 
 프로토타입 스테이지와 튜닝값을 담는 ScriptableObject 데이터 경계입니다.
@@ -69,7 +90,7 @@
 - 기본 이동 범위와 이동 속도.
 - 마찰, 중력, 감쇠, 낙하 속도 제한, 기존 스택 접촉 직전 낙하 속도 리셋 거리.
 - 클리어 검증 시간.
-- 단일 컬럼 허용 오차.
+- 박스 이탈 기준.
 
 ### `BoxStackPrototypeUiStateFactory.cs`
 
@@ -218,11 +239,15 @@ B098 기준으로 `BoxStackPrototype`은 이 클래스를 통해 스테이지 �
 ### 성공과 실패 규칙
 
 먼저 볼 곳:
-- `BoxStackPrototype.AnyBoxLost`
-- `BoxStackPrototype.BoxIsLost`
-- `BoxStackPrototype.StackHasMultipleFloorContacts`
-- `BoxStackPrototype.BoxIsTouchingFloor`
+- `BoxStackRunRules.TryEvaluateDroppedBoxFailure`
+- `BoxStackRunRules.TryEvaluateStackFailure`
+- `BoxStackRunRules.AnyBoxLost`
+- `BoxStackRunRules.StackHasMultipleFloorContacts`
+- `BoxStackRunRules.BoxIsLost`
 - `BoxStackPrototype.BeginClearValidation`
+- `BoxStackPrototype.UpdateClearValidation`
+
+B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, `BoxStackPrototype`은 판정 결과를 받아 `EndRun`으로 상태 전환, 결과 UI/오디오, 스테이지 해금을 처리합니다. 목표 박스 수 도달 후 5초 생존 검증 흐름은 유지합니다.
 
 
 ### 스테이지 선택과 해금
