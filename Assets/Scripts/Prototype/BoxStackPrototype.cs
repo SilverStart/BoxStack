@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 103;
+    private const int PrototypeBuildNumber = 104;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -23,6 +23,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackRunRules _runRules = new BoxStackRunRules();
     private readonly BoxStackDropPhysics _dropPhysics = new BoxStackDropPhysics();
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
+    private readonly BoxStackActiveBoxMotion _activeBoxMotion = new BoxStackActiveBoxMotion();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -93,24 +94,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private int CurrentTargetBoxes
     {
         get { return CurrentStage.TargetBoxes; }
-    }
-
-    private float CurrentMoveRange
-    {
-        get
-        {
-            return Mathf.Min(CurrentStageMoveRange, GetScreenSafeMoveRange());
-        }
-    }
-
-    private float CurrentStageMoveRange
-    {
-        get { return Tuning.BaseMoveRange * CurrentStage.RangeMultiplier; }
-    }
-
-    private float CurrentMoveSpeed
-    {
-        get { return Tuning.BaseMoveSpeed * CurrentStage.SpeedMultiplier; }
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -465,49 +448,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void MoveActiveBox()
     {
-        if (_activeBox == null)
-        {
-            return;
-        }
-
-        float elapsed = Time.time - _moveStartedAt;
-        float moveRange = CurrentMoveRange;
-        if (moveRange <= 0f)
-        {
-            _activeBox.transform.position = new Vector3(0f, _spawnHeight, 0f);
-            return;
-        }
-
-        float rangeSpeedCompensation = CurrentStageMoveRange / moveRange;
-        float cyclePosition = Mathf.Repeat(
-            (elapsed * CurrentMoveSpeed * rangeSpeedCompensation / (2f * Mathf.PI)) + 0.25f,
-            1f);
-        float normalizedX = cyclePosition < 0.5f
-            ? -1f + (cyclePosition * 4f)
-            : 3f - (cyclePosition * 4f);
-        float x = normalizedX * moveRange;
-        _activeBox.transform.position = new Vector3(x, _spawnHeight, 0f);
-    }
-
-    private float GetScreenSafeMoveRange()
-    {
-        if (_camera == null)
-        {
-            return Tuning.BaseMoveRange;
-        }
-
-        float cameraHalfWidth = _camera.orthographicSize * _camera.aspect;
-        return Mathf.Max(0f, cameraHalfWidth - GetActiveBoxHalfWidth() - Tuning.MoveRangeScreenPadding);
-    }
-
-    private float GetActiveBoxHalfWidth()
-    {
-        if (_activeBox != null && _activeBox.TryGetComponent(out BoxCollider2D collider))
-        {
-            return collider.size.x * Mathf.Abs(_activeBox.transform.lossyScale.x) * 0.5f;
-        }
-
-        return BoxSize * 0.5f;
+        _activeBoxMotion.Move(
+            _activeBox,
+            _camera,
+            _spawnHeight,
+            _moveStartedAt,
+            Time.time,
+            CurrentStage,
+            Tuning,
+            BoxSize);
     }
 
     private void UpdateCamera()

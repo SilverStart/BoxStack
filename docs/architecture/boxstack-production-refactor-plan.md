@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
-마지막 갱신: 2026-06-05
-런타임 마커: B103
-상태: Stage 5 runtime host split implemented and accepted
+마지막 갱신: 2026-06-06
+런타임 마커: B104
+상태: Stage 4 active-box motion split implemented and accepted
 
 ## 목적
 
@@ -26,6 +26,7 @@
 - `BoxStackPrototypeAudio`는 아직 작은 런타임 합성 효과음 경계로 충분하다.
 - `BoxStackSceneComposition`이 카메라, 배경, 바닥 생성과 스테이지 팔레트 기반 씬 갱신을 맡기 시작했다.
 - `BoxStackRuntimeHosts`가 UI host와 audio host GameObject 생성, UI 폰트 로드, UI 컴포넌트 초기화 경계를 맡기 시작했다.
+- `BoxStackActiveBoxMotion`이 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, 박스 반폭 계산 경계를 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -145,6 +146,7 @@
 - B101에서 박스 생성 factory와 비주얼 적용 흐름을 `BoxStackBoxFactory`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B102에서 카메라 생성/설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 팔레트 기반 배경/바닥 갱신을 `BoxStackSceneComposition`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B103에서 UI host GameObject 생성, 런타임 UI 폰트 로드, UI 컴포넌트 초기화, audio host GameObject 생성을 `BoxStackRuntimeHosts`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
+- B104에서 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, collider 기반 박스 반폭 계산을 `BoxStackActiveBoxMotion`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -160,12 +162,14 @@
 구현 결과:
 - `BoxStackDropPhysics`가 낙하 시작 시 Rigidbody 전환, B086 접촉 직전 y속도 리셋, B097 최대 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 placed box 물리 정지를 맡는다.
 - `BoxStackBoxFactory`가 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정, Stack-like 추상 블록용 그라데이션 스프라이트 생성을 맡도록 분리했다.
+- `BoxStackActiveBoxMotion`이 드롭 전 active box의 좌우 왕복 위치 계산, 화면 폭 기준 안전 이동 범위 계산, active box collider 반폭 계산을 맡도록 분리했다.
 - `BoxStackPrototype`은 드롭 시작/해소 코루틴, 실패/성공 전환, 결과 UI/오디오, 스테이지 진행 처리를 계속 조정한다.
 - B086 접촉 직전 y속도 리셋, B097 낙하 템포, clear/fail 룰, 결과 문구, 결과음, 스테이지 해금 흐름은 바꾸지 않았다.
 - 사용자 확인에서 일반 드롭, 접촉 직전 충격 완화, 낙하 속도 상한, 안정 후 다음 박스 생성, 실패 흐름, 클리어 흐름, 대표 스테이지 낙하 감각이 정상으로 확인됐다.
 - B101 사용자 확인에서 초기/중반/후반 스테이지의 박스 생성, 비주얼, 드롭, 실패/클리어 흐름이 정상으로 확인됐다.
 - B102 사용자 확인에서 런타임 마커 B102, 배경/바닥/카메라 위치, 스테이지 팔레트 갱신, 낙하/착지/실패/클리어, 스테이지 선택/결과 팝업 흐름이 정상으로 확인됐다.
 - B103 사용자 확인에서 런타임 마커 B103, 스테이지 선택 팝업 열기/닫기/선택, 결과 팝업 버튼, 배치/클리어/실패 사운드가 정상으로 확인됐다.
+- B104 사용자 확인에서 런타임 마커 B104, 스테이지 1 좌우 왕복 이동, 박스 배치/낙하/착지 사운드, 후반 스테이지 화면 밖 이탈 여부, 클리어/실패 결과 팝업이 정상으로 확인됐다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -234,4 +238,4 @@
 
 ## 다음 즉시 행동
 
-B103 런타임 호스트 경계 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 드롭 전 이동, 런 상태 전환, 클리어 검증 같은 런타임 진행 책임 중 하나를 작게 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B104 드롭 전 이동 경계 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 런 상태 전환, 클리어 검증 같은 런타임 진행 책임 중 하나를 작게 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

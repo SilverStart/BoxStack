@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-06-05
-런타임 마커: B103
+마지막 갱신: 2026-06-06
+런타임 마커: B104
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -17,15 +17,17 @@
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
 5. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-6. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+6. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+   - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
+7. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+8. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+9. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+10. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-10. 보조 파일
+11. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -40,7 +42,7 @@
 - 런타임 host 객체 생성과 UI/오디오 컴포넌트 참조 보관.
 - Stack-like 2D 스테이지 팔레트 계산과 블록 색상 흐름 설정.
 - 입력 처리.
-- 활성 박스 생성 요청과 드롭 전 좌우 이동.
+- 활성 박스 생성 요청과 드롭 전 좌우 이동 호출.
 - 박스 낙하, 정착, 클리어 검증 흐름.
 - 성공/실패 판정 결과를 받아 런 상태를 전환.
 - 스테이지 선택과 스테이지 해금 흐름 호출.
@@ -53,7 +55,7 @@
 - `Update`: 현재 상태에 맞는 입력과 게임 판정을 처리합니다.
 - `RestartGame`: 현재 판을 정리하고 선택된 스테이지를 다시 시작합니다.
 - `SpawnNextBox`: 현재 스테이지와 박스 순번을 기준으로 `BoxStackBoxFactory`에 활성 박스 생성을 위임하고, 생성된 박스를 드롭 전 위치에 둡니다.
-- `MoveActiveBox`: 드롭 전 박스를 일정 속도로 좌우 이동시킵니다.
+- `MoveActiveBox`: 드롭 전 박스 이동을 `BoxStackActiveBoxMotion`에 위임합니다.
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `CreateSceneComposition`: 카메라/배경/바닥 생성을 `BoxStackSceneComposition`에 위임하고, 게임 진행에 필요한 카메라와 바닥 콜라이더 참조를 받아옵니다.
 - `CreateRuntimeHosts`: UI/audio host 생성을 맡는 `BoxStackRuntimeHosts`를 준비합니다.
@@ -120,6 +122,24 @@ B100 기준으로 `BoxStackPrototype`은 이 클래스에 드롭 물리 세부 �
 - `CreateStackBlockSprite`
 
 B101 기준으로 `BoxStackPrototype`은 박스를 언제 생성하고 어디에 배치할지만 조정하고, 박스 오브젝트 조립과 비주얼/물리 컴포넌트 초기화는 `BoxStackBoxFactory`가 맡습니다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했습니다. 사용자 확인에서 초기/중반/후반 스테이지의 박스 생성, 비주얼, 드롭, 실패/클리어 흐름이 정상으로 수용됐습니다. 기존 `BoxStackPrototypeAssetLoader`, `BoxStackPrototypeBoxVisualCatalog`, `BoxStackPrototypePalette` 의존성은 아직 남아 있으므로 이후 제품 런타임 이름/폴더 정리 단계에서 다시 확인합니다.
+
+### `BoxStackActiveBoxMotion.cs`
+
+현재 런타임의 드롭 전 active box 이동 계산 경계입니다.
+
+담당 기능:
+- 드롭 전 active box의 좌우 왕복 위치 계산.
+- 스테이지 이동 속도/범위 배율 적용.
+- 카메라 화면 폭 기준 안전 이동 범위 계산.
+- active box collider 기준 반폭 계산.
+- 화면 clamp로 이동 범위가 줄어들어도 기존 후반 스테이지 속도감을 유지하는 range compensation 적용.
+
+먼저 확인할 변경:
+- `Move`
+- `GetScreenSafeMoveRange`
+- `GetActiveBoxHalfWidth`
+
+B104 기준으로 `BoxStackPrototype`은 active box, 카메라, 스폰 높이, 이동 시작 시간, 현재 스테이지, 튜닝, fallback 박스 크기만 넘기고, 이동 수학과 위치 적용은 `BoxStackActiveBoxMotion`이 맡습니다. 기존 B012 화면 clamp와 속도 보정, B097 드롭 감각은 바꾸지 않았습니다. 사용자 확인에서 B104 마커, 스테이지 1 좌우 왕복 이동, 후반 스테이지 화면 밖 이탈 여부, 클리어/실패 결과 팝업이 정상으로 수용됐습니다.
 
 ### `BoxStackSceneComposition.cs`
 
@@ -291,12 +311,11 @@ B098 기준으로 `BoxStackPrototype`은 이 클래스를 통해 스테이지 �
 
 먼저 볼 곳:
 - `BoxStackPrototype.MoveActiveBox`
-- `BoxStackPrototype.GetScreenSafeMoveRange`
-- `BoxStackPrototype.GetActiveBoxHalfWidth`
-- `BoxStackPrototype.CurrentMoveSpeed`
-- `BoxStackPrototype.CurrentMoveRange`
+- `BoxStackActiveBoxMotion.Move`
+- `BoxStackActiveBoxMotion.GetScreenSafeMoveRange`
+- `BoxStackActiveBoxMotion.GetActiveBoxHalfWidth`
 
-활성 박스가 드롭 전 어떻게 움직이는지, 카메라 화면 안에 어떻게 머무는지, 화면 때문에 이동 범위가 줄어들어도 후반 스테이지 속도감을 어떻게 유지하는지 결정합니다.
+활성 박스가 드롭 전 어떻게 움직이는지, 카메라 화면 안에 어떻게 머무는지, 화면 때문에 이동 범위가 줄어들어도 후반 스테이지 속도감을 어떻게 유지하는지 결정합니다. B104 기준 실제 이동 계산은 `BoxStackActiveBoxMotion`이 맡고, `BoxStackPrototype.MoveActiveBox`는 흐름상 언제 이동을 적용할지만 연결합니다.
 
 ### 박스 낙하와 충격 튜닝
 
