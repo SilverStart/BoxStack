@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
 마지막 갱신: 2026-06-05
-런타임 마커: B102
-상태: Stage 5 scene composition split implemented and accepted
+런타임 마커: B103
+상태: Stage 5 runtime host split implemented and accepted
 
 ## 목적
 
@@ -25,6 +25,7 @@
 - `BoxStackPrototypeUiStateFactory`가 런타임 상태를 UI 표시 상태와 문구로 변환한다.
 - `BoxStackPrototypeAudio`는 아직 작은 런타임 합성 효과음 경계로 충분하다.
 - `BoxStackSceneComposition`이 카메라, 배경, 바닥 생성과 스테이지 팔레트 기반 씬 갱신을 맡기 시작했다.
+- `BoxStackRuntimeHosts`가 UI host와 audio host GameObject 생성, UI 폰트 로드, UI 컴포넌트 초기화 경계를 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -143,6 +144,7 @@
 - B100에서 드롭 물리 처리 분리의 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
 - B101에서 박스 생성 factory와 비주얼 적용 흐름을 `BoxStackBoxFactory`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B102에서 카메라 생성/설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 팔레트 기반 배경/바닥 갱신을 `BoxStackSceneComposition`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
+- B103에서 UI host GameObject 생성, 런타임 UI 폰트 로드, UI 컴포넌트 초기화, audio host GameObject 생성을 `BoxStackRuntimeHosts`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -163,6 +165,7 @@
 - 사용자 확인에서 일반 드롭, 접촉 직전 충격 완화, 낙하 속도 상한, 안정 후 다음 박스 생성, 실패 흐름, 클리어 흐름, 대표 스테이지 낙하 감각이 정상으로 확인됐다.
 - B101 사용자 확인에서 초기/중반/후반 스테이지의 박스 생성, 비주얼, 드롭, 실패/클리어 흐름이 정상으로 확인됐다.
 - B102 사용자 확인에서 런타임 마커 B102, 배경/바닥/카메라 위치, 스테이지 팔레트 갱신, 낙하/착지/실패/클리어, 스테이지 선택/결과 팝업 흐름이 정상으로 확인됐다.
+- B103 사용자 확인에서 런타임 마커 B103, 스테이지 선택 팝업 열기/닫기/선택, 결과 팝업 버튼, 배치/클리어/실패 사운드가 정상으로 확인됐다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -177,6 +180,7 @@
 
 상태:
 - B102에서 카메라, 배경, 바닥 생성과 팔레트 갱신 흐름을 `BoxStackSceneComposition`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다.
+- B103에서 UI/audio host 생성 흐름을 `BoxStackRuntimeHosts`로 분리했고, 사용자 Editor Play 확인에서 수용됐다.
 
 목표:
 - 카메라, 바닥, UI, 오디오를 코드가 직접 생성하는 구조에서 씬/프리팹 참조 구조로 옮길 준비를 한다.
@@ -190,7 +194,8 @@
 구현 결과:
 - `BoxStackSceneComposition`이 메인 카메라 확보/설정, 배경 SpriteRenderer 생성과 카메라 커버 스케일, 바닥 SpriteRenderer와 `BoxCollider2D` 생성, 최소 카메라 Y 계산, 스테이지 팔레트에 따른 배경/바닥 스프라이트 갱신을 맡는다.
 - `BoxStackPrototype`은 씬 구성 객체를 만들고, 카메라/바닥 콜라이더/최소 카메라 Y 참조를 받아 게임 진행과 룰 판정에 사용한다.
-- UI 생성과 오디오 생성은 아직 `BoxStackPrototype`에 남아 있으며, 다음 작은 분리 후보로 둔다.
+- `BoxStackRuntimeHosts`가 UI host GameObject 생성, 런타임 UI 폰트 로드, `BoxStackPrototypeUi` 초기화, audio host GameObject 생성과 `BoxStackPrototypeAudio` 추가를 맡는다.
+- `BoxStackPrototype`은 런타임 host를 만들고, 생성된 UI/오디오 컴포넌트 참조만 받아 HUD 갱신과 사운드 호출에 사용한다.
 
 주의:
 - 이 단계는 Unity scene/prefab 참조를 만질 가능성이 있으므로 변경 범위를 더 작게 나눠야 한다.
@@ -229,4 +234,4 @@
 
 ## 다음 즉시 행동
 
-B102 씬 구성 경계 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 5단계의 남은 런타임 구성 경계이며, UI 생성 호스트와 오디오 생성 호스트를 어떤 경계로 나눌지 먼저 작게 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B103 런타임 호스트 경계 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 드롭 전 이동, 런 상태 전환, 클리어 검증 같은 런타임 진행 책임 중 하나를 작게 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

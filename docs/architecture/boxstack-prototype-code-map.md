@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-05
-런타임 마커: B102
+런타임 마커: B103
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -19,11 +19,13 @@
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
 6. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+7. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+   - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
+8. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+9. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-9. 보조 파일
+10. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -35,6 +37,7 @@
 담당 기능:
 - 프로토타입 부트스트랩과 기본 설정.
 - 씬 구성 객체 생성과 카메라/바닥 콜라이더 참조 보관.
+- 런타임 host 객체 생성과 UI/오디오 컴포넌트 참조 보관.
 - Stack-like 2D 스테이지 팔레트 계산과 블록 색상 흐름 설정.
 - 입력 처리.
 - 활성 박스 생성 요청과 드롭 전 좌우 이동.
@@ -53,6 +56,8 @@
 - `MoveActiveBox`: 드롭 전 박스를 일정 속도로 좌우 이동시킵니다.
 - `GetStackBlockTint` / `BoxStackPrototypePalette.GetStackGradientColor`: 현재 스테이지 팔레트 안에서 블록 순서에 따라 아래쪽은 배경 최상단에 가까운 아주 진한 색으로 시작하고, 위쪽과 다음 박스는 밝게 이어지도록 색상을 계산합니다.
 - `CreateSceneComposition`: 카메라/배경/바닥 생성을 `BoxStackSceneComposition`에 위임하고, 게임 진행에 필요한 카메라와 바닥 콜라이더 참조를 받아옵니다.
+- `CreateRuntimeHosts`: UI/audio host 생성을 맡는 `BoxStackRuntimeHosts`를 준비합니다.
+- `EnsureRuntimeUi` / `EnsureRuntimeAudio`: UI/오디오 GameObject 생성 세부를 runtime host에 위임하고, 생성된 컴포넌트 참조만 받아옵니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 씬 구성 객체에 배경/바닥 갱신을 위임합니다.
 - `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환하라고 `BoxStackDropPhysics`에 위임하고, 드롭 해소 코루틴을 시작합니다.
 - `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
@@ -135,6 +140,24 @@ B101 기준으로 `BoxStackPrototype`은 박스를 언제 생성하고 어디에
 - `CreateBackground`
 
 B102 기준으로 `BoxStackPrototype`은 게임 진행에 필요한 카메라, 바닥 콜라이더, 최소 카메라 Y 참조만 받아 쓰고, 카메라/배경/바닥 생성 세부 구현과 팔레트 기반 배경/바닥 갱신은 `BoxStackSceneComposition`이 맡습니다. 사용자 확인에서 B102 마커, 배경/바닥/카메라 위치, 스테이지 팔레트 갱신, 낙하/착지/실패/클리어, 스테이지 선택/결과 팝업 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackRuntimeHosts.cs`
+
+현재 런타임의 UI/audio host 생성 경계입니다.
+
+담당 기능:
+- UI host GameObject 생성.
+- 런타임 UI 초기화에 필요한 표시 폰트, 본문 폰트, 한국어 fallback 폰트 로드.
+- `BoxStackPrototypeUi` 컴포넌트 추가와 콜백 연결.
+- audio host GameObject 생성.
+- `BoxStackPrototypeAudio` 컴포넌트 추가.
+
+먼저 확인할 변경:
+- `EnsureUi`
+- `EnsureAudio`
+- `UiCallbacks`
+
+B103 기준으로 `BoxStackPrototype`은 UI/audio GameObject 생성 방식과 폰트 로딩 세부를 직접 알지 않고, `BoxStackRuntimeHosts`에서 생성된 `BoxStackPrototypeUi`, `BoxStackPrototypeAudio` 참조만 받아 사용합니다. 사용자 확인에서 B103 마커, 스테이지 선택 팝업 열기/닫기/선택, 결과 팝업 버튼, 배치/클리어/실패 사운드가 정상으로 수용됐습니다.
 
 ### `BoxStackPrototypeConfig.cs`
 
@@ -363,8 +386,10 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, `BoxStackPrototype`�
 -> `LoadPrototypeSprites`
 -> `CreatePhysicsMaterials`
 -> `CreateSceneComposition`
+-> `CreateRuntimeHosts`
 -> `LoadStageProgress`
--> `EnsurePrototypeUi`
+-> `EnsureRuntimeUi`
+-> `EnsureRuntimeAudio`
 -> `RestartGame`
 -> `SpawnNextBox`
 

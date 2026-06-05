@@ -4,7 +4,7 @@ Last updated: 2026-06-05
 
 ## Next Immediate Action
 
-B102 scene composition refactor is accepted. Next production refactor candidate: split the remaining runtime composition boundaries for UI host creation and audio host creation while preserving the accepted B097/B102 gameplay feel.
+B103 runtime host refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, such as pre-drop movement, run-state transitions, or clear-validation flow, while preserving the accepted B097/B103 gameplay feel.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -212,6 +212,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-06-05: B101 user-led Editor Play verification passed. Early/mid/late stage box spawning, visuals, drop feel, failure flow, and clear flow were checked with no issue.
 - 2026-06-05: B102 implements the next production refactor step. Camera setup, background creation/resizing, floor object/collider creation, and stage-palette background/floor updates now live in `BoxStackSceneComposition`, while `BoxStackPrototype` keeps input, run orchestration, camera follow timing, clear/fail transitions, UI/audio calls, and stage progression. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-06-05: B102 user-led Editor Play verification passed. Runtime marker B102, background/floor/camera placement, stage palette updates, normal drop/landing/failure/clear flow, stage select, and result popup flow were checked with no issue.
+- 2026-06-05: B103 implements the next production refactor step. UI host GameObject creation, runtime font loading for UI initialization, UI component initialization, and audio host GameObject creation now live in `BoxStackRuntimeHosts`. `BoxStackPrototype` keeps game orchestration and only stores the resulting UI/audio component references. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-06-05: B103 user-led Editor Play verification passed. Runtime marker B103, stage-select open/close/select flow, result popup button flow, placement sound, clear glissando, and failure sound were checked with no issue.
 
 ## Current Decisions
 
@@ -267,6 +269,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B100 keeps the accepted B086/B097 drop feel but moves drop physics handling out of `BoxStackPrototype` into `BoxStackDropPhysics`. Keep this as a behavior-preserving boundary split; later physics changes should happen as separate tuning/design work.
 - B101 keeps accepted box visuals, collider sizing, B086/B097 drop feel, clear/fail rules, and stage progression while moving box construction into `BoxStackBoxFactory`. Keep this as a behavior-preserving production boundary split; later box-generation changes should happen as separate design/tuning work.
 - B102 keeps accepted camera/background/floor placement, palette behavior, box/drop feel, clear/fail rules, UI flow, audio cues, and stage progression while moving scene composition into `BoxStackSceneComposition`. Keep this as a behavior-preserving production boundary split; later scene/prefab/camera/background changes should happen as separate productization or visual work.
+- B103 keeps accepted UI flow, safe-area behavior, result popup flow, audio cues, camera/background/floor placement, box/drop feel, clear/fail rules, and stage progression while moving UI/audio host creation into `BoxStackRuntimeHosts`. Keep this as a behavior-preserving production boundary split; later UI/audio behavior changes should happen as separate productization, UX, or audio work.
 - BoxStack keeps the existing Unity C# private field naming style (`_camelCase`) for this project. The starter-pack rule that forbids private-field `_` prefixes is not applied retroactively here, while shared harness/operating-rule improvements should still be mirrored to the starter-pack source when useful.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -276,7 +279,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This remains acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management, memory/build-size pressure, or App-in-Toss packaging policy requires it.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds. For repeatable WebGL builds, close the Unity Editor for this project and run `tools/build-webgl.ps1 -Development`; use `tools/build-webgl.ps1 -SkipUnityBuild` only to resync an already-created `webgl` build into the AIT Vite path.
 - Use a tiny in-game build marker during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B102`; documentation-only or design-asset-only commits do not require a build marker increment.
+- The current runtime build marker is `B103`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
@@ -284,7 +287,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 - Does WebGL/App-in-Toss require a different user-gesture or mute policy for B095 audio playback than Unity Editor Play Mode?
-- Should the next code refactor step split UI host creation or audio host creation before doing folder/class renames?
+- Which remaining runtime responsibility should the next production refactor step split first: pre-drop movement, run-state transitions, clear-validation flow, or another small boundary?
 
 ## Risks
 
@@ -310,6 +313,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B100 is behavior-preserving and accepted, but later changes to `BoxStackDropPhysics` should recheck normal drop flow, B086 pre-contact y-velocity reset feel, fall-speed cap, stability-based next-box timing, result-time physics freeze, and representative early/mid/late stage drop feel.
 - B101 is behavior-preserving and accepted, but later changes to `BoxStackBoxFactory` or its visual/catalog dependencies should recheck early/mid/late stage box spawning, visual tint/gradient continuity, collider feel, normal drop, failure flow, and clear flow.
 - B102 is behavior-preserving and accepted, but later changes to `BoxStackSceneComposition` should recheck camera framing, background cover scaling, floor collider placement, stage palette updates, normal drop, failure flow, and clear flow.
+- B103 is behavior-preserving and accepted, but later changes to `BoxStackRuntimeHosts` should recheck HUD creation, stage-select open/close/select flow, result popup button flow, placement sound, clear sound, and failure sound.
 - The prototype runtime is large enough that continued feature work inside `BoxStackPrototype.cs` will increase production migration cost; refactor in small verified steps before adding more product features.
 - Large early folder/class renames could create Unity `.meta` and scene/prefab reference churn, so prefer responsibility extraction before broad naming cleanup unless a rename is explicitly scoped.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.

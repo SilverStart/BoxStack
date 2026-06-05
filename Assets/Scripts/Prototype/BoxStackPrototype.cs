@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 102;
+    private const int PrototypeBuildNumber = 103;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -27,6 +27,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
     private BoxStackSceneComposition _sceneComposition;
+    private BoxStackRuntimeHosts _runtimeHosts;
     private GameObject _activeBox;
     private GameObject _droppingBox;
     private Camera _camera;
@@ -36,9 +37,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private PhysicsMaterial2D _floorPhysicsMaterial;
     private BoxStackPrototypeUi _prototypeUi;
     private BoxStackPrototypeAudio _prototypeAudio;
-    private Font _displayFont;
-    private Font _bodyFont;
-    private Font _fallbackFont;
     private Color _activeTint = new Color(0.36f, 0.96f, 1.00f);
     private Color _placedTint = new Color(0.26f, 0.74f, 1.00f);
     private BoxStackPrototypePalette _currentPalette = BoxStackPrototypePalette.FromStageIndex(0);
@@ -134,10 +132,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
         CreateSceneComposition();
+        CreateRuntimeHosts();
         LoadStageProgress();
         ApplyCurrentStagePalette();
-        EnsurePrototypeUi();
-        EnsurePrototypeAudio();
+        EnsureRuntimeUi();
+        EnsureRuntimeAudio();
         RestartGame();
     }
 
@@ -220,43 +219,32 @@ public sealed class BoxStackPrototype : MonoBehaviour
         RefreshPrototypeUi();
     }
 
-    private void EnsurePrototypeUi()
+    private void EnsureRuntimeUi()
     {
         if (_prototypeUi != null)
         {
             return;
         }
 
-        _displayFont = _assetLoader.LoadDisplayFont();
-        _bodyFont = _assetLoader.LoadBodyFont();
-        _fallbackFont = _assetLoader.LoadKoreanFallbackFont();
-
-        var uiObject = new GameObject("BoxStack Prototype UI");
-        uiObject.transform.SetParent(transform, false);
-        uiObject.SetActive(false);
-        _prototypeUi = uiObject.AddComponent<BoxStackPrototypeUi>();
-        _prototypeUi.Initialize(
-            _displayFont,
-            _bodyFont,
-            _fallbackFont,
+        _runtimeHosts.EnsureUi(new BoxStackRuntimeHosts.UiCallbacks(
             OpenStageSelect,
             SelectStage,
             CloseStageSelect,
             ResetStageProgress,
             UnlockAllStagesForPlaytest,
-            HandleCurrentResultButton);
+            HandleCurrentResultButton));
+        _prototypeUi = _runtimeHosts.Ui;
     }
 
-    private void EnsurePrototypeAudio()
+    private void EnsureRuntimeAudio()
     {
         if (_prototypeAudio != null)
         {
             return;
         }
 
-        var audioObject = new GameObject("BoxStack Prototype Audio");
-        audioObject.transform.SetParent(transform, false);
-        _prototypeAudio = audioObject.AddComponent<BoxStackPrototypeAudio>();
+        _runtimeHosts.EnsureAudio();
+        _prototypeAudio = _runtimeHosts.Audio;
     }
 
     private void RefreshPrototypeUi()
@@ -794,6 +782,11 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _camera = _sceneComposition.Camera;
         _floorCollider = _sceneComposition.FloorCollider;
         _minimumCameraY = _sceneComposition.MinimumCameraY;
+    }
+
+    private void CreateRuntimeHosts()
+    {
+        _runtimeHosts = new BoxStackRuntimeHosts(_assetLoader, transform);
     }
 
     private Color GetStackBlockTint(int boxIndex, bool active)

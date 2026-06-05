@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Scene composition production refactor pass
-Runtime Marker: B102
-Latest Commit: This change set B102 씬 구성 경계 분리
-Dirty Worktree: Clean after B102 scene composition refactor commit
+Task: Runtime host production refactor pass
+Runtime Marker: B103
+Latest Commit: This change set B103 런타임 호스트 경계 분리
+Dirty Worktree: Clean after B103 runtime host refactor commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: Clean after B102 scene composition refactor commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B102`이다.
-- 최신 변경 묶음은 `B102 씬 구성 경계 분리`이다.
+- 현재 런타임 마커는 `B103`이다.
+- 최신 변경 묶음은 `B103 런타임 호스트 경계 분리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -55,6 +55,8 @@ Dirty Worktree: Clean after B102 scene composition refactor commit
 - B101 사용자 Editor Play 확인은 완료됐다. 초기/중반/후반 스테이지의 박스 생성, 비주얼, 드롭 감각, 실패/클리어 흐름이 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
 - B102는 프로덕션 리팩토링 5단계의 첫 코드 단계로, 카메라 생성/설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 `BoxStackSceneComposition`으로 분리한다. `BoxStackPrototype`은 게임 루프, 입력, 드롭/클리어/실패 조정, UI/오디오 호출을 유지하고, 카메라와 바닥 콜라이더 참조만 받아 사용한다.
 - B102 사용자 Editor Play 확인은 완료됐다. HUD 마커 B102, 배경/바닥/카메라 위치, 스테이지 변경 시 팔레트 갱신, 박스 낙하/착지/실패/클리어, 스테이지 선택/결과 팝업 흐름이 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
+- B103은 프로덕션 리팩토링 5단계의 남은 런타임 구성 경계로, UI host GameObject 생성/폰트 로드/UI 컴포넌트 초기화와 audio host GameObject 생성을 `BoxStackRuntimeHosts`로 분리한다. `BoxStackPrototype`은 UI/오디오 생성 세부를 모르고, 생성된 `BoxStackPrototypeUi`, `BoxStackPrototypeAudio` 참조만 받아 HUD 갱신과 사운드 재생 호출에 사용한다.
+- B103 사용자 Editor Play 확인은 완료됐다. HUD 마커 B103, 스테이지 선택 팝업 열기/닫기/선택, 결과 팝업 버튼, 배치/클리어/실패 사운드가 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
 - B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B097 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
@@ -78,7 +80,7 @@ Dirty Worktree: Clean after B102 scene composition refactor commit
 
 ## Next Action
 
-- B102 씬 구성 경계 분리는 사용자 확인 후 수용됐다. 다음 작업 후보는 프로덕션 리팩토링 5단계의 남은 런타임 구성 경계이며, UI 생성 호스트와 오디오 생성 호스트를 어디까지 분리할지 작게 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
+- B103 런타임 호스트 경계 분리는 사용자 확인 후 수용됐다. 다음 작업 후보는 프로덕션 리팩토링의 남은 생산화 경계이며, `BoxStackPrototype`에 남은 드롭 전 이동/런 상태 전환/클리어 검증 흐름 중 어느 책임을 다음으로 분리할지 작게 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
 
 ## Open Questions
 
@@ -93,7 +95,7 @@ Dirty Worktree: Clean after B102 scene composition refactor commit
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
 - B097 낙하 속도 상승은 Editor Play에서 수용됐지만, 이후 물리/이동/블록 폭 튜닝을 바꾸면 착지 충격과 좌우 밀림을 다시 확인해야 한다.
 - 프로덕션 리팩토링 중 씬/프리팹 이동이나 대규모 파일 rename을 너무 이르게 진행하면 Unity 참조 churn이 커질 수 있으므로, 먼저 작은 책임 분리부터 진행한다.
-- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리는 사용자 확인에서 수용됐다. 다음 리팩토링 단계에서 UI/오디오 생성 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
+- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리, B103 런타임 호스트 경계 분리는 사용자 확인에서 수용됐다. 다음 리팩토링 단계에서 UI/오디오 host나 런 상태 전환 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
 
 ## References
 
