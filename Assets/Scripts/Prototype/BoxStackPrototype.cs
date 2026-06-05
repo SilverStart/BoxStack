@@ -12,15 +12,11 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 101;
+    private const int PrototypeBuildNumber = 102;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
     private const float CameraYOffset = 2.2f;
-    private const float CameraInitialY = 2.5f;
-    private const float CameraBottomPadding = 0.25f;
-    private const float FloorY = -0.65f;
-    private const float FloorHeight = 0.35f;
     private readonly List<GameObject> _placedBoxes = new List<GameObject>();
     private readonly BoxStackPrototypeAssetLoader _assetLoader = new BoxStackPrototypeAssetLoader();
     private readonly BoxStackStageProgress _stageProgress = new BoxStackStageProgress(new BoxStackStageProgressStore());
@@ -30,18 +26,14 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
+    private BoxStackSceneComposition _sceneComposition;
     private GameObject _activeBox;
     private GameObject _droppingBox;
     private Camera _camera;
-    private Sprite _floorSprite;
-    private Sprite _backgroundSprite;
-    private SpriteRenderer _floorRenderer;
-    private SpriteRenderer _backgroundRenderer;
     private Collider2D _floorCollider;
     private BoxStackPrototypeConfig _prototypeConfig;
     private PhysicsMaterial2D _parcelPhysicsMaterial;
     private PhysicsMaterial2D _floorPhysicsMaterial;
-    private GameObject _background;
     private BoxStackPrototypeUi _prototypeUi;
     private BoxStackPrototypeAudio _prototypeAudio;
     private Font _displayFont;
@@ -54,15 +46,13 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private BoxStackPrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
     private float _moveStartedAt;
-    private float _minimumCameraY = CameraInitialY;
+    private float _minimumCameraY = BoxStackSceneComposition.CameraInitialY;
     private float _cameraVelocityY;
     private float _clearValidationEndTime;
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private bool _lastClearWasNewBest;
     private string _statusText = "READY";
-
-    private static readonly Color StackLikeBackgroundColor = new Color(0.12f, 0.18f, 0.35f);
 
     private BoxStackPrototypeConfig.TuningSettings Tuning
     {
@@ -143,13 +133,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         LoadPrototypeConfig();
         LoadPrototypeSprites();
         CreatePhysicsMaterials();
-        _camera = EnsureCamera();
-        if (_backgroundSprite != null)
-        {
-            CreateBackground();
-        }
-
-        CreateFloor();
+        CreateSceneComposition();
         LoadStageProgress();
         ApplyCurrentStagePalette();
         EnsurePrototypeUi();
@@ -332,52 +316,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         RestartGame();
-    }
-
-    private static Camera EnsureCamera()
-    {
-        Camera camera = Camera.main;
-        if (camera == null)
-        {
-            var cameraObject = new GameObject("Prototype Camera");
-            cameraObject.tag = "MainCamera";
-            camera = cameraObject.AddComponent<Camera>();
-        }
-
-        camera.orthographic = true;
-        camera.orthographicSize = 4.7f;
-        camera.transform.position = new Vector3(0f, CameraInitialY, -10f);
-        camera.transform.rotation = Quaternion.identity;
-        camera.clearFlags = CameraClearFlags.SolidColor;
-        camera.backgroundColor = StackLikeBackgroundColor;
-        if (FindFirstObjectByType<AudioListener>() == null)
-        {
-            camera.gameObject.AddComponent<AudioListener>();
-        }
-
-        return camera;
-    }
-
-    private void CreateFloor()
-    {
-        var floor = new GameObject("Prototype 2D Floor");
-        floor.transform.position = new Vector3(0f, FloorY, 0f);
-
-        var visual = new GameObject("Visual");
-        visual.transform.SetParent(floor.transform, false);
-
-        var renderer = visual.AddComponent<SpriteRenderer>();
-        _floorRenderer = renderer;
-        renderer.sprite = _floorSprite;
-        renderer.sortingOrder = -5;
-        FitSpriteToWorldSize(visual.transform, _floorSprite, _assetLoader.GetVisibleTextureRect(_floorSprite), new Vector2(6.2f, 0.35f));
-
-        var collider = floor.AddComponent<BoxCollider2D>();
-        collider.size = new Vector2(6.2f, FloorHeight);
-        collider.sharedMaterial = _floorPhysicsMaterial;
-        _floorCollider = collider;
-
-        UpdateMinimumCameraY();
     }
 
     private void RestartGame()
@@ -599,24 +537,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         _camera.transform.position = new Vector3(0f, nextY, -10f);
         _camera.transform.rotation = Quaternion.identity;
-        UpdateBackground();
-    }
-
-    private void UpdateMinimumCameraY()
-    {
-        if (_camera == null)
-        {
-            _minimumCameraY = CameraInitialY;
-            return;
-        }
-
-        float floorBottomY = FloorY - (FloorHeight * 0.5f);
-        _minimumCameraY = floorBottomY + _camera.orthographicSize - CameraBottomPadding;
-
-        if (_camera.transform.position.y < _minimumCameraY)
-        {
-            _camera.transform.position = new Vector3(0f, _minimumCameraY, -10f);
-        }
+        _sceneComposition.UpdateBackground();
     }
 
     private float GetHighestBoxY()
@@ -861,39 +782,18 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void LoadPrototypeSprites()
     {
         _boxVisualCatalog.Load(UseLogisticsCenterBackground, UseStackLikeAbstractVisuals);
-        _floorSprite = _boxVisualCatalog.FloorSprite;
-        _backgroundSprite = _boxVisualCatalog.BackgroundSprite;
     }
 
-    private void CreateBackground()
+    private void CreateSceneComposition()
     {
-        if (_camera == null || _backgroundSprite == null)
-        {
-            return;
-        }
-
-        _background = new GameObject("Prototype Stack-Like Background");
-        _background.transform.SetParent(_camera.transform, false);
-
-        var renderer = _background.AddComponent<SpriteRenderer>();
-        _backgroundRenderer = renderer;
-        renderer.sprite = _backgroundSprite;
-        renderer.sortingOrder = -50;
-
-        UpdateBackground();
-    }
-
-    private void UpdateBackground()
-    {
-        if (_camera == null || _background == null || _backgroundSprite == null)
-        {
-            return;
-        }
-
-        float height = _camera.orthographicSize * 2.08f;
-        float width = height * _camera.aspect;
-        FitSpriteToCoverWorldSize(_background.transform, _backgroundSprite, new Vector2(width, height));
-        _background.transform.localPosition = new Vector3(0f, 0f, 10f);
+        _sceneComposition = new BoxStackSceneComposition(
+            _assetLoader,
+            _floorPhysicsMaterial,
+            UseStackLikeAbstractVisuals);
+        _sceneComposition.Initialize(_boxVisualCatalog.FloorSprite, _boxVisualCatalog.BackgroundSprite);
+        _camera = _sceneComposition.Camera;
+        _floorCollider = _sceneComposition.FloorCollider;
+        _minimumCameraY = _sceneComposition.MinimumCameraY;
     }
 
     private Color GetStackBlockTint(int boxIndex, bool active)
@@ -904,84 +804,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void ApplyCurrentStagePalette()
     {
         _currentPalette = BoxStackPrototypePalette.FromStageIndex(_stageProgress.CurrentStageIndex);
-
-        if (_camera != null)
-        {
-            _camera.backgroundColor = _currentPalette.BackgroundBottom;
-        }
-
-        if (!UseStackLikeAbstractVisuals)
-        {
-            return;
-        }
-
-        _backgroundSprite = _assetLoader.CreateStackGradientBackgroundSprite(
-            _currentPalette.BackgroundBottom,
-            _currentPalette.BackgroundMiddle,
-            _currentPalette.BackgroundTop);
-        if (_backgroundRenderer != null)
-        {
-            _backgroundRenderer.sprite = _backgroundSprite;
-            UpdateBackground();
-        }
-
-        _floorSprite = _assetLoader.CreateStackFloorSprite(
-            _currentPalette.FloorTop,
-            _currentPalette.FloorBottom,
-            Color.white);
-        if (_floorRenderer != null)
-        {
-            _floorRenderer.sprite = _floorSprite;
-            FitSpriteToWorldSize(_floorRenderer.transform, _floorSprite, _assetLoader.GetVisibleTextureRect(_floorSprite), new Vector2(6.2f, 0.35f));
-        }
-    }
-
-    private static void FitSpriteToWorldSize(Transform target, Sprite sprite, Rect visibleTextureRect, Vector2 worldSize)
-    {
-        if (sprite == null)
-        {
-            target.localScale = Vector3.one;
-            target.localPosition = Vector3.zero;
-            return;
-        }
-
-        float pixelsPerUnit = sprite.pixelsPerUnit;
-        Vector2 visibleSize = visibleTextureRect.size / pixelsPerUnit;
-        if (visibleSize.x <= 0f || visibleSize.y <= 0f)
-        {
-            target.localScale = Vector3.one;
-            target.localPosition = Vector3.zero;
-            return;
-        }
-
-        Vector3 scale = new Vector3(worldSize.x / visibleSize.x, worldSize.y / visibleSize.y, 1f);
-        Vector2 spriteCenter = sprite.rect.center;
-        Vector2 visibleCenter = visibleTextureRect.center;
-        Vector2 localVisibleOffset = (visibleCenter - spriteCenter) / pixelsPerUnit;
-
-        target.localScale = scale;
-        target.localPosition = new Vector3(-localVisibleOffset.x * scale.x, -localVisibleOffset.y * scale.y, 0f);
-    }
-
-    private static void FitSpriteToCoverWorldSize(Transform target, Sprite sprite, Vector2 worldSize)
-    {
-        if (sprite == null)
-        {
-            target.localScale = Vector3.one;
-            return;
-        }
-
-        Vector2 spriteSize = sprite.rect.size / sprite.pixelsPerUnit;
-        if (spriteSize.x <= 0f || spriteSize.y <= 0f)
-        {
-            target.localScale = Vector3.one;
-            return;
-        }
-
-        target.localScale = new Vector3(
-            worldSize.x / spriteSize.x,
-            worldSize.y / spriteSize.y,
-            1f);
+        _sceneComposition.ApplyPalette(_currentPalette);
     }
 
     private bool DropPressed()
