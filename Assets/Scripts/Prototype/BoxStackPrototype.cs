@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 105;
+    private const int PrototypeBuildNumber = 106;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -25,6 +25,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
     private readonly BoxStackActiveBoxMotion _activeBoxMotion = new BoxStackActiveBoxMotion();
     private readonly BoxStackClearValidation _clearValidation = new BoxStackClearValidation();
+    private readonly BoxStackStageSelectSession _stageSelectSession = new BoxStackStageSelectSession();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -43,12 +44,10 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private Color _placedTint = new Color(0.26f, 0.74f, 1.00f);
     private BoxStackPrototypePalette _currentPalette = BoxStackPrototypePalette.FromStageIndex(0);
     private BoxStackPrototypeState _state;
-    private BoxStackPrototypeState _stateBeforeStageSelect;
     private float _spawnHeight;
     private float _moveStartedAt;
     private float _minimumCameraY = BoxStackSceneComposition.CameraInitialY;
     private float _cameraVelocityY;
-    private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private bool _lastClearWasNewBest;
     private string _statusText = "READY";
@@ -359,8 +358,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        _stateBeforeStageSelect = _state;
-        _timeScaleBeforeStageSelect = Time.timeScale;
+        _stageSelectSession.Begin(_state, Time.timeScale);
         Time.timeScale = 0f;
         _state = BoxStackPrototypeState.StageSelect;
         RefreshPrototypeUi();
@@ -373,8 +371,8 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        Time.timeScale = _timeScaleBeforeStageSelect <= 0f ? 1f : _timeScaleBeforeStageSelect;
-        _state = _stateBeforeStageSelect;
+        _state = _stageSelectSession.End(out float restoredTimeScale);
+        Time.timeScale = restoredTimeScale;
         RefreshPrototypeUi();
     }
 

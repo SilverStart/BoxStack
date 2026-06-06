@@ -4,7 +4,7 @@ Last updated: 2026-06-06
 
 ## Next Immediate Action
 
-B105 clear-validation timer refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely run-state transitions, while preserving the accepted B097/B105 gameplay feel.
+B106 stage-select session refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely result button handling, stage change, or restart cleanup, while preserving the accepted B097/B106 gameplay feel.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -218,6 +218,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-06-06: B104 user-led Editor Play verification passed. Runtime marker B104, stage 1 pre-drop side-to-side movement, box placement/drop/landing sound, later-stage screen containment, and clear/fail result popup flow were checked with no issue.
 - 2026-06-06: B105 implements the next production refactor step. Clear-validation timer begin/reset/completion checks now live in `BoxStackClearValidation`. `BoxStackPrototype` still owns entry into validating state, stack-failure checks during validation, and success/failure result handling. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-06-06: B105 user-led Editor Play verification passed. Runtime marker B105, verifying state after target box count, success popup/sound after validation time, failure popup during validation collapse, and result popup restart/next-stage flow were checked with no issue.
+- 2026-06-06: B106 implements the next production refactor step. Stage-select previous-state and previous-timeScale storage/restoration now live in `BoxStackStageSelectSession`, while `BoxStackPrototype` keeps the stage-select state transition, UI refresh, stage selection, and restart flow. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-06-06: B106 user-led Editor Play verification passed. Runtime marker B106, stage-select pause/resume during play, open/close from result popup state, and stage tile selection into restart were checked with no issue.
 
 ## Current Decisions
 
@@ -276,6 +278,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B103 keeps accepted UI flow, safe-area behavior, result popup flow, audio cues, camera/background/floor placement, box/drop feel, clear/fail rules, and stage progression while moving UI/audio host creation into `BoxStackRuntimeHosts`. Keep this as a behavior-preserving production boundary split; later UI/audio behavior changes should happen as separate productization, UX, or audio work.
 - B104 keeps accepted pre-drop movement timing, stage speed/range multipliers, screen clamp behavior, box/drop feel, clear/fail rules, UI flow, audio cues, and stage progression while moving active-box motion calculation into `BoxStackActiveBoxMotion`. Keep this as a behavior-preserving production boundary split; later movement changes should happen as separate tuning/design work.
 - B105 keeps accepted clear-validation timing, failure checks during validation, result popup flow, audio cues, and stage progression while moving clear-validation timer state into `BoxStackClearValidation`. Keep this as a behavior-preserving production boundary split; later clear-rule changes should happen as separate tuning/design work.
+- B106 keeps accepted stage-select UI flow, pause/resume behavior, result-popup state restoration, stage tile selection, and restart flow while moving stage-select session state into `BoxStackStageSelectSession`. Keep this as a behavior-preserving production boundary split; later stage-select behavior changes should happen as separate UX or productization work.
 - BoxStack keeps the existing Unity C# private field naming style (`_camelCase`) for this project. The starter-pack rule that forbids private-field `_` prefixes is not applied retroactively here, while shared harness/operating-rule improvements should still be mirrored to the starter-pack source when useful.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -293,7 +296,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 - Does WebGL/App-in-Toss require a different user-gesture or mute policy for B095 audio playback than Unity Editor Play Mode?
-- Which remaining runtime responsibility should the next production refactor step split first inside run-state transitions?
+- Which remaining runtime responsibility should the next production refactor step split first: result button handling, stage change flow, or restart cleanup?
 
 ## Risks
 
@@ -322,6 +325,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B103 is behavior-preserving and accepted, but later changes to `BoxStackRuntimeHosts` should recheck HUD creation, stage-select open/close/select flow, result popup button flow, placement sound, clear sound, and failure sound.
 - B104 is behavior-preserving and accepted, but later changes to `BoxStackActiveBoxMotion` should recheck stage 1 movement, representative later-stage screen containment, movement speed feel, normal drop, failure flow, and clear flow.
 - B105 is behavior-preserving and accepted, but later changes to `BoxStackClearValidation` should recheck verifying state entry, validation-duration success, failure during validation, result popup flow, and next-stage unlock flow.
+- B106 is behavior-preserving and accepted, but later changes to `BoxStackStageSelectSession` should recheck stage-select pause/resume during play, close/escape restoration, result-popup state restoration, stage tile selection, and restart flow.
 - The prototype runtime is large enough that continued feature work inside `BoxStackPrototype.cs` will increase production migration cost; refactor in small verified steps before adding more product features.
 - Large early folder/class renames could create Unity `.meta` and scene/prefab reference churn, so prefer responsibility extraction before broad naming cleanup unless a rename is explicitly scoped.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.

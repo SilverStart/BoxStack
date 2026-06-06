@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-06
-런타임 마커: B105
+런타임 마커: B106
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -15,21 +15,23 @@
    - 박스 이탈, 드롭 실패, 바닥 다중 접촉 실패 판정을 확인합니다.
 4. `Assets/Scripts/Prototype/BoxStackClearValidation.cs`
    - 목표 박스 수 달성 후 클리어 검증 타이머 시작/초기화/완료 판단을 확인합니다.
-5. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+5. `Assets/Scripts/Prototype/BoxStackStageSelectSession.cs`
+   - 스테이지 선택 팝업 진입 전 런 상태와 타임스케일 저장/복원을 확인합니다.
+6. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-6. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+7. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+8. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+9. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+10. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+11. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-11. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+12. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-12. 보조 파일
+13. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -47,7 +49,7 @@
 - 활성 박스 생성 요청과 드롭 전 좌우 이동 호출.
 - 박스 낙하, 정착, 클리어 검증 흐름 호출.
 - 성공/실패 판정 결과를 받아 런 상태를 전환.
-- 스테이지 선택과 스테이지 해금 흐름 호출.
+- 스테이지 선택 세션, 스테이지 선택, 스테이지 해금 흐름 호출.
 - 현재 게임 상태를 UI 계층으로 전달.
 - 배치 안정, 클리어, 실패 시점에 작은 합성 효과음을 호출.
 
@@ -68,6 +70,7 @@
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 `BoxStackClearValidation`과 실패 판정으로 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
+- `OpenStageSelect` / `CloseStageSelect`: 스테이지 선택 상태 전환을 조정하고, 이전 상태/타임스케일 저장과 복원은 `BoxStackStageSelectSession`에 위임합니다.
 
 ### `BoxStackRunRules.cs`
 
@@ -103,6 +106,21 @@ B099 기준으로 `BoxStackPrototype`은 이 클래스에 실패 판정을 위�
 - `IsComplete`
 
 B105 기준으로 `BoxStackPrototype`은 `ValidatingClear` 상태 진입, 검증 중 스택 실패 판정, 성공/실패 결과 처리를 계속 조정하고, 검증 타이머의 시작/초기화/완료 판단만 `BoxStackClearValidation`에 위임합니다. 사용자 확인에서 B105 마커, `VERIFYING` 상태, 검증 시간 후 성공 팝업/성공음, 검증 중 실패 팝업, 결과 팝업의 재시작/다음 스테이지 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackStageSelectSession.cs`
+
+현재 런타임의 스테이지 선택 세션 상태 경계입니다.
+
+담당 기능:
+- 스테이지 선택 팝업을 열기 전 현재 런 상태 저장.
+- 스테이지 선택 팝업을 열기 전 현재 `Time.timeScale` 저장.
+- 스테이지 선택 팝업을 닫을 때 복귀할 상태와 복원할 타임스케일 반환.
+
+먼저 확인할 변경:
+- `Begin`
+- `End`
+
+B106 기준으로 `BoxStackPrototype`은 스테이지 선택 상태 전환, UI 갱신, 스테이지 타일 선택, 재시작 흐름을 계속 조정하고, 이전 상태/타임스케일 저장과 복원 판단만 `BoxStackStageSelectSession`에 위임합니다. 사용자 확인에서 B106 마커, 플레이 중 스테이지 선택 일시정지/복귀, 결과 팝업 상태에서 열기/닫기, 스테이지 타일 선택 후 재시작 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 
@@ -380,6 +398,7 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 먼저 볼 곳:
 - `BoxStackPrototype.OpenStageSelect`
 - `BoxStackPrototype.CloseStageSelect`
+- `BoxStackStageSelectSession`
 - `BoxStackPrototype.SelectStage`
 - `BoxStackPrototype.UnlockNextStage`
 - `BoxStackPrototype.UnlockAllStagesForPlaytest`
@@ -388,7 +407,7 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 - `BoxStackStageProgressStore`
 - `BoxStackPrototypeUi.RefreshStageButtons`
 
-스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B098 기준 현재/최고 해금 인덱스와 선택/해금/초기화 판단은 `BoxStackStageProgress`가 맡고, `BoxStackStageProgressStore`는 `PlayerPrefs` 저장만 맡습니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
+스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B098 기준 현재/최고 해금 인덱스와 선택/해금/초기화 판단은 `BoxStackStageProgress`가 맡고, `BoxStackStageProgressStore`는 `PlayerPrefs` 저장만 맡습니다. B106 기준 스테이지 선택 팝업을 열기 전 상태와 타임스케일 저장/복원은 `BoxStackStageSelectSession`이 맡습니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
 
 ### UI 문구
 
