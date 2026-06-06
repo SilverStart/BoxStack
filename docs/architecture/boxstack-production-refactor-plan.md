@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
 마지막 갱신: 2026-06-06
-런타임 마커: B104
-상태: Stage 4 active-box motion split implemented and accepted
+런타임 마커: B105
+상태: Stage 3 clear-validation timer split implemented and accepted
 
 ## 목적
 
@@ -27,6 +27,7 @@
 - `BoxStackSceneComposition`이 카메라, 배경, 바닥 생성과 스테이지 팔레트 기반 씬 갱신을 맡기 시작했다.
 - `BoxStackRuntimeHosts`가 UI host와 audio host GameObject 생성, UI 폰트 로드, UI 컴포넌트 초기화 경계를 맡기 시작했다.
 - `BoxStackActiveBoxMotion`이 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, 박스 반폭 계산 경계를 맡기 시작했다.
+- `BoxStackClearValidation`이 목표 박스 수 달성 후 검증 타이머 시작/초기화/완료 판단 경계를 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -127,9 +128,12 @@
 
 구현 결과:
 - `BoxStackRunRules`가 드롭 실패, 기존 스택 이탈, 바닥 다중 접촉 실패 판정을 맡는다.
+- `BoxStackClearValidation`이 목표 박스 수 달성 후 클리어 검증 타이머 시작, 초기화, 완료 판단을 맡는다.
 - `BoxStackPrototype`은 룰 판정 결과를 받아 `EndRun`, 결과 UI/오디오, 스테이지 진행 처리만 계속 조정한다.
 - 5초 클리어 검증 타이머, 실패/성공 규칙, 결과 문구, 결과음, 스테이지 해금 흐름은 바꾸지 않았다.
+- B105에서 클리어 검증 타이머의 종료 시간 보관과 완료 판단을 `BoxStackClearValidation`으로 분리했다. 검증 중 실패 판정과 성공/실패 결과 처리 흐름은 `BoxStackPrototype`에 유지했다.
 - 사용자 확인에서 정상 클리어, 낙하 박스 놓침, 쌓인 박스 이탈, 바닥 2개 접촉 실패, 검증 중 실패, 해금/리플레이 흐름이 정상으로 확인됐다.
+- B105 사용자 확인에서 런타임 마커 B105, 클리어 조건 달성 후 `VERIFYING` 상태, 검증 시간 후 성공 팝업/성공음, 검증 중 탑 붕괴 실패 팝업, 결과 팝업의 재시작/다음 스테이지 흐름이 정상으로 확인됐다.
 
 주의:
 - 물리 쿼리 자체는 Unity Collider에 남아도 된다.
@@ -238,4 +242,4 @@
 
 ## 다음 즉시 행동
 
-B104 드롭 전 이동 경계 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 런 상태 전환, 클리어 검증 같은 런타임 진행 책임 중 하나를 작게 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B105 클리어 검증 타이머 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 런 상태 전환 책임을 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

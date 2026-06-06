@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 104;
+    private const int PrototypeBuildNumber = 105;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -24,6 +24,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackDropPhysics _dropPhysics = new BoxStackDropPhysics();
     private readonly BoxStackPrototypeUiStateFactory _uiStateFactory = new BoxStackPrototypeUiStateFactory();
     private readonly BoxStackActiveBoxMotion _activeBoxMotion = new BoxStackActiveBoxMotion();
+    private readonly BoxStackClearValidation _clearValidation = new BoxStackClearValidation();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -47,7 +48,6 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _moveStartedAt;
     private float _minimumCameraY = BoxStackSceneComposition.CameraInitialY;
     private float _cameraVelocityY;
-    private float _clearValidationEndTime;
     private float _timeScaleBeforeStageSelect = 1f;
     private int _attempts;
     private bool _lastClearWasNewBest;
@@ -315,7 +315,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _activeBox = null;
         _droppingBox = null;
         _cameraVelocityY = 0f;
-        _clearValidationEndTime = 0f;
+        _clearValidation.Reset();
         _attempts++;
         _lastClearWasNewBest = false;
         _state = BoxStackPrototypeState.Playing;
@@ -608,7 +608,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         _state = BoxStackPrototypeState.ValidatingClear;
         _statusText = "VERIFYING";
-        _clearValidationEndTime = Time.time + Tuning.ClearValidationSeconds;
+        _clearValidation.Begin(Time.time, Tuning.ClearValidationSeconds);
     }
 
     private void UpdateClearValidation()
@@ -619,7 +619,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        if (Time.time < _clearValidationEndTime)
+        if (!_clearValidation.IsComplete(Time.time))
         {
             return;
         }

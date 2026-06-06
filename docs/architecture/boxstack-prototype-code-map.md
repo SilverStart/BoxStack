@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-06
-런타임 마커: B104
+런타임 마커: B105
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -13,21 +13,23 @@
    - 메인 게임 흐름을 확인합니다. 초기화, 입력, 박스 이동, 낙하 처리, 성공/실패, 카메라, 스테이지 흐름, UI 갱신 호출이 여기 있습니다.
 3. `Assets/Scripts/Prototype/BoxStackRunRules.cs`
    - 박스 이탈, 드롭 실패, 바닥 다중 접촉 실패 판정을 확인합니다.
-4. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+4. `Assets/Scripts/Prototype/BoxStackClearValidation.cs`
+   - 목표 박스 수 달성 후 클리어 검증 타이머 시작/초기화/완료 판단을 확인합니다.
+5. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-5. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+6. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-6. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+7. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+8. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+9. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+10. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+11. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-11. 보조 파일
+12. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -43,7 +45,7 @@
 - Stack-like 2D 스테이지 팔레트 계산과 블록 색상 흐름 설정.
 - 입력 처리.
 - 활성 박스 생성 요청과 드롭 전 좌우 이동 호출.
-- 박스 낙하, 정착, 클리어 검증 흐름.
+- 박스 낙하, 정착, 클리어 검증 흐름 호출.
 - 성공/실패 판정 결과를 받아 런 상태를 전환.
 - 스테이지 선택과 스테이지 해금 흐름 호출.
 - 현재 게임 상태를 UI 계층으로 전달.
@@ -64,7 +66,7 @@
 - `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환하라고 `BoxStackDropPhysics`에 위임하고, 드롭 해소 코루틴을 시작합니다.
 - `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
-- `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 확인합니다.
+- `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 `BoxStackClearValidation`과 실패 판정으로 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
 
 ### `BoxStackRunRules.cs`
@@ -85,6 +87,22 @@
 - `BoxIsLost`
 
 B099 기준으로 `BoxStackPrototype`은 이 클래스에 실패 판정을 위임합니다. 룰 자체는 B084/B097 기준을 유지하며, 상태 전환, 결과 UI/오디오, 스테이지 해금은 여전히 `BoxStackPrototype.EndRun` 이후 흐름에서 처리합니다.
+
+### `BoxStackClearValidation.cs`
+
+현재 런타임의 클리어 검증 타이머 경계입니다.
+
+담당 기능:
+- 목표 박스 수 달성 후 검증 타이머 시작.
+- 새 런 시작 시 검증 타이머 초기화.
+- 현재 시간이 검증 종료 시간을 지났는지 완료 판단.
+
+먼저 확인할 변경:
+- `Begin`
+- `Reset`
+- `IsComplete`
+
+B105 기준으로 `BoxStackPrototype`은 `ValidatingClear` 상태 진입, 검증 중 스택 실패 판정, 성공/실패 결과 처리를 계속 조정하고, 검증 타이머의 시작/초기화/완료 판단만 `BoxStackClearValidation`에 위임합니다. 사용자 확인에서 B105 마커, `VERIFYING` 상태, 검증 시간 후 성공 팝업/성공음, 검증 중 실패 팝업, 결과 팝업의 재시작/다음 스테이지 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 
@@ -349,10 +367,12 @@ B098 기준으로 `BoxStackPrototype`은 이 클래스를 통해 스테이지 �
 - `BoxStackRunRules.AnyBoxLost`
 - `BoxStackRunRules.StackHasMultipleFloorContacts`
 - `BoxStackRunRules.BoxIsLost`
+- `BoxStackClearValidation.Begin`
+- `BoxStackClearValidation.IsComplete`
 - `BoxStackPrototype.BeginClearValidation`
 - `BoxStackPrototype.UpdateClearValidation`
 
-B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, `BoxStackPrototype`은 판정 결과를 받아 `EndRun`으로 상태 전환, 결과 UI/오디오, 스테이지 해금을 처리합니다. 목표 박스 수 도달 후 5초 생존 검증 흐름은 유지합니다.
+B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어 검증 타이머는 `BoxStackClearValidation`이 맡습니다. `BoxStackPrototype`은 판정 결과를 받아 `EndRun`으로 상태 전환, 결과 UI/오디오, 스테이지 해금을 처리합니다. 목표 박스 수 도달 후 5초 생존 검증 흐름은 유지합니다.
 
 
 ### 스테이지 선택과 해금
