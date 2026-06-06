@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 106;
+    private const int PrototypeBuildNumber = 107;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -26,6 +26,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackActiveBoxMotion _activeBoxMotion = new BoxStackActiveBoxMotion();
     private readonly BoxStackClearValidation _clearValidation = new BoxStackClearValidation();
     private readonly BoxStackStageSelectSession _stageSelectSession = new BoxStackStageSelectSession();
+    private readonly BoxStackResultFlow _resultFlow = new BoxStackResultFlow();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -253,39 +254,29 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void HandleCurrentResultButton()
     {
-        if (!IsResultState())
+        BoxStackResultAction action = _resultFlow.GetResultButtonAction(_state, HasNextStage());
+        if (action == BoxStackResultAction.None)
         {
             return;
         }
 
-        bool won = _state == BoxStackPrototypeState.Won;
-        HandleResultButton(won, won && HasNextStage());
-    }
-
-    private static bool ShouldShowProgressTestControls()
-    {
-        return Application.isEditor || Debug.isDebugBuild;
-    }
-
-    private bool IsResultState()
-    {
-        return _state == BoxStackPrototypeState.Won || _state == BoxStackPrototypeState.Failed;
-    }
-
-    private void HandleResultButton(bool won, bool hasNextStage)
-    {
-        if (won && hasNextStage)
+        if (action == BoxStackResultAction.AdvanceToNextStage)
         {
             ChangeStage(1);
             return;
         }
 
-        if (won)
+        if (action == BoxStackResultAction.RestartFromFirstStage)
         {
             _stageProgress.SelectFirstStage();
         }
 
         RestartGame();
+    }
+
+    private static bool ShouldShowProgressTestControls()
+    {
+        return Application.isEditor || Debug.isDebugBuild;
     }
 
     private void RestartGame()

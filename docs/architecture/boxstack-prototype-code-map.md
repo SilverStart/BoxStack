@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-06
-런타임 마커: B106
+런타임 마커: B107
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -17,21 +17,23 @@
    - 목표 박스 수 달성 후 클리어 검증 타이머 시작/초기화/완료 판단을 확인합니다.
 5. `Assets/Scripts/Prototype/BoxStackStageSelectSession.cs`
    - 스테이지 선택 팝업 진입 전 런 상태와 타임스케일 저장/복원을 확인합니다.
-6. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+6. `Assets/Scripts/Prototype/BoxStackResultFlow.cs`
+   - 결과 팝업 버튼 액션 결정을 확인합니다.
+7. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+8. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+9. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+10. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+11. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-11. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+12. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-12. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+13. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-13. 보조 파일
+14. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -71,6 +73,7 @@
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 `BoxStackClearValidation`과 실패 판정으로 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
 - `OpenStageSelect` / `CloseStageSelect`: 스테이지 선택 상태 전환을 조정하고, 이전 상태/타임스케일 저장과 복원은 `BoxStackStageSelectSession`에 위임합니다.
+- `HandleCurrentResultButton`: 결과 팝업 버튼 액션 결정을 `BoxStackResultFlow`에 위임하고, 결정된 액션을 실행합니다.
 
 ### `BoxStackRunRules.cs`
 
@@ -121,6 +124,22 @@ B105 기준으로 `BoxStackPrototype`은 `ValidatingClear` 상태 진입, 검증
 - `End`
 
 B106 기준으로 `BoxStackPrototype`은 스테이지 선택 상태 전환, UI 갱신, 스테이지 타일 선택, 재시작 흐름을 계속 조정하고, 이전 상태/타임스케일 저장과 복원 판단만 `BoxStackStageSelectSession`에 위임합니다. 사용자 확인에서 B106 마커, 플레이 중 스테이지 선택 일시정지/복귀, 결과 팝업 상태에서 열기/닫기, 스테이지 타일 선택 후 재시작 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackResultFlow.cs`
+
+현재 런타임의 결과 팝업 버튼 액션 결정 경계입니다.
+
+담당 기능:
+- 클리어 상태에서 다음 스테이지가 있으면 다음 스테이지 이동 액션을 반환.
+- 클리어 상태에서 다음 스테이지가 없으면 1스테이지 재시작 액션을 반환.
+- 실패 상태에서는 현재 스테이지 재시작 액션을 반환.
+- 결과 상태가 아니면 아무 동작도 하지 않는 액션을 반환.
+
+먼저 확인할 변경:
+- `GetResultButtonAction`
+- `BoxStackResultAction`
+
+B107 기준으로 `BoxStackPrototype`은 `BoxStackResultFlow`가 반환한 액션에 따라 기존 `ChangeStage`, `SelectFirstStage`, `RestartGame` 호출을 실행합니다. 사용자 확인에서 B107 마커, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태에서 비발동 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 
@@ -412,11 +431,13 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 ### UI 문구
 
 먼저 볼 곳:
+- `BoxStackResultFlow`
+- `BoxStackPrototype.HandleCurrentResultButton`
 - `BoxStackPrototypeUiStateFactory.GetResultTitle`
 - `BoxStackPrototypeUiStateFactory.GetResultBody`
 - `BoxStackPrototypeUiStateFactory.GetResultButtonLabel`
 
-결과 팝업 문구를 바꿀 때 이 파일을 먼저 확인합니다. B088 기준 결과 팝업 본문은 클리어를 `탑이 안정됐어요`, `STACK SPREAD` 실패를 `탑이 무너졌어요`로 짧게 표현합니다. B091 기준 새 최고 진행 기록을 갱신한 클리어는 결과 본문에 `최고 기록 갱신`을 한 줄 더 표시합니다. B089에서 시도한 스테이지 도전 라벨은 철회했고, B090 기준 스테이지 타일 문구는 `BoxStackPrototypeUi.GetStageButtonLabel`에서 큰 번호 한 줄만 표시합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
+결과 팝업 문구를 바꿀 때는 `BoxStackPrototypeUiStateFactory`를 먼저 확인하고, 결과 버튼을 눌렀을 때의 흐름을 바꿀 때는 `BoxStackResultFlow`를 먼저 확인합니다. B088 기준 결과 팝업 본문은 클리어를 `탑이 안정됐어요`, `STACK SPREAD` 실패를 `탑이 무너졌어요`로 짧게 표현합니다. B091 기준 새 최고 진행 기록을 갱신한 클리어는 결과 본문에 `최고 기록 갱신`을 한 줄 더 표시합니다. B107 기준 결과 버튼 액션 결정은 `BoxStackResultFlow`가 맡습니다. B089에서 시도한 스테이지 도전 라벨은 철회했고, B090 기준 스테이지 타일 문구는 `BoxStackPrototypeUi.GetStageButtonLabel`에서 큰 번호 한 줄만 표시합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
 
 ### UI 레이아웃과 스타일
 

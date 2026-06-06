@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
 마지막 갱신: 2026-06-06
-런타임 마커: B106
-상태: Stage-select session split implemented and accepted
+런타임 마커: B107
+상태: Result button flow split implemented and accepted
 
 ## 목적
 
@@ -29,6 +29,7 @@
 - `BoxStackActiveBoxMotion`이 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, 박스 반폭 계산 경계를 맡기 시작했다.
 - `BoxStackClearValidation`이 목표 박스 수 달성 후 검증 타이머 시작/초기화/완료 판단 경계를 맡기 시작했다.
 - `BoxStackStageSelectSession`이 스테이지 선택 팝업 진입 전 런 상태와 타임스케일 저장/복원 경계를 맡기 시작했다.
+- `BoxStackResultFlow`가 결과 팝업 버튼 액션 결정 경계를 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -248,6 +249,24 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B106 마커, 플레이 중 스테이지 선택 일시정지/복귀, 결과 팝업 상태 복귀, 스테이지 타일 선택 후 재시작 확인
 
+### 현재 추가 분리: 결과 버튼 흐름
+
+상태:
+- B107에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
+
+목표:
+- 결과 팝업 버튼을 눌렀을 때 다음 스테이지 이동, 1스테이지 복귀, 현재 스테이지 재시작 중 어떤 액션을 실행할지 결정하는 책임을 `BoxStackPrototype` 밖으로 분리한다.
+- 실제 스테이지 이동, 첫 스테이지 선택, 재시작 정리는 기존 흐름을 유지해 동작 변경 없이 분기 판단만 작게 분리한다.
+
+구현 결과:
+- `BoxStackResultFlow`가 현재 런 상태와 다음 스테이지 존재 여부를 받아 `BoxStackResultAction`을 반환한다.
+- `BoxStackPrototype.HandleCurrentResultButton`은 결과 액션을 실행하는 조정자 역할만 유지한다.
+- 클리어 후 다음 스테이지 이동, 마지막 스테이지 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작 흐름은 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+- Editor Play에서 B107 마커, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태 비발동 확인
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -261,4 +280,4 @@
 
 ## 다음 즉시 행동
 
-B106 스테이지 선택 세션 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 결과 버튼 처리, 스테이지 변경, 재시작 정리 흐름 중 하나를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B107 결과 버튼 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 스테이지 변경, 재시작 정리, 드롭 해소 후 상태 전환 흐름 중 하나를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
