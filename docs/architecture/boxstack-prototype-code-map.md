@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-07
-런타임 마커: B108
+런타임 마커: B109
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -21,19 +21,21 @@
    - 결과 팝업 버튼 액션 결정을 확인합니다.
 7. `Assets/Scripts/Prototype/BoxStackStageFlow.cs`
    - 스테이지 조작 후 팔레트 적용, 런 재시작, UI 갱신 액션 결정을 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+8. `Assets/Scripts/Prototype/BoxStackRunCleanup.cs`
+   - 재시작 시 현재 런의 active/dropping/placed box 오브젝트 정리를 확인합니다.
+9. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+10. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+11. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-11. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+12. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-12. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+13. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-13. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+14. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-14. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+15. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
 14. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
@@ -163,6 +165,20 @@ B107 기준으로 `BoxStackPrototype`은 `BoxStackResultFlow`가 반환한 액�
 - `BoxStackStageFlowResult`
 
 B108 기준으로 `BoxStackStageProgress`는 현재/최고 해금 상태와 저장 책임을 유지하고, `BoxStackStageFlow`는 스테이지 조작 뒤 어떤 런타임 액션이 필요한지만 결정합니다. 사용자 확인에서 B108 마커, 이전/다음 스테이지 버튼, 다른 스테이지 선택, 같은 스테이지 재선택, `전체 해금`, `진행 초기화`, 클리어 후 다음 스테이지 해금/결과 팝업 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackRunCleanup.cs`
+
+현재 런타임의 재시작 오브젝트 정리 경계입니다.
+
+담당 기능:
+- active box가 있으면 파괴하고 참조를 비움.
+- dropping box가 있으면 파괴하고 참조를 비움.
+- placed box 목록의 GameObject를 파괴하고 목록을 비움.
+
+먼저 확인할 변경:
+- `ClearRunObjects`
+
+B109 기준으로 `BoxStackPrototype.RestartGame`은 코루틴 중단, 런 상태 초기화, 다음 박스 생성, UI 갱신 흐름을 유지하고, 현재 런의 box GameObject 정리만 `BoxStackRunCleanup`에 위임합니다. 사용자 확인에서 B109 마커, 일반 재시작/결과 팝업 재시작, 낙하 중 또는 실패 직후 재시작, 스테이지 선택 후 재시작, 클리어 후 다음 스테이지 이동/재시작 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 

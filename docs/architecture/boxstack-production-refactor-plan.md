@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
 마지막 갱신: 2026-06-07
-런타임 마커: B108
-상태: Stage flow split implemented and accepted
+런타임 마커: B109
+상태: Run cleanup split implemented and accepted
 
 ## 목적
 
@@ -267,7 +267,7 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B107 마커, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태 비발동 확인
 
-### 현재 추가 분리: 스테이지 흐름
+### 추가 분리: 스테이지 흐름
 
 상태:
 - B108에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
@@ -285,6 +285,24 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B108 마커, 이전/다음 스테이지 버튼, 다른 스테이지 선택, 같은 스테이지 재선택, `전체 해금`, `진행 초기화`, 클리어 후 다음 스테이지 해금/결과 팝업 흐름 확인
 
+### 현재 추가 분리: 런 정리
+
+상태:
+- B109에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
+
+목표:
+- `RestartGame` 안에 있던 active box, dropping box, placed boxes 파괴와 참조/목록 초기화 책임을 `BoxStackPrototype` 밖으로 분리한다.
+- 재시작 타이밍, 코루틴 중단, 상태/문구/attempt 초기화, 다음 박스 생성, UI 갱신은 기존 메인 런타임 흐름에 남겨 동작을 바꾸지 않는다.
+
+구현 결과:
+- `BoxStackRunCleanup`이 현재 런에 생성된 box GameObject 정리와 `_activeBox`, `_droppingBox`, `_placedBoxes` 초기화를 담당한다.
+- `BoxStackPrototype.RestartGame`은 `StopAllCoroutines`, 런 상태 초기화, `SpawnNextBox`, `RefreshPrototypeUi`를 계속 조정한다.
+- 일반 재시작, 결과 팝업 재시작, 스테이지 선택 후 재시작, 클리어 후 다음 스테이지 이동/재시작 흐름은 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+- Editor Play에서 B109 마커, 일반 재시작/결과 팝업 재시작, 낙하 중 또는 실패 직후 재시작, 스테이지 선택 후 재시작, 클리어 후 다음 스테이지 이동/재시작 흐름 확인
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -298,4 +316,4 @@
 
 ## 다음 즉시 행동
 
-B108 스테이지 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 재시작 정리 또는 드롭 해소 후 상태 전환 흐름 중 하나를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B109 런 정리 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 드롭 해소 후 상태 전환 흐름을 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

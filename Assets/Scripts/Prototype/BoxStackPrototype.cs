@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 108;
+    private const int PrototypeBuildNumber = 109;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -28,6 +28,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackStageSelectSession _stageSelectSession = new BoxStackStageSelectSession();
     private readonly BoxStackResultFlow _resultFlow = new BoxStackResultFlow();
     private readonly BoxStackStageFlow _stageFlow = new BoxStackStageFlow();
+    private readonly BoxStackRunCleanup _runCleanup = new BoxStackRunCleanup();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -284,27 +285,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     {
         StopAllCoroutines();
 
-        if (_activeBox != null)
-        {
-            Destroy(_activeBox);
-        }
-
-        if (_droppingBox != null)
-        {
-            Destroy(_droppingBox);
-        }
-
-        foreach (GameObject box in _placedBoxes)
-        {
-            if (box != null)
-            {
-                Destroy(box);
-            }
-        }
-
-        _placedBoxes.Clear();
-        _activeBox = null;
-        _droppingBox = null;
+        _runCleanup.ClearRunObjects(ref _activeBox, ref _droppingBox, _placedBoxes);
         _cameraVelocityY = 0f;
         _clearValidation.Reset();
         _attempts++;
