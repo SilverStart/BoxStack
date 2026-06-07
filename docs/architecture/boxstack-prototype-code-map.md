@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-07
-런타임 마커: B109
+런타임 마커: B110
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -23,21 +23,23 @@
    - 스테이지 조작 후 팔레트 적용, 런 재시작, UI 갱신 액션 결정을 확인합니다.
 8. `Assets/Scripts/Prototype/BoxStackRunCleanup.cs`
    - 재시작 시 현재 런의 active/dropping/placed box 오브젝트 정리를 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+9. `Assets/Scripts/Prototype/BoxStackDroppedBoxSettlement.cs`
+   - 안정된 드롭 박스를 placed stack에 편입하는 정착 처리를 확인합니다.
+10. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+11. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-11. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+12. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-12. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+13. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-13. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+14. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-14. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+15. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-15. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+16. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-14. 보조 파일
+17. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -72,7 +74,7 @@
 - `EnsureRuntimeUi` / `EnsureRuntimeAudio`: UI/오디오 GameObject 생성 세부를 runtime host에 위임하고, 생성된 컴포넌트 참조만 받아옵니다.
 - `ApplyCurrentStagePalette`: 현재 스테이지에 맞는 팔레트를 계산하고 씬 구성 객체에 배경/바닥 갱신을 위임합니다.
 - `DropActiveBox`: 활성 박스를 물리 낙하 박스로 전환하라고 `BoxStackDropPhysics`에 위임하고, 드롭 해소 코루틴을 시작합니다.
-- `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다린 뒤 다음 흐름으로 넘깁니다.
+- `ResolveDrop`: 고정 시간 대신 떨어진 박스와 기존 탑의 물리 속도가 안정될 때까지 기다리고, 안정된 박스의 placed stack 편입은 `BoxStackDroppedBoxSettlement`에 위임한 뒤 다음 흐름으로 넘깁니다.
 - `BeginClearValidation`: 목표 박스 수를 채운 뒤 생존 검증 타이머를 시작합니다.
 - `UpdateClearValidation`: 완성된 스택이 검증 시간 동안 유지되는지 `BoxStackClearValidation`과 실패 판정으로 확인합니다.
 - `EndRun`: 성공 또는 실패 상태로 진입하고 배치된 박스를 고정합니다.
@@ -179,6 +181,20 @@ B108 기준으로 `BoxStackStageProgress`는 현재/최고 해금 상태와 저�
 - `ClearRunObjects`
 
 B109 기준으로 `BoxStackPrototype.RestartGame`은 코루틴 중단, 런 상태 초기화, 다음 박스 생성, UI 갱신 흐름을 유지하고, 현재 런의 box GameObject 정리만 `BoxStackRunCleanup`에 위임합니다. 사용자 확인에서 B109 마커, 일반 재시작/결과 팝업 재시작, 낙하 중 또는 실패 직후 재시작, 스테이지 선택 후 재시작, 클리어 후 다음 스테이지 이동/재시작 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackDroppedBoxSettlement.cs`
+
+현재 런타임의 드롭 박스 정착 경계입니다.
+
+담당 기능:
+- 안정된 드롭 박스에 placed tint 적용.
+- 안정된 드롭 박스의 Rigidbody gravity scale을 settled 값으로 전환.
+- 안정된 드롭 박스를 placed box 목록에 추가.
+
+먼저 확인할 변경:
+- `Settle`
+
+B110 기준으로 `BoxStackPrototype.ResolveDrop`은 드롭 안정 대기, 실패 판정, 바닥 다중 접촉 확인, 배치음, 클리어 검증/다음 박스 전환 흐름을 유지하고, 안정된 드롭 박스를 placed stack에 편입하는 세부 처리만 `BoxStackDroppedBoxSettlement`에 위임합니다. 사용자 확인에서 B110 마커, 박스 배치 후 다음 박스 생성, placed 색상/피아노 배치음/카메라 추적, 빗나간 드롭 실패, 목표 개수 후 `VERIFYING`과 클리어 결과 팝업 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 

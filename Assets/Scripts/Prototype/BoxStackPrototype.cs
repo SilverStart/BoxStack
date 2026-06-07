@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 109;
+    private const int PrototypeBuildNumber = 110;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -29,6 +29,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackResultFlow _resultFlow = new BoxStackResultFlow();
     private readonly BoxStackStageFlow _stageFlow = new BoxStackStageFlow();
     private readonly BoxStackRunCleanup _runCleanup = new BoxStackRunCleanup();
+    private readonly BoxStackDroppedBoxSettlement _droppedBoxSettlement = new BoxStackDroppedBoxSettlement();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -538,21 +539,15 @@ public sealed class BoxStackPrototype : MonoBehaviour
             yield break;
         }
 
-        Color placedTint = GetStackBlockTint(_placedBoxes.Count, false);
-        if (_boxFactory.TryApplyPlacedTint(droppedBox, placedTint))
+        if (_droppedBoxSettlement.Settle(
+            droppedBox,
+            GetStackBlockTint(_placedBoxes.Count, false),
+            _boxFactory,
+            _placedBoxes,
+            Tuning,
+            out Color appliedPlacedTint))
         {
-            _placedTint = placedTint;
-        }
-
-        var body = droppedBox.GetComponent<Rigidbody2D>();
-        if (body != null)
-        {
-            body.gravityScale = Tuning.SettledGravityScale;
-        }
-
-        if (!_placedBoxes.Contains(droppedBox))
-        {
-            _placedBoxes.Add(droppedBox);
+            _placedTint = appliedPlacedTint;
         }
 
         _droppingBox = null;
