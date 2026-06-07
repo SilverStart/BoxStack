@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 107;
+    private const int PrototypeBuildNumber = 108;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -27,6 +27,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackClearValidation _clearValidation = new BoxStackClearValidation();
     private readonly BoxStackStageSelectSession _stageSelectSession = new BoxStackStageSelectSession();
     private readonly BoxStackResultFlow _resultFlow = new BoxStackResultFlow();
+    private readonly BoxStackStageFlow _stageFlow = new BoxStackStageFlow();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -262,7 +263,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         if (action == BoxStackResultAction.AdvanceToNextStage)
         {
-            ChangeStage(1);
+            ApplyStageFlowResult(_stageFlow.Move(_stageProgress, 1));
             return;
         }
 
@@ -316,30 +317,19 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void ChangeStage(int direction)
     {
-        if (!_stageProgress.TryMove(direction))
-        {
-            return;
-        }
-
-        ApplyCurrentStagePalette();
-        RestartGame();
+        ApplyStageFlowResult(_stageFlow.Move(_stageProgress, direction));
     }
 
     private void SelectStage(int stageIndex)
     {
-        if (!_stageProgress.TrySelect(stageIndex, StageCount, out bool stageChanged))
+        BoxStackStageFlowResult result = _stageFlow.Select(_stageProgress, stageIndex, StageCount);
+        if (!result.HasAction)
         {
             return;
         }
 
         CloseStageSelect();
-
-        if (stageChanged)
-        {
-            ApplyCurrentStagePalette();
-        }
-
-        RestartGame();
+        ApplyStageFlowResult(result);
     }
 
     private void OpenStageSelect()
@@ -384,21 +374,38 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void ResetStageProgress()
     {
-        _stageProgress.Reset(GetStageNumber);
+        BoxStackStageFlowResult result = _stageFlow.Reset(_stageProgress, GetStageNumber);
         CloseStageSelect();
-        ApplyCurrentStagePalette();
-        RestartGame();
+        ApplyStageFlowResult(result);
     }
 
     private void UnlockAllStagesForPlaytest()
     {
-        _stageProgress.UnlockAll(StageCount, GetStageNumber);
-        RefreshPrototypeUi();
+        ApplyStageFlowResult(_stageFlow.UnlockAll(_stageProgress, StageCount, GetStageNumber));
     }
 
     private void UnlockNextStage()
     {
-        _stageProgress.UnlockNextStage(StageCount, GetStageNumber);
+        ApplyStageFlowResult(_stageFlow.UnlockNext(_stageProgress, StageCount, GetStageNumber));
+    }
+
+    private void ApplyStageFlowResult(BoxStackStageFlowResult result)
+    {
+        if (result.ShouldApplyPalette)
+        {
+            ApplyCurrentStagePalette();
+        }
+
+        if (result.ShouldRestartRun)
+        {
+            RestartGame();
+            return;
+        }
+
+        if (result.ShouldRefreshUi)
+        {
+            RefreshPrototypeUi();
+        }
     }
 
     private void SpawnNextBox()

@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-06-06
-런타임 마커: B107
+마지막 갱신: 2026-06-07
+런타임 마커: B108
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -19,19 +19,21 @@
    - 스테이지 선택 팝업 진입 전 런 상태와 타임스케일 저장/복원을 확인합니다.
 6. `Assets/Scripts/Prototype/BoxStackResultFlow.cs`
    - 결과 팝업 버튼 액션 결정을 확인합니다.
-7. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+7. `Assets/Scripts/Prototype/BoxStackStageFlow.cs`
+   - 스테이지 조작 후 팔레트 적용, 런 재시작, UI 갱신 액션 결정을 확인합니다.
+8. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-8. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+9. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-9. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+10. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-10. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+11. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-11. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+12. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-12. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+13. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-13. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+14. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
 14. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
@@ -140,6 +142,27 @@ B106 기준으로 `BoxStackPrototype`은 스테이지 선택 상태 전환, UI �
 - `BoxStackResultAction`
 
 B107 기준으로 `BoxStackPrototype`은 `BoxStackResultFlow`가 반환한 액션에 따라 기존 `ChangeStage`, `SelectFirstStage`, `RestartGame` 호출을 실행합니다. 사용자 확인에서 B107 마커, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태에서 비발동 흐름이 정상으로 수용됐습니다.
+
+### `BoxStackStageFlow.cs`
+
+현재 런타임의 스테이지 조작 후속 액션 결정 경계입니다.
+
+담당 기능:
+- 스테이지 이동이 성공하면 팔레트 적용과 런 재시작 액션을 반환.
+- 스테이지 선택이 성공하면 다른 스테이지 선택은 팔레트 적용과 런 재시작, 같은 스테이지 재선택은 런 재시작 액션을 반환.
+- 진행 초기화 후 팔레트 적용과 런 재시작 액션을 반환.
+- 전체 해금 후 UI 갱신 액션을 반환.
+- 다음 스테이지 해금은 저장 상태만 갱신하고 별도 런타임 액션을 반환하지 않음.
+
+먼저 확인할 변경:
+- `Move`
+- `Select`
+- `Reset`
+- `UnlockAll`
+- `UnlockNext`
+- `BoxStackStageFlowResult`
+
+B108 기준으로 `BoxStackStageProgress`는 현재/최고 해금 상태와 저장 책임을 유지하고, `BoxStackStageFlow`는 스테이지 조작 뒤 어떤 런타임 액션이 필요한지만 결정합니다. 사용자 확인에서 B108 마커, 이전/다음 스테이지 버튼, 다른 스테이지 선택, 같은 스테이지 재선택, `전체 해금`, `진행 초기화`, 클리어 후 다음 스테이지 해금/결과 팝업 흐름이 정상으로 수용됐습니다.
 
 ### `BoxStackDropPhysics.cs`
 
@@ -418,6 +441,7 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 - `BoxStackPrototype.OpenStageSelect`
 - `BoxStackPrototype.CloseStageSelect`
 - `BoxStackStageSelectSession`
+- `BoxStackStageFlow`
 - `BoxStackPrototype.SelectStage`
 - `BoxStackPrototype.UnlockNextStage`
 - `BoxStackPrototype.UnlockAllStagesForPlaytest`
@@ -426,7 +450,7 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 - `BoxStackStageProgressStore`
 - `BoxStackPrototypeUi.RefreshStageButtons`
 
-스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B098 기준 현재/최고 해금 인덱스와 선택/해금/초기화 판단은 `BoxStackStageProgress`가 맡고, `BoxStackStageProgressStore`는 `PlayerPrefs` 저장만 맡습니다. B106 기준 스테이지 선택 팝업을 열기 전 상태와 타임스케일 저장/복원은 `BoxStackStageSelectSession`이 맡습니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
+스테이지 선택 오버레이 열기, 스테이지 선택, 진행 저장, 해금/잠금 버튼 표시를 처리합니다. B098 기준 현재/최고 해금 인덱스와 선택/해금/초기화 판단은 `BoxStackStageProgress`가 맡고, `BoxStackStageProgressStore`는 `PlayerPrefs` 저장만 맡습니다. B106 기준 스테이지 선택 팝업을 열기 전 상태와 타임스케일 저장/복원은 `BoxStackStageSelectSession`이 맡습니다. B108 기준 스테이지 조작 후 팔레트 적용, 런 재시작, UI 갱신 중 무엇을 할지 결정하는 책임은 `BoxStackStageFlow`가 맡습니다. B090 기준 스테이지 타일은 두 줄 라벨 대신 `01`, `02`, `03` 같은 큰 번호만 표시합니다. 현재/해금/잠김 상태는 타일 색상과 비활성 상태로 구분합니다.
 
 ### UI 문구
 

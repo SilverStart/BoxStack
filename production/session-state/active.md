@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Result flow production refactor pass
-Runtime Marker: B107
-Latest Commit: This change set B107 결과 버튼 흐름 분리
-Dirty Worktree: Clean after B107 result flow refactor commit
+Task: Stage flow production refactor pass
+Runtime Marker: B108
+Latest Commit: This change set B108 스테이지 흐름 분리
+Dirty Worktree: Clean after B108 stage flow refactor commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: Clean after B107 result flow refactor commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B107`이다.
-- 최신 변경 묶음은 `B107 결과 버튼 흐름 분리`이다.
+- 현재 런타임 마커는 `B108`이다.
+- 최신 변경 묶음은 `B108 스테이지 흐름 분리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -65,6 +65,8 @@ Dirty Worktree: Clean after B107 result flow refactor commit
 - B106 사용자 Editor Play 확인은 완료됐다. 런타임 마커 B106, 플레이 중 스테이지 선택 팝업 일시정지/복귀, 결과 팝업 상태에서 열기/닫기, 스테이지 타일 선택 후 재시작 흐름이 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
 - B107은 프로덕션 리팩토링의 다음 작은 경계로, 결과 팝업 버튼을 눌렀을 때의 액션 결정 책임을 `BoxStackResultFlow`로 분리한다. `BoxStackPrototype`은 결정된 액션에 따라 기존 `ChangeStage`, `SelectFirstStage`, `RestartGame` 호출만 실행한다.
 - B107 사용자 Editor Play 확인은 완료됐다. 런타임 마커 B107, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태에서의 비발동 흐름이 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
+- B108은 프로덕션 리팩토링의 다음 작은 경계로, 스테이지 이동/선택/초기화/해금 조작 후 팔레트 적용, 런 재시작, UI 갱신 중 무엇을 실행할지 결정하는 책임을 `BoxStackStageFlow`로 분리한다. `BoxStackStageProgress`는 현재/해금 상태와 저장 책임을 그대로 맡고, `BoxStackPrototype`은 `BoxStackStageFlowResult`를 받아 실제 Unity 런타임 동작만 실행한다.
+- B108 사용자 Editor Play 확인은 완료됐다. 런타임 마커 B108, 이전/다음 스테이지 버튼, 스테이지 선택 팝업의 다른 스테이지 선택/같은 스테이지 재선택, `전체 해금`, `진행 초기화`, 클리어 후 다음 스테이지 해금/결과 팝업 흐름이 문제 없음으로 수용됐다. Unity CLI Connector refresh 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
 - B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B097 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
@@ -88,7 +90,7 @@ Dirty Worktree: Clean after B107 result flow refactor commit
 
 ## Next Action
 
-- B107 결과 버튼 흐름 분리는 사용자 확인 후 수용됐다. 다음 작업 후보는 프로덕션 리팩토링의 남은 생산화 경계이며, `BoxStackPrototype`에 남은 스테이지 변경 흐름, 재시작 정리 흐름, 드롭 해소 후 상태 전환 중 어떤 작은 책임부터 분리할지 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
+- B108 스테이지 흐름 분리는 사용자 확인 후 수용됐다. 다음 작업 후보는 프로덕션 리팩토링의 남은 생산화 경계이며, `BoxStackPrototype`에 남은 재시작 정리 흐름 또는 드롭 해소 후 상태 전환 중 어떤 작은 책임부터 분리할지 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
 
 ## Open Questions
 
@@ -103,7 +105,7 @@ Dirty Worktree: Clean after B107 result flow refactor commit
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
 - B097 낙하 속도 상승은 Editor Play에서 수용됐지만, 이후 물리/이동/블록 폭 튜닝을 바꾸면 착지 충격과 좌우 밀림을 다시 확인해야 한다.
 - 프로덕션 리팩토링 중 씬/프리팹 이동이나 대규모 파일 rename을 너무 이르게 진행하면 Unity 참조 churn이 커질 수 있으므로, 먼저 작은 책임 분리부터 진행한다.
-- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리, B103 런타임 호스트 경계 분리, B104 드롭 전 이동 경계 분리, B105 클리어 검증 타이머 분리, B106 스테이지 선택 세션 분리, B107 결과 버튼 흐름 분리는 사용자 확인에서 수용됐다. 다음 리팩토링 단계에서 UI/오디오 host, active box 이동, 클리어 검증, 런 상태 전환 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
+- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리, B103 런타임 호스트 경계 분리, B104 드롭 전 이동 경계 분리, B105 클리어 검증 타이머 분리, B106 스테이지 선택 세션 분리, B107 결과 버튼 흐름 분리, B108 스테이지 흐름 분리는 사용자 확인에서 수용됐다. 다음 리팩토링 단계에서 UI/오디오 host, active box 이동, 클리어 검증, 런 상태 전환 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
 
 ## References
 

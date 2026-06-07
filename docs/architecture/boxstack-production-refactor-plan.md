@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
-마지막 갱신: 2026-06-06
-런타임 마커: B107
-상태: Result button flow split implemented and accepted
+마지막 갱신: 2026-06-07
+런타임 마커: B108
+상태: Stage flow split implemented and accepted
 
 ## 목적
 
@@ -249,7 +249,7 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B106 마커, 플레이 중 스테이지 선택 일시정지/복귀, 결과 팝업 상태 복귀, 스테이지 타일 선택 후 재시작 확인
 
-### 현재 추가 분리: 결과 버튼 흐름
+### 추가 분리: 결과 버튼 흐름
 
 상태:
 - B107에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
@@ -267,6 +267,24 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B107 마커, 클리어 후 다음 스테이지 이동, 최종 클리어 후 1스테이지 재시작, 실패 후 현재 스테이지 재시작, 결과 팝업 외 상태 비발동 확인
 
+### 현재 추가 분리: 스테이지 흐름
+
+상태:
+- B108에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
+
+목표:
+- 스테이지 이동, 스테이지 선택, 진행 초기화, 진행 해금 조작 뒤 팔레트 적용, 런 재시작, UI 갱신 중 무엇을 실행할지 결정하는 책임을 `BoxStackPrototype` 밖으로 분리한다.
+- 현재/최고 해금 스테이지 상태와 저장은 `BoxStackStageProgress`와 `BoxStackStageProgressStore`에 그대로 두고, 새 경계는 스테이지 조작 후 런타임 반응만 맡게 한다.
+
+구현 결과:
+- `BoxStackStageFlow`가 `BoxStackStageProgress` 조작 결과를 받아 `BoxStackStageFlowResult`를 반환한다.
+- `BoxStackPrototype.ApplyStageFlowResult`는 결과에 따라 `ApplyCurrentStagePalette`, `RestartGame`, `RefreshPrototypeUi`를 실행한다.
+- 이전/다음 스테이지 버튼, 스테이지 선택, 진행 초기화, 전체 해금, 클리어 후 다음 스테이지 해금 흐름은 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+- Editor Play에서 B108 마커, 이전/다음 스테이지 버튼, 다른 스테이지 선택, 같은 스테이지 재선택, `전체 해금`, `진행 초기화`, 클리어 후 다음 스테이지 해금/결과 팝업 흐름 확인
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -280,4 +298,4 @@
 
 ## 다음 즉시 행동
 
-B107 결과 버튼 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 스테이지 변경, 재시작 정리, 드롭 해소 후 상태 전환 흐름 중 하나를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B108 스테이지 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 재시작 정리 또는 드롭 해소 후 상태 전환 흐름 중 하나를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

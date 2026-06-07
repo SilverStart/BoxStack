@@ -1,10 +1,10 @@
 # Progress Dashboard
 
-Last updated: 2026-06-06
+Last updated: 2026-06-07
 
 ## Next Immediate Action
 
-B107 result button flow refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely stage change flow, restart cleanup, or post-drop state transition, while preserving the accepted B097/B107 gameplay feel.
+B108 stage flow refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely restart cleanup or post-drop state transition, while preserving the accepted B097/B108 gameplay feel.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -222,6 +222,8 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-06-06: B106 user-led Editor Play verification passed. Runtime marker B106, stage-select pause/resume during play, open/close from result popup state, and stage tile selection into restart were checked with no issue.
 - 2026-06-06: B107 implements the next production refactor step. Result-popup button action selection now lives in `BoxStackResultFlow`, while `BoxStackPrototype` executes the selected action through the existing stage change, first-stage selection, and restart calls. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-06-06: B107 user-led Editor Play verification passed. Runtime marker B107, clear-to-next-stage, final-clear-to-stage-1 restart, fail-to-current-stage restart, and non-result-state no-op behavior were checked with no issue.
+- 2026-06-07: B108 implements the next production refactor step. Stage movement, stage selection, progress reset, and progress unlock commands now route through `BoxStackStageFlow`, which returns whether `BoxStackPrototype` should apply the stage palette, restart the run, or refresh UI. `BoxStackStageProgress` still owns current/unlocked state and persistence. Unity CLI Connector refresh added the new file to the generated project, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
+- 2026-06-07: B108 user-led Editor Play verification passed. Runtime marker B108, previous/next stage buttons, stage-select different-stage and same-stage selection, unlock-all, reset-progress, and clear-to-next-stage unlock/result flow were checked with no issue.
 
 ## Current Decisions
 
@@ -282,6 +284,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B105 keeps accepted clear-validation timing, failure checks during validation, result popup flow, audio cues, and stage progression while moving clear-validation timer state into `BoxStackClearValidation`. Keep this as a behavior-preserving production boundary split; later clear-rule changes should happen as separate tuning/design work.
 - B106 keeps accepted stage-select UI flow, pause/resume behavior, result-popup state restoration, stage tile selection, and restart flow while moving stage-select session state into `BoxStackStageSelectSession`. Keep this as a behavior-preserving production boundary split; later stage-select behavior changes should happen as separate UX or productization work.
 - B107 keeps accepted result-popup button behavior while moving action selection into `BoxStackResultFlow`. Keep this as a behavior-preserving production boundary split; later result flow changes should happen as separate UX, stage-progression, or productization work.
+- B108 keeps accepted stage movement, stage selection, progress reset, progress unlock, result-popup next-stage unlock, palette update, run restart, and UI refresh behavior while moving post-stage-command action selection into `BoxStackStageFlow`. Keep this as a behavior-preserving production boundary split; later stage-flow changes should happen as separate UX, progression, or productization work.
 - BoxStack keeps the existing Unity C# private field naming style (`_camelCase`) for this project. The starter-pack rule that forbids private-field `_` prefixes is not applied retroactively here, while shared harness/operating-rule improvements should still be mirrored to the starter-pack source when useful.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -330,6 +333,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B105 is behavior-preserving and accepted, but later changes to `BoxStackClearValidation` should recheck verifying state entry, validation-duration success, failure during validation, result popup flow, and next-stage unlock flow.
 - B106 is behavior-preserving and accepted, but later changes to `BoxStackStageSelectSession` should recheck stage-select pause/resume during play, close/escape restoration, result-popup state restoration, stage tile selection, and restart flow.
 - B107 is behavior-preserving and accepted, but later changes to `BoxStackResultFlow` should recheck clear-to-next-stage, final-clear-to-stage-1 restart, fail-to-current-stage restart, and result-button no-op outside result states.
+- B108 is behavior-preserving and accepted, but later changes to `BoxStackStageFlow` should recheck previous/next stage buttons, stage-select different-stage and same-stage selection, unlock-all, reset-progress, and clear-to-next-stage unlock/result flow.
 - The prototype runtime is large enough that continued feature work inside `BoxStackPrototype.cs` will increase production migration cost; refactor in small verified steps before adding more product features.
 - Large early folder/class renames could create Unity `.meta` and scene/prefab reference churn, so prefer responsibility extraction before broad naming cleanup unless a rename is explicitly scoped.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
