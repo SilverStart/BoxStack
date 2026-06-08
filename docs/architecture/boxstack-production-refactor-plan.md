@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
-마지막 갱신: 2026-06-07
-런타임 마커: B110
-상태: Dropped box settlement split implemented and accepted
+마지막 갱신: 2026-06-08
+런타임 마커: B111
+상태: Post-drop flow split implemented and accepted
 
 ## 목적
 
@@ -31,6 +31,7 @@
 - `BoxStackStageSelectSession`이 스테이지 선택 팝업 진입 전 런 상태와 타임스케일 저장/복원 경계를 맡기 시작했다.
 - `BoxStackResultFlow`가 결과 팝업 버튼 액션 결정 경계를 맡기 시작했다.
 - `BoxStackDroppedBoxSettlement`가 안정된 드롭 박스를 placed stack에 편입하는 경계를 맡기 시작했다.
+- `BoxStackPostDropFlow`가 드롭 정착 후 클리어 검증 또는 다음 박스 생성 액션 결정을 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -155,6 +156,7 @@
 - B103에서 UI host GameObject 생성, 런타임 UI 폰트 로드, UI 컴포넌트 초기화, audio host GameObject 생성을 `BoxStackRuntimeHosts`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B104에서 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, collider 기반 박스 반폭 계산을 `BoxStackActiveBoxMotion`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B110에서 드롭 안정 후 placed tint 적용, settled gravity 적용, placed box 목록 추가를 `BoxStackDroppedBoxSettlement`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
+- B111에서 드롭 정착 후 목표 개수 달성 여부에 따라 클리어 검증 또는 다음 박스 생성 액션을 결정하는 흐름을 `BoxStackPostDropFlow`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -172,6 +174,7 @@
 - `BoxStackBoxFactory`가 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정, Stack-like 추상 블록용 그라데이션 스프라이트 생성을 맡도록 분리했다.
 - `BoxStackActiveBoxMotion`이 드롭 전 active box의 좌우 왕복 위치 계산, 화면 폭 기준 안전 이동 범위 계산, active box collider 반폭 계산을 맡도록 분리했다.
 - `BoxStackDroppedBoxSettlement`가 안정된 드롭 박스의 placed tint 적용, settled gravity 적용, placed box 목록 추가를 맡도록 분리했다.
+- `BoxStackPostDropFlow`가 드롭 정착 후 placed box 수와 목표 box 수를 비교해 `BeginClearValidation` 또는 `ContinuePlaying` 액션을 결정한다.
 - `BoxStackPrototype`은 드롭 시작/해소 코루틴, 실패/성공 전환, 결과 UI/오디오, 스테이지 진행 처리를 계속 조정한다.
 - B086 접촉 직전 y속도 리셋, B097 낙하 템포, clear/fail 룰, 결과 문구, 결과음, 스테이지 해금 흐름은 바꾸지 않았다.
 - 사용자 확인에서 일반 드롭, 접촉 직전 충격 완화, 낙하 속도 상한, 안정 후 다음 박스 생성, 실패 흐름, 클리어 흐름, 대표 스테이지 낙하 감각이 정상으로 확인됐다.
@@ -180,6 +183,7 @@
 - B103 사용자 확인에서 런타임 마커 B103, 스테이지 선택 팝업 열기/닫기/선택, 결과 팝업 버튼, 배치/클리어/실패 사운드가 정상으로 확인됐다.
 - B104 사용자 확인에서 런타임 마커 B104, 스테이지 1 좌우 왕복 이동, 박스 배치/낙하/착지 사운드, 후반 스테이지 화면 밖 이탈 여부, 클리어/실패 결과 팝업이 정상으로 확인됐다.
 - B110 사용자 확인에서 런타임 마커 B110, 박스 배치 후 다음 박스 생성, placed 색상/피아노 배치음/카메라 추적, 빗나간 드롭 실패, 목표 개수 후 `VERIFYING`과 클리어 결과 팝업 흐름이 정상으로 확인됐다.
+- B111 사용자 확인에서 런타임 마커 B111, 목표 개수 미만 배치 후 다음 박스 생성, 목표 개수 도달 후 `VERIFYING` 진입, 검증 후 클리어 팝업, 빗나간 드롭/바닥 2개 접촉 실패 흐름이 정상으로 확인됐다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -325,6 +329,24 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B110 마커, 박스 배치 후 다음 박스 생성, placed 색상/피아노 배치음/카메라 추적, 빗나간 드롭 실패, 목표 개수 후 `VERIFYING`과 클리어 결과 팝업 흐름 확인
 
+### 현재 추가 분리: 드롭 후 흐름
+
+상태:
+- B111에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
+
+목표:
+- `ResolveDrop` 안에 있던 드롭 정착 후 클리어 검증 진입/다음 박스 생성 판단을 `BoxStackPrototype` 밖으로 분리한다.
+- 실제 Unity 상태 변경, `BeginClearValidation`, `SpawnNextBox` 실행은 기존 메인 런타임 흐름에 남겨 동작을 바꾸지 않는다.
+
+구현 결과:
+- `BoxStackPostDropFlow`가 placed box 수와 목표 box 수를 받아 `BeginClearValidation` 또는 `ContinuePlaying` 액션을 반환한다.
+- `BoxStackPrototype.ApplyPostDropFlowResult`는 반환된 액션을 받아 기존 `BeginClearValidation` 또는 `Playing` 상태 복귀와 `SpawnNextBox` 호출을 실행한다.
+- 실패 판정, 바닥 다중 접촉 실패, 배치 피드백, 드롭 안정 대기, 드롭 정착 처리는 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+- Editor Play에서 B111 마커, 목표 개수 미만 배치 후 다음 박스 생성, 목표 개수 도달 후 `VERIFYING` 진입, 검증 후 클리어 팝업, 빗나간 드롭/바닥 2개 접촉 실패 흐름 확인
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -338,4 +360,4 @@
 
 ## 다음 즉시 행동
 
-B110 드롭 정착 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 드롭 해소 후 상태 전환 흐름을 작은 단위로 더 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B111 드롭 후 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 결과/런 종료 표시 흐름 또는 UI 상태 조립 경계를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

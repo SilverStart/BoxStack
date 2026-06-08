@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 110;
+    private const int PrototypeBuildNumber = 111;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -30,6 +30,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackStageFlow _stageFlow = new BoxStackStageFlow();
     private readonly BoxStackRunCleanup _runCleanup = new BoxStackRunCleanup();
     private readonly BoxStackDroppedBoxSettlement _droppedBoxSettlement = new BoxStackDroppedBoxSettlement();
+    private readonly BoxStackPostDropFlow _postDropFlow = new BoxStackPostDropFlow();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -560,20 +561,23 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
         PlayPlacementFeedback(_placedBoxes.Count - 1);
 
-        if (_placedBoxes.Count >= CurrentTargetBoxes)
+        ApplyPostDropFlowResult(_postDropFlow.GetNextAction(_placedBoxes.Count, CurrentTargetBoxes));
+    }
+
+    private void ApplyPostDropFlowResult(BoxStackPostDropAction action)
+    {
+        if (action == BoxStackPostDropAction.BeginClearValidation)
         {
             BeginClearValidation();
-            yield break;
+            return;
         }
 
-        if (_state != BoxStackPrototypeState.ResolvingDrop)
+        if (action == BoxStackPostDropAction.ContinuePlaying && _state == BoxStackPrototypeState.ResolvingDrop)
         {
-            yield break;
+            _state = BoxStackPrototypeState.Playing;
+            _statusText = $"RUN {_attempts}";
+            SpawnNextBox();
         }
-
-        _state = BoxStackPrototypeState.Playing;
-        _statusText = $"RUN {_attempts}";
-        SpawnNextBox();
     }
 
     private void BeginClearValidation()
