@@ -1,17 +1,18 @@
-# Unity 6.3 LTS — Current Best Practices
+# Unity 6000.0.73f1 — Current Best Practices
 
 **Last verified:** 2026-02-13
 
 Modern Unity 6 patterns that may not be in the LLM's training data.
-These are production-ready recommendations as of Unity 6.3 LTS.
+These recommendations are scoped to the project-pinned Unity 6000.0.73f1 editor.
+Verify package-specific details before relying on newer Unity 6 release behavior.
 
 ---
 
 ## Project Setup
 
-### Use Unity 6.3 LTS for Production
-- **Tech Stream** (6.4+): Latest features, less stable
-- **LTS** (6.3): Production-ready, 2-year support (until Dec 2027)
+### Use the Project-Pinned Editor for Production
+- **Pinned editor:** Unity 6000.0.73f1
+- **Upgrade rule:** Update `ProjectSettings/ProjectVersion.txt` and `VERSION.md` together before adopting later Unity 6 APIs or behavior
 
 ### Choose the Right Render Pipeline
 - **URP (Universal)**: Mobile, cross-platform, good performance ✅ Recommended for most games
@@ -64,7 +65,7 @@ public partial struct PlayerStats : IComponentData {
 
 ---
 
-## DOTS/ECS (Production-Ready in Unity 6.3 LTS)
+## DOTS/ECS (Unity 6)
 
 ### Use ISystem (Not ComponentSystem)
 

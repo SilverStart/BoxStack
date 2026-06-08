@@ -1,4 +1,4 @@
-# Unity 6.3 — UI Module Reference
+# Unity 6000.0.73f1 — UI Module Reference
 
 **Last verified:** 2026-02-13
 **Knowledge Gap:** Unity 6 UI Toolkit is production-ready for runtime UI

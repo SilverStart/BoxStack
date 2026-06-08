@@ -1,4 +1,4 @@
-# Unity 6.3 — Animation Module Reference
+# Unity 6000.0.73f1 — Animation Module Reference
 
 **Last verified:** 2026-02-13
 **Knowledge Gap:** Unity 6 animation improvements, Timeline enhancements
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Unity 6.3 animation systems:
+Unity 6000.0.73f1 animation systems:
 - **Animator Controller (Mecanim)**: State machine-based (RECOMMENDED)
 - **Timeline**: Cinematic sequences, cutscenes
 - **Animation Rigging**: Procedural runtime animation

@@ -25,8 +25,9 @@ m_EditorVersion: 6000.0.73f1
 m_EditorVersionWithRevision: 6000.0.73f1 (a166abc3bf0e)
 ```
 
-Do not assume Unity 6.3 APIs or behavior unless the project is explicitly upgraded
-and this file is updated alongside `ProjectSettings/ProjectVersion.txt`.
+Do not assume APIs or behavior from later Unity 6 releases unless the project is
+explicitly upgraded and this file is updated alongside
+`ProjectSettings/ProjectVersion.txt`.
 
 ## Post-Cutoff Version Timeline
 

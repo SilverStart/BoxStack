@@ -10,7 +10,7 @@
 
 `BoxStackPrototypeAssetLoader`가 `Resources.Load` 경로를 먼저 시도하고, Editor Play에서는 `AssetDatabase` 또는 파일 기반 fallback을 통해 원본 아트 경로도 읽을 수 있게 해둔 상태다. 이 구조는 빠른 프로토타입 반복과 phone WebGL 확인에는 충분히 단순하고 안정적이었다.
 
-다만 Unity 6.3 기준으로 장기적인 에셋 관리에는 Addressables 또는 명시적인 직렬화 참조가 더 적합하다. 특히 `Resources`는 빌드 포함 범위가 넓고 동기 로딩이라, 제품화 단계에서는 빌드 무게와 로딩 제어 측면에서 다시 판단해야 한다.
+다만 프로젝트 기준 Unity 6000.0.73f1에서 장기적인 에셋 관리에는 Addressables 또는 명시적인 직렬화 참조가 더 적합하다. 특히 `Resources`는 빌드 포함 범위가 넓고 동기 로딩이라, 제품화 단계에서는 빌드 무게와 로딩 제어 측면에서 다시 판단해야 한다.
 
 ## 결정
 

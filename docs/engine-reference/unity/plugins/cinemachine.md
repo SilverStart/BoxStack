@@ -1,4 +1,4 @@
-# Unity 6.3 — Cinemachine
+# Unity 6000.0.73f1 — Cinemachine
 
 **Last verified:** 2026-02-13
 **Status:** Production-Ready

@@ -1,4 +1,4 @@
-# Unity 6.3 — Physics Module Reference
+# Unity 6000.0.73f1 — Physics Module Reference
 
 **Last verified:** 2026-02-13
 **Knowledge Gap:** Unity 6 physics improvements, solver changes
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Unity 6.3 uses **PhysX 5.1** (improved from PhysX 4.x in 2022 LTS):
+Unity 6000.0.73f1 uses **PhysX 5.1** (improved from PhysX 4.x in 2022 LTS):
 - Better solver stability
 - Improved performance
 - Enhanced collision detection

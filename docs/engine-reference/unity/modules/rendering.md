@@ -1,4 +1,4 @@
-# Unity 6.3 — Rendering Module Reference
+# Unity 6000.0.73f1 — Rendering Module Reference
 
 **Last verified:** 2026-02-13
 **Knowledge Gap:** LLM trained on Unity 2022 LTS; Unity 6 has major rendering changes
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Unity 6.3 LTS uses **Scriptable Render Pipelines (SRP)** as the modern rendering architecture:
+Unity 6000.0.73f1 uses **Scriptable Render Pipelines (SRP)** as the modern rendering architecture:
 - **URP (Universal Render Pipeline)**: Cross-platform, mobile-friendly (RECOMMENDED)
 - **HDRP (High Definition Render Pipeline)**: High-end PC/console, photorealistic
 - **Built-in Pipeline**: Deprecated, avoid for new projects

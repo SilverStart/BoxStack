@@ -1,4 +1,4 @@
-# Unity 6.3 — Addressables
+# Unity 6000.0.73f1 — Addressables
 
 **Last verified:** 2026-02-13
 **Status:** Production-Ready

@@ -1,9 +1,9 @@
-# Unity 6.3 LTS — Breaking Changes
+# Unity 6000.0.73f1 — Breaking Changes
 
 **Last verified:** 2026-02-13
 
 This document tracks breaking API changes and behavioral differences between Unity 2022 LTS
-(likely in model training) and Unity 6.3 LTS (current version). Organized by risk level.
+(likely in model training) and the project-pinned Unity 6000.0.73f1 editor. Organized by risk level.
 
 ## HIGH RISK — Will Break Existing Code
 
@@ -68,11 +68,13 @@ public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer
 
 ## MEDIUM RISK — Behavioral Changes
 
-### Addressables — Asset Loading Returns
-**Versions:** Unity 6.2+
+### Addressables — Asset Loading Behavior Requires Verification
+**Versions:** Later Unity 6 releases; verify against Unity 6000.0.73f1 before applying
 
-Asset loading failures now throw exceptions by default instead of returning null.
-Add proper exception handling or use `TryLoad` variants.
+Some later Unity 6 Addressables behavior may differ from Unity 2022 LTS. Before
+changing project code, verify whether asset loading failures throw exceptions by
+default or return failed handles/null values in the installed package version.
+Add proper exception handling around Addressables calls either way.
 
 ```csharp
 // ❌ OLD: Silent null on failure
@@ -136,7 +138,7 @@ UGUI still works but UI Toolkit is recommended for new projects.
 
 ## Migration Checklist
 
-When upgrading from 2022 LTS to Unity 6.3 LTS:
+When upgrading from 2022 LTS to Unity 6000.0.73f1:
 
 - [ ] Audit all DOTS/ECS code (complete rewrite likely needed)
 - [ ] Replace `Input` class with Input System package

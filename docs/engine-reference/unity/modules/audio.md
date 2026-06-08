@@ -1,4 +1,4 @@
-# Unity 6.3 — Audio Module Reference
+# Unity 6000.0.73f1 — Audio Module Reference
 
 **Last verified:** 2026-02-13
 **Knowledge Gap:** Unity 6 audio mixer improvements
@@ -7,7 +7,7 @@
 
 ## Overview
 
-Unity 6.3 audio systems:
+Unity 6000.0.73f1 audio systems:
 - **AudioSource**: Play sounds on GameObjects
 - **Audio Mixer**: Mix, effect processing, dynamic mixing
 - **Spatial Audio**: 3D positioned sound
