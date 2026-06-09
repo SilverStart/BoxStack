@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 111;
+    private const int PrototypeBuildNumber = 112;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -31,6 +31,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackRunCleanup _runCleanup = new BoxStackRunCleanup();
     private readonly BoxStackDroppedBoxSettlement _droppedBoxSettlement = new BoxStackDroppedBoxSettlement();
     private readonly BoxStackPostDropFlow _postDropFlow = new BoxStackPostDropFlow();
+    private readonly BoxStackRunEndFlow _runEndFlow = new BoxStackRunEndFlow();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -605,15 +606,21 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private void EndRun(bool won, string status)
     {
-        if (_state == BoxStackPrototypeState.Won || _state == BoxStackPrototypeState.Failed)
+        BoxStackRunEndResult result = _runEndFlow.GetEndResult(
+            _state,
+            won,
+            status,
+            _stageProgress.CurrentStageIndex,
+            _stageProgress.HighestUnlockedStageIndex);
+        if (!result.ShouldEnd)
         {
             return;
         }
 
-        _state = won ? BoxStackPrototypeState.Won : BoxStackPrototypeState.Failed;
-        _statusText = status;
-        _lastClearWasNewBest = won && _stageProgress.CurrentStageIndex >= _stageProgress.HighestUnlockedStageIndex;
-        if (won)
+        _state = result.State;
+        _statusText = result.StatusText;
+        _lastClearWasNewBest = result.LastClearWasNewBest;
+        if (result.ShouldUnlockNextStage)
         {
             UnlockNextStage();
         }

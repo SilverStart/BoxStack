@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
-마지막 갱신: 2026-06-08
-런타임 마커: B111
-상태: Post-drop flow split implemented and accepted
+마지막 갱신: 2026-06-09
+런타임 마커: B112
+상태: Run-end result split implemented and accepted
 
 ## 목적
 
@@ -32,6 +32,7 @@
 - `BoxStackResultFlow`가 결과 팝업 버튼 액션 결정 경계를 맡기 시작했다.
 - `BoxStackDroppedBoxSettlement`가 안정된 드롭 박스를 placed stack에 편입하는 경계를 맡기 시작했다.
 - `BoxStackPostDropFlow`가 드롭 정착 후 클리어 검증 또는 다음 박스 생성 액션 결정을 맡기 시작했다.
+- `BoxStackRunEndFlow`가 런 종료 시 최종 상태, 최고 기록 갱신 여부, 다음 스테이지 해금 필요 여부 결정을 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -157,6 +158,7 @@
 - B104에서 드롭 전 active box 좌우 이동, 화면 안전 이동 범위 계산, collider 기반 박스 반폭 계산을 `BoxStackActiveBoxMotion`으로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B110에서 드롭 안정 후 placed tint 적용, settled gravity 적용, placed box 목록 추가를 `BoxStackDroppedBoxSettlement`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B111에서 드롭 정착 후 목표 개수 달성 여부에 따라 클리어 검증 또는 다음 박스 생성 액션을 결정하는 흐름을 `BoxStackPostDropFlow`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
+- B112에서 런 종료 시 이미 결과 상태인지, 승/패 상태가 무엇인지, 최고 기록 갱신인지, 다음 스테이지 해금이 필요한지 결정하는 흐름을 `BoxStackRunEndFlow`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -184,6 +186,7 @@
 - B104 사용자 확인에서 런타임 마커 B104, 스테이지 1 좌우 왕복 이동, 박스 배치/낙하/착지 사운드, 후반 스테이지 화면 밖 이탈 여부, 클리어/실패 결과 팝업이 정상으로 확인됐다.
 - B110 사용자 확인에서 런타임 마커 B110, 박스 배치 후 다음 박스 생성, placed 색상/피아노 배치음/카메라 추적, 빗나간 드롭 실패, 목표 개수 후 `VERIFYING`과 클리어 결과 팝업 흐름이 정상으로 확인됐다.
 - B111 사용자 확인에서 런타임 마커 B111, 목표 개수 미만 배치 후 다음 박스 생성, 목표 개수 도달 후 `VERIFYING` 진입, 검증 후 클리어 팝업, 빗나간 드롭/바닥 2개 접촉 실패 흐름이 정상으로 확인됐다.
+- B112 사용자 확인에서 런타임 마커 B112, 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 재시작/이동 흐름이 정상으로 확인됐다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -347,6 +350,25 @@
 - `dotnet build BoxStack.slnx`
 - Editor Play에서 B111 마커, 목표 개수 미만 배치 후 다음 박스 생성, 목표 개수 도달 후 `VERIFYING` 진입, 검증 후 클리어 팝업, 빗나간 드롭/바닥 2개 접촉 실패 흐름 확인
 
+### 현재 추가 분리: 런 종료 결과
+
+상태:
+- B112에서 첫 구현을 완료했고, 사용자 Editor Play 확인에서 수용됐다.
+
+목표:
+- `EndRun` 안에 있던 결과 진입 가능 여부, 최종 승/패 상태, 결과 status text, 최고 기록 갱신 여부, 다음 스테이지 해금 필요 여부 결정을 `BoxStackPrototype` 밖으로 분리한다.
+- 실제 Unity 오브젝트 정리, placed box 물리 정지, 결과음 재생, UI 갱신은 기존 메인 런타임 흐름에 남겨 동작을 바꾸지 않는다.
+
+구현 결과:
+- `BoxStackRunEndFlow`가 현재 상태, 승패 여부, status text, 현재 스테이지 인덱스, 최고 해금 스테이지 인덱스를 받아 `BoxStackRunEndResult`를 반환한다.
+- `BoxStackPrototype.EndRun`은 반환된 결과를 받아 기존 상태 반영, `UnlockNextStage`, active/dropping box 정리, placed box freeze, 결과음, UI 갱신을 실행한다.
+- 이미 `Won` 또는 `Failed` 상태인 런은 기존처럼 중복 종료 처리를 하지 않는다.
+- 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 흐름은 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+- Editor Play에서 B112 마커, 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 재시작/이동 흐름 확인
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -360,4 +382,4 @@
 
 ## 다음 즉시 행동
 
-B111 드롭 후 흐름 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 결과/런 종료 표시 흐름 또는 UI 상태 조립 경계를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B112 런 종료 결과 분리는 검증과 사용자 확인에서 수용됐다. 다음 후보는 `BoxStackPrototype`에 남은 UI 상태 조립, 결과 문구 조립, 또는 `ResolveDrop` 안정 대기 경계를 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
