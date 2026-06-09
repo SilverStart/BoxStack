@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
-마지막 갱신: 2026-06-09
-런타임 마커: B116
+마지막 갱신: 2026-06-10
+런타임 마커: B117
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -37,21 +37,23 @@
    - 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 확인합니다.
 15. `Assets/Scripts/Prototype/BoxStackRunStatusText.cs`
    - 런 상태 표시 문자열을 확인합니다.
-16. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+16. `Assets/Scripts/Prototype/BoxStackUiStyling.cs`
+   - UI Toolkit 공통 패널/글래스/버튼/텍스트 스타일 적용을 확인합니다.
+17. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-17. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+18. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-18. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+19. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-19. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+20. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-20. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+21. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-21. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+22. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-22. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+23. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-23. 보조 파일
+24. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -286,6 +288,18 @@ B115 기준으로 `BoxStackPrototypeUiStateFactory`는 이 클래스가 반환�
 - 성공 결과 status인 `STACK COMPLETE` 문구.
 
 B116 기준으로 `BoxStackPrototype`은 상태 전환 시 이 클래스의 문구를 사용합니다. 어떤 상태에서 어떤 문구를 선택할지는 기존 메인 흐름에 남아 있고, 문구 값 자체는 바꾸지 않았습니다.
+
+### `BoxStackUiStyling.cs`
+
+UI Toolkit 공통 스타일 적용 경계입니다.
+
+해당 기능:
+- 일반 패널 배경, 테두리, radius 적용.
+- 글래스 패널 배경 alpha 적용.
+- 버튼 배경/텍스트 색 적용.
+- display/body/fallback font 기반 텍스트 스타일 적용.
+
+B117 기준으로 `BoxStackPrototypeUi`는 UI 요소 생성, safe-area/layout 계산, overlay 표시, stage/result/progress 상태 갱신을 계속 맡고, 반복되는 스타일 적용만 이 클래스에 위임합니다. UI 문구, 레이아웃 수치, 색상 값, 입력 처리는 바꾸지 않았습니다.
 
 ### `BoxStackDropPhysics.cs`
 
@@ -593,11 +607,11 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 - `BoxStackPrototypeUi.BuildResultOverlay`
 - `BoxStackPrototypeUi.ApplySafeArea`
 - `BoxStackPrototypeUi.ApplyHudLayout`
-- `BoxStackPrototypeUi.ApplyPanelStyle`
-- `BoxStackPrototypeUi.ApplyDisplayText`
-- `BoxStackPrototypeUi.ApplyBodyText`
-- `BoxStackPrototypeUi.ApplyText`
-- `BoxStackPrototypeUi.ApplyButtonColors`
+- `BoxStackUiStyling.ApplyPanelStyle`
+- `BoxStackUiStyling.ApplyGlassPanelStyle`
+- `BoxStackUiStyling.ApplyButtonColors`
+- `BoxStackUiStyling.ApplyDisplayText`
+- `BoxStackUiStyling.ApplyBodyText`
 
 런타임 생성 UI Toolkit 레이아웃과 스타일을 제어합니다. B071 기준 상단 중앙 진행 패널은 safe-area 폭이 좁을 때 슬롯 크기뿐 아니라 패널 최대 폭도 줄여 왼쪽 스테이지 배지와 겹치지 않도록 합니다. B073 기준 `Screen.safeArea`는 UI Toolkit 패널 좌표로 변환한 뒤 safe root, overlay bounds, HUD layout, touch hit-test에 적용합니다. B074 기준 스테이지 선택 패널은 safe-area 높이에서 상단 여백과 하단 여백을 뺀 값을 최대 높이로 사용하고, 세로 공간이 빠듯할 때 타일 높이와 줄 간격을 조금 줄입니다.
 

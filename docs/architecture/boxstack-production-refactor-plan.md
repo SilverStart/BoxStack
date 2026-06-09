@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
-마지막 갱신: 2026-06-09
-런타임 마커: B116
-상태: Run status text split implemented and validated
+마지막 갱신: 2026-06-10
+런타임 마커: B117
+상태: UI styling split implemented and validated
 
 ## 목적
 
@@ -37,6 +37,7 @@
 - `BoxStackDropStabilityWait`이 드롭 정착 대기 중 최소 resolve 시간과 stable window 누적 시간을 맡기 시작했다.
 - `BoxStackStagePresentation`이 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 맡기 시작했다.
 - `BoxStackRunStatusText`가 런 상태 표시 문자열을 맡기 시작했다.
+- `BoxStackUiStyling`이 UI Toolkit 패널, 글래스 패널, 버튼 색상, 표시/본문 텍스트 스타일 적용을 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -167,6 +168,7 @@
 - B114에서 드롭 정착 대기 중 최소 resolve 시간과 stable window 누적 시간을 `BoxStackDropStabilityWait`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 물리 안정 판정과 다음 박스 타이밍은 바꾸지 않았다.
 - B115에서 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 `BoxStackStagePresentation`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 스테이지 선택 UI 규칙은 바꾸지 않았다.
 - B116에서 `READY`, `RUN n`, `DROP`, `VERIFYING`, `STACK COMPLETE` 상태 문자열을 `BoxStackRunStatusText`로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 런 상태 전환은 바꾸지 않았다.
+- B117에서 UI Toolkit 공통 패널/글래스/버튼/텍스트 스타일 적용을 `BoxStackUiStyling`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. UI 문구, 레이아웃 수치, 색상 값, 게임 흐름은 바꾸지 않았다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -199,6 +201,7 @@
 - B114 자동 검증에서 런타임 마커 B114 코드 변경과 드롭 안정 대기 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
 - B115 자동 검증에서 런타임 마커 B115 코드 변경과 스테이지 표시 상태 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
 - B116 자동 검증에서 런타임 마커 B116 코드 변경과 런 상태 문구 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
+- B117 자동 검증에서 런타임 마커 B117 코드 변경과 UI 스타일 적용 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -448,6 +451,23 @@
 검증:
 - `dotnet build BoxStack.slnx`
 
+### 현재 추가 분리: UI 스타일 적용
+
+상태:
+- B117에서 첫 구현을 완료했고, 자동 검증에서 통과했다.
+
+목표:
+- `BoxStackPrototypeUi` 안에 있던 UI Toolkit 공통 패널/글래스/버튼/텍스트 스타일 적용 책임을 별도 경계로 분리한다.
+- HUD, 스테이지 선택, 결과 팝업의 빌드 순서, 레이아웃 수치, 색상 값, 문구, 입력 처리는 기존 흐름과 같게 유지한다.
+
+구현 결과:
+- `BoxStackUiStyling`이 `ApplyPanelStyle`, `ApplyGlassPanelStyle`, `ApplyButtonColors`, `ApplyDisplayText`, `ApplyBodyText`를 맡는다.
+- `BoxStackPrototypeUi`는 UI 요소 생성, safe-area/layout 계산, overlay 표시, stage/result/progress 상태 갱신을 계속 맡는다.
+- `BoxStackPrototypeUi.Initialize`은 로드된 display/body/fallback font를 스타일 경계에 전달하고, 이후 UI 빌드/갱신은 같은 스타일 값을 새 경계를 통해 적용한다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -461,4 +481,4 @@
 
 ## 다음 즉시 행동
 
-B116 런 상태 문구 분리는 검증에서 통과했다. 다음 후보는 드롭 실패/정착 후속 흐름 또는 UI runtime layout 내부 책임을 더 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B117 UI 스타일 적용 분리는 검증에서 통과했다. 다음 후보는 HUD, 스테이지 선택, 결과 팝업 빌드 책임처럼 UI runtime layout 내부를 더 작은 단위로 나누거나, 드롭 실패/정착 후속 흐름을 조심스럽게 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

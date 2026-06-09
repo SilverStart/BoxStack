@@ -44,6 +44,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private static readonly Color TextColor = new Color(1.00f, 1.00f, 1.00f, 0.96f);
     private static readonly Color SubTextColor = new Color(0.80f, 0.88f, 1.00f, 0.78f);
 
+    private readonly BoxStackUiStyling _styling = new BoxStackUiStyling();
     private readonly List<Button> _stageButtons = new List<Button>();
     private readonly List<VisualElement> _stageRows = new List<VisualElement>();
     private readonly List<VisualElement> _progressNodes = new List<VisualElement>();
@@ -77,9 +78,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
     private Label _resultBody;
     private Button _resultButton;
     private VisualElement _resultPanel;
-    private Font _displayFont;
-    private Font _bodyFont;
-    private Font _fallbackFont;
     private Action _openStageSelect;
     private Action<int> _selectStage;
     private Action _closeStageSelect;
@@ -157,9 +155,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         Action unlockAllStages,
         Action handleResult)
     {
-        _displayFont = displayFont;
-        _bodyFont = bodyFont;
-        _fallbackFont = fallbackFont;
+        _styling.SetFonts(displayFont, bodyFont, fallbackFont);
         _openStageSelect = openStageSelect;
         _selectStage = selectStage;
         _closeStageSelect = closeStageSelect;
@@ -199,7 +195,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             _resultTitle.text = state.ResultTitle;
             _resultBody.text = state.ResultBody;
             _resultButton.text = state.ResultButtonLabel;
-            ApplyButtonColors(_resultButton, GetResultButtonColor(state.Palette), Color.white);
+            _styling.ApplyButtonColors(_resultButton, GetResultButtonColor(state.Palette), Color.white);
         }
     }
 
@@ -296,7 +292,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _hudShadow.style.top = HudTopPadding + 2f;
         _hudShadow.style.width = StageBadgeWidth;
         _hudShadow.style.height = StageBadgeHeight;
-        ApplyPanelStyle(_hudShadow, HudShadowColor, Color.clear, 14f);
+        _styling.ApplyPanelStyle(_hudShadow, HudShadowColor, Color.clear, 14f);
         _safeRoot.Add(_hudShadow);
 
         _stageButton = new Button(() => _openStageSelect?.Invoke());
@@ -312,8 +308,8 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stageButton.style.paddingLeft = 12f;
         _stageButton.style.paddingRight = 12f;
         _stageButton.style.whiteSpace = WhiteSpace.Normal;
-        ApplyGlassPanelStyle(_stageButton, HudBackgroundColor, 0.44f, 14f);
-        ApplyDisplayText(_stageButton, 13, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        _styling.ApplyGlassPanelStyle(_stageButton, HudBackgroundColor, 0.44f, 14f);
+        _styling.ApplyDisplayText(_stageButton, 13, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         _safeRoot.Add(_stageButton);
 
         _progressShadow = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -323,7 +319,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressShadow.style.translate = new Translate(new Length(-50f, LengthUnit.Percent), 0f);
         _progressShadow.style.width = ProgressPanelWidth;
         _progressShadow.style.height = ProgressPanelHeight;
-        ApplyPanelStyle(_progressShadow, HudShadowColor, Color.clear, 18f);
+        _styling.ApplyPanelStyle(_progressShadow, HudShadowColor, Color.clear, 18f);
         _safeRoot.Add(_progressShadow);
 
         _progressRail = new VisualElement { pickingMode = PickingMode.Ignore };
@@ -338,7 +334,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _progressRail.style.justifyContent = Justify.Center;
         _progressRail.style.paddingLeft = 8f;
         _progressRail.style.paddingRight = 8f;
-        ApplyGlassPanelStyle(_progressRail, new Color(0.04f, 0.07f, 0.15f, 0.32f), 0.36f, 18f);
+        _styling.ApplyGlassPanelStyle(_progressRail, new Color(0.04f, 0.07f, 0.15f, 0.32f), 0.36f, 18f);
         _safeRoot.Add(_progressRail);
 
         _buildLabel = new Label();
@@ -347,7 +343,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _buildLabel.style.top = HudTopPadding + StageBadgeHeight + 5f;
         _buildLabel.style.width = 64f;
         _buildLabel.style.height = 20f;
-        ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(1f, 1f, 1f, 0.34f), TextAnchor.MiddleRight);
+        _styling.ApplyDisplayText(_buildLabel, 12, FontStyle.Bold, new Color(1f, 1f, 1f, 0.34f), TextAnchor.MiddleRight);
         _safeRoot.Add(_buildLabel);
     }
 
@@ -367,16 +363,16 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _stagePanel.style.paddingRight = 24f;
         _stagePanel.style.paddingTop = 20f;
         _stagePanel.style.paddingBottom = 20f;
-        ApplyGlassPanelStyle(_stagePanel, new Color(0.05f, 0.08f, 0.18f, 0.92f), 0.86f, 24f);
+        _styling.ApplyGlassPanelStyle(_stagePanel, new Color(0.05f, 0.08f, 0.18f, 0.92f), 0.86f, 24f);
         _stageOverlay.Add(_stagePanel);
 
         var title = new Label("스테이지 선택");
-        ApplyDisplayText(title, 24, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        _styling.ApplyDisplayText(title, 24, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         title.style.height = 32f;
         _stagePanel.Add(title);
 
         var body = new Label("컬러 스택");
-        ApplyBodyText(body, 14, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
+        _styling.ApplyBodyText(body, 14, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
         body.style.height = 22f;
         _stagePanel.Add(body);
 
@@ -422,18 +418,18 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         _resultPanel.style.paddingRight = 28f;
         _resultPanel.style.paddingTop = 24f;
         _resultPanel.style.paddingBottom = 24f;
-        ApplyGlassPanelStyle(_resultPanel, new Color(0.05f, 0.08f, 0.18f, 0.94f), 0.88f, 18f);
+        _styling.ApplyGlassPanelStyle(_resultPanel, new Color(0.05f, 0.08f, 0.18f, 0.94f), 0.88f, 18f);
         _resultOverlay.Add(_resultPanel);
 
         _resultTitle = new Label();
         _resultTitle.style.height = 44f;
-        ApplyDisplayText(_resultTitle, 28, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
+        _styling.ApplyDisplayText(_resultTitle, 28, FontStyle.Bold, TextColor, TextAnchor.MiddleCenter);
         _resultPanel.Add(_resultTitle);
 
         _resultBody = new Label();
         _resultBody.style.minHeight = 64f;
         _resultBody.style.whiteSpace = WhiteSpace.Normal;
-        ApplyBodyText(_resultBody, 18, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
+        _styling.ApplyBodyText(_resultBody, 18, FontStyle.Normal, SubTextColor, TextAnchor.MiddleCenter);
         _resultPanel.Add(_resultBody);
 
         _resultButton = CreatePanelButton(string.Empty, () => _handleResult?.Invoke(), 20);
@@ -464,13 +460,13 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
             button.SetEnabled(stage.Unlocked);
             if (stage.Selected)
             {
-                ApplyButtonColors(button, GetSelectedStageTileColor(palette), Color.white);
+                _styling.ApplyButtonColors(button, GetSelectedStageTileColor(palette), Color.white);
             }
             else
             {
                 Color tileColor = stage.Unlocked ? GetUnlockedStageTileColor(palette) : DisabledButtonColor;
                 Color textColor = stage.Unlocked ? TextColor : new Color(1f, 1f, 1f, 0.54f);
-                ApplyButtonColors(button, tileColor, textColor);
+                _styling.ApplyButtonColors(button, tileColor, textColor);
             }
         }
     }
@@ -496,7 +492,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         for (int i = 0; i < _progressNodes.Count; i++)
         {
             bool completed = i < placedBoxes;
-            ApplyPanelStyle(
+            _styling.ApplyPanelStyle(
                 _progressNodes[i],
                 completed ? palette.Accent : Color.clear,
                 WithAlpha(palette.Accent, completed ? 0.68f : 0.46f),
@@ -506,32 +502,32 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
 
     private void ApplyPalette(BoxStackPrototypePalette palette)
     {
-        ApplyGlassPanelStyle(_stageButton, palette.PanelBackground, 0.46f, 14f);
-        ApplyGlassPanelStyle(_progressRail, palette.PanelBackground, 0.38f, 18f);
+        _styling.ApplyGlassPanelStyle(_stageButton, palette.PanelBackground, 0.46f, 14f);
+        _styling.ApplyGlassPanelStyle(_progressRail, palette.PanelBackground, 0.38f, 18f);
 
         if (_stagePanel != null)
         {
-            ApplyGlassPanelStyle(_stagePanel, palette.PanelBackground, 0.86f, 24f);
+            _styling.ApplyGlassPanelStyle(_stagePanel, palette.PanelBackground, 0.86f, 24f);
         }
 
         if (_resultPanel != null)
         {
-            ApplyGlassPanelStyle(_resultPanel, palette.PanelBackground, 0.88f, 18f);
+            _styling.ApplyGlassPanelStyle(_resultPanel, palette.PanelBackground, 0.88f, 18f);
         }
 
         if (_resetProgressButton != null)
         {
-            ApplyButtonColors(_resetProgressButton, GetSecondaryPanelButtonColor(palette), SubTextColor);
+            _styling.ApplyButtonColors(_resetProgressButton, GetSecondaryPanelButtonColor(palette), SubTextColor);
         }
 
         if (_unlockAllButton != null)
         {
-            ApplyButtonColors(_unlockAllButton, GetSelectedStageTileColor(palette), Color.white);
+            _styling.ApplyButtonColors(_unlockAllButton, GetSelectedStageTileColor(palette), Color.white);
         }
 
         if (_closeStageButton != null)
         {
-            ApplyButtonColors(_closeStageButton, GetStageCloseButtonColor(palette), Color.white);
+            _styling.ApplyButtonColors(_closeStageButton, GetStageCloseButtonColor(palette), Color.white);
         }
     }
 
@@ -621,7 +617,7 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
                 button.style.paddingTop = 0f;
                 button.style.paddingBottom = 0f;
                 button.style.whiteSpace = WhiteSpace.NoWrap;
-                ApplyDisplayText(button, StageTileNumberFontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+                _styling.ApplyDisplayText(button, StageTileNumberFontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
                 rowElement.Add(button);
                 _stageButtons.Add(button);
             }
@@ -805,41 +801,9 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         button.style.paddingRight = 8f;
         button.style.marginTop = 0f;
         button.style.marginBottom = 0f;
-        ApplyButtonColors(button, PrimaryButtonColor, Color.white);
-        ApplyDisplayText(button, fontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
+        _styling.ApplyButtonColors(button, PrimaryButtonColor, Color.white);
+        _styling.ApplyDisplayText(button, fontSize, FontStyle.Bold, Color.white, TextAnchor.MiddleCenter);
         return button;
-    }
-
-    private void ApplyPanelStyle(VisualElement element, Color background, Color border, float radius)
-    {
-        element.style.backgroundColor = background;
-        element.style.borderTopColor = border;
-        element.style.borderRightColor = border;
-        element.style.borderBottomColor = border;
-        element.style.borderLeftColor = border;
-        element.style.borderTopWidth = border.a > 0f ? 2f : 0f;
-        element.style.borderRightWidth = border.a > 0f ? 2f : 0f;
-        element.style.borderBottomWidth = border.a > 0f ? 2f : 0f;
-        element.style.borderLeftWidth = border.a > 0f ? 2f : 0f;
-        element.style.borderTopLeftRadius = radius;
-        element.style.borderTopRightRadius = radius;
-        element.style.borderBottomRightRadius = radius;
-        element.style.borderBottomLeftRadius = radius;
-    }
-
-    private void ApplyGlassPanelStyle(VisualElement element, Color tint, float backgroundAlpha, float radius)
-    {
-        Color background = Color.Lerp(tint, Color.white, 0.14f);
-        background.a = backgroundAlpha;
-
-        ApplyPanelStyle(element, background, Color.clear, radius);
-    }
-
-    private void ApplyButtonColors(Button button, Color background, Color text)
-    {
-        float alpha = background.a > 0f ? Mathf.Clamp(background.a, 0.48f, 0.82f) : 0.52f;
-        ApplyGlassPanelStyle(button, background, alpha, 18f);
-        button.style.color = text;
     }
 
     private static Color GetSelectedStageTileColor(BoxStackPrototypePalette palette)
@@ -875,30 +839,6 @@ internal sealed class BoxStackPrototypeUi : MonoBehaviour
         Color color = Color.Lerp(palette.BackgroundTop, palette.Accent, 0.32f);
         color.a = palette.Accent.a;
         return color;
-    }
-
-    private void ApplyDisplayText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
-    {
-        ApplyText(element, _displayFont != null ? _displayFont : _fallbackFont, fontSize, fontStyle, color, alignment);
-    }
-
-    private void ApplyBodyText(TextElement element, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
-    {
-        ApplyText(element, _bodyFont != null ? _bodyFont : _fallbackFont, fontSize, fontStyle, color, alignment);
-    }
-
-    private static void ApplyText(TextElement element, Font font, int fontSize, FontStyle fontStyle, Color color, TextAnchor alignment)
-    {
-        if (font != null)
-        {
-            element.style.unityFont = font;
-            element.style.unityFontDefinition = FontDefinition.FromFont(font);
-        }
-
-        element.style.fontSize = fontSize;
-        element.style.unityFontStyleAndWeight = fontStyle;
-        element.style.color = color;
-        element.style.unityTextAlign = alignment;
     }
 
     private static bool IsDisplayed(VisualElement element)
