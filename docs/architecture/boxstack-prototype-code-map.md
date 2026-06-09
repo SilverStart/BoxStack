@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-09
-런타임 마커: B115
+런타임 마커: B116
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -35,21 +35,23 @@
    - 결과 팝업 제목/본문/버튼 라벨 조립을 확인합니다.
 14. `Assets/Scripts/Prototype/BoxStackStagePresentation.cs`
    - 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 확인합니다.
-15. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+15. `Assets/Scripts/Prototype/BoxStackRunStatusText.cs`
+   - 런 상태 표시 문자열을 확인합니다.
+16. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-16. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+17. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-17. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+18. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-18. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+19. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-19. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+20. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-20. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+21. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-21. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+22. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-22. 보조 파일
+23. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -271,6 +273,19 @@ B113 기준으로 `BoxStackPrototypeUiStateFactory`는 결과 표시가 필요�
 - 스테이지 타일의 현재 선택 여부.
 
 B115 기준으로 `BoxStackPrototypeUiStateFactory`는 이 클래스가 반환한 현재 스테이지 라벨과 스테이지 버튼 상태 배열을 `BoxStackPrototypeUi.UiState`에 전달합니다. 스테이지 선택 타일 문구와 잠김/해금/선택 상태 규칙은 바꾸지 않았습니다.
+
+### `BoxStackRunStatusText.cs`
+
+런 상태 표시 문자열을 보관합니다.
+
+담당 기능:
+- 초기 `READY` 상태 문구.
+- 시도 횟수를 포함한 `RUN n` 상태 문구.
+- 드롭 중 `DROP` 상태 문구.
+- 클리어 검증 중 `VERIFYING` 상태 문구.
+- 성공 결과 status인 `STACK COMPLETE` 문구.
+
+B116 기준으로 `BoxStackPrototype`은 상태 전환 시 이 클래스의 문구를 사용합니다. 어떤 상태에서 어떤 문구를 선택할지는 기존 메인 흐름에 남아 있고, 문구 값 자체는 바꾸지 않았습니다.
 
 ### `BoxStackDropPhysics.cs`
 

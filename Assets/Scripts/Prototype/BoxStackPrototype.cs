@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 115;
+    private const int PrototypeBuildNumber = 116;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -57,7 +57,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private float _cameraVelocityY;
     private int _attempts;
     private bool _lastClearWasNewBest;
-    private string _statusText = "READY";
+    private string _statusText = BoxStackRunStatusText.Ready;
 
     private BoxStackPrototypeConfig.TuningSettings Tuning
     {
@@ -295,7 +295,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         _attempts++;
         _lastClearWasNewBest = false;
         _state = BoxStackPrototypeState.Playing;
-        _statusText = $"RUN {_attempts}";
+        _statusText = BoxStackRunStatusText.Run(_attempts);
         SpawnNextBox();
         RefreshPrototypeUi();
     }
@@ -482,7 +482,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         }
 
         _state = BoxStackPrototypeState.ResolvingDrop;
-        _statusText = "DROP";
+        _statusText = BoxStackRunStatusText.Drop;
 
         _dropPhysics.BeginDrop(_activeBox, Tuning);
 
@@ -571,7 +571,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
         if (action == BoxStackPostDropAction.ContinuePlaying && _state == BoxStackPrototypeState.ResolvingDrop)
         {
             _state = BoxStackPrototypeState.Playing;
-            _statusText = $"RUN {_attempts}";
+            _statusText = BoxStackRunStatusText.Run(_attempts);
             SpawnNextBox();
         }
     }
@@ -579,7 +579,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private void BeginClearValidation()
     {
         _state = BoxStackPrototypeState.ValidatingClear;
-        _statusText = "VERIFYING";
+        _statusText = BoxStackRunStatusText.Verifying;
         _clearValidation.Begin(Time.time, Tuning.ClearValidationSeconds);
     }
 
@@ -596,7 +596,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
             return;
         }
 
-        EndRun(true, "STACK COMPLETE");
+        EndRun(true, BoxStackRunStatusText.StackComplete);
     }
 
     private void EndRun(bool won, string status)
