@@ -1,8 +1,8 @@
 # BoxStack 프로덕션 리팩토링 계획
 
 마지막 갱신: 2026-06-09
-런타임 마커: B114
-상태: Drop stability wait split implemented and validated
+런타임 마커: B115
+상태: Stage presentation split implemented and validated
 
 ## 목적
 
@@ -35,6 +35,7 @@
 - `BoxStackRunEndFlow`가 런 종료 시 최종 상태, 최고 기록 갱신 여부, 다음 스테이지 해금 필요 여부 결정을 맡기 시작했다.
 - `BoxStackResultPresentation`이 결과 팝업 제목/본문/버튼 라벨 조립을 맡기 시작했다.
 - `BoxStackDropStabilityWait`이 드롭 정착 대기 중 최소 resolve 시간과 stable window 누적 시간을 맡기 시작했다.
+- `BoxStackStagePresentation`이 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 맡기 시작했다.
 
 ### 리팩토링이 필요한 점
 
@@ -163,6 +164,7 @@
 - B112에서 런 종료 시 이미 결과 상태인지, 승/패 상태가 무엇인지, 최고 기록 갱신인지, 다음 스테이지 해금이 필요한지 결정하는 흐름을 `BoxStackRunEndFlow`로 분리했고, 사용자 Editor Play 확인에서 수용됐다. 새 생산 후보 클래스에는 `Prototype` 이름을 붙이지 않는 원칙을 적용했다.
 - B113에서 결과 팝업 제목/본문/버튼 라벨 조립을 `BoxStackResultPresentation`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 결과 문구 자체는 바꾸지 않았다.
 - B114에서 드롭 정착 대기 중 최소 resolve 시간과 stable window 누적 시간을 `BoxStackDropStabilityWait`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 물리 안정 판정과 다음 박스 타이밍은 바꾸지 않았다.
+- B115에서 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 `BoxStackStagePresentation`으로 분리했고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`에서 검증됐다. 스테이지 선택 UI 규칙은 바꾸지 않았다.
 
 목표:
 - 박스 생성, 비주얼 적용, 콜라이더/Rigidbody 설정, 낙하 속도 조정, 정착 대기 흐름을 메인 진행자에서 덜어낸다.
@@ -193,6 +195,7 @@
 - B112 사용자 확인에서 런타임 마커 B112, 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 재시작/이동 흐름이 정상으로 확인됐다.
 - B113 자동 검증에서 런타임 마커 B113 코드 변경과 결과 문구 조립 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
 - B114 자동 검증에서 런타임 마커 B114 코드 변경과 드롭 안정 대기 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
+- B115 자동 검증에서 런타임 마커 B115 코드 변경과 스테이지 표시 상태 분리가 `dotnet build BoxStack.slnx` 경고 0개, 오류 0개로 통과했다.
 - Unity CLI Connector refresh 후 Unity 생성 `Assembly-CSharp.csproj`에 새 `BoxStackBoxFactory.cs`가 포함됐고, `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 
 주의:
@@ -409,6 +412,23 @@
 검증:
 - `dotnet build BoxStack.slnx`
 
+### 현재 추가 분리: 스테이지 표시 상태
+
+상태:
+- B115에서 첫 구현을 완료했고, 자동 검증에서 통과했다.
+
+목표:
+- `BoxStackPrototypeUiStateFactory` 안에 있던 현재 스테이지 라벨과 스테이지 버튼 활성/선택 상태 배열 조립을 별도 경계로 분리한다.
+- 최종 `BoxStackPrototypeUi.UiState` 구성과 UI Toolkit 렌더링은 기존 흐름에 남겨 동작을 바꾸지 않는다.
+
+구현 결과:
+- `BoxStackStagePresentation`이 현재 스테이지 번호를 두 자리 라벨로 만들고, 스테이지별 해금/선택 상태 배열을 만든다.
+- `BoxStackPrototypeUiStateFactory`는 결과 presentation과 stage presentation을 받아 최종 UI state를 구성한다.
+- 스테이지 타일 문구, 잠김/해금/선택 상태 규칙은 바꾸지 않았다.
+
+검증:
+- `dotnet build BoxStack.slnx`
+
 ## 이번 리팩토링에서 하지 않을 일
 
 - 스테이지 난이도 재튜닝
@@ -422,4 +442,4 @@
 
 ## 다음 즉시 행동
 
-B114 드롭 안정 대기 분리는 검증에서 통과했다. 다음 후보는 `BoxStackPrototype`에 남은 UI 상태 조립 또는 드롭 실패/정착 후속 흐름의 더 작은 조정 책임을 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.
+B115 스테이지 표시 상태 분리는 검증에서 통과했다. 다음 후보는 드롭 실패/정착 후속 흐름 또는 UI runtime layout 내부 책임을 더 작은 단위로 분리하는 것이다. 폴더/네임스페이스 rename은 Unity 참조 churn이 크므로 실제 책임 분리가 더 진행된 뒤 최종 정리로 넘긴다.

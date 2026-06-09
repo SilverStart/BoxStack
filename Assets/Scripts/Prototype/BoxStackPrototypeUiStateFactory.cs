@@ -4,6 +4,7 @@ using System;
 internal sealed class BoxStackPrototypeUiStateFactory
 {
     private readonly BoxStackResultPresentation _resultPresentation = new BoxStackResultPresentation();
+    private readonly BoxStackStagePresentation _stagePresentation = new BoxStackStagePresentation();
 
     internal BoxStackPrototypeUi.UiState Create(UiContext context)
     {
@@ -13,21 +14,15 @@ internal sealed class BoxStackPrototypeUiStateFactory
         BoxStackResultPresentationState result = resultVisible
             ? _resultPresentation.Create(won, hasNextStage, context.LastClearWasNewBest, context.StatusText)
             : new BoxStackResultPresentationState(string.Empty, string.Empty, string.Empty);
-        var stages = new BoxStackPrototypeUi.StageButtonState[context.StageCount];
+        BoxStackStagePresentationState stageState = _stagePresentation.Create(
+            context.StageCount,
+            context.GetStage,
+            context.CurrentStageIndex,
+            context.HighestUnlockedStageIndex);
 
-        for (int i = 0; i < context.StageCount; i++)
-        {
-            BoxStackPrototypeConfig.StageSettings stage = context.GetStage(i);
-            stages[i] = new BoxStackPrototypeUi.StageButtonState(
-                stage.Number,
-                i <= context.HighestUnlockedStageIndex,
-                i == context.CurrentStageIndex);
-        }
-
-        BoxStackPrototypeConfig.StageSettings currentStage = context.GetStage(context.CurrentStageIndex);
         return new BoxStackPrototypeUi.UiState(
             context.BuildNumber,
-            $"{currentStage.Number:00}",
+            stageState.CurrentStageLabel,
             context.PlacedBoxes,
             context.TargetBoxes,
             context.State == BoxStackPrototypeState.StageSelect,
@@ -37,7 +32,7 @@ internal sealed class BoxStackPrototypeUiStateFactory
             result.ButtonLabel,
             context.ShowProgressControls,
             context.Palette,
-            stages);
+            stageState.Stages);
     }
 
     private static bool HasNextStage(int currentStageIndex, int stageCount)

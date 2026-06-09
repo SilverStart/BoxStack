@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-09
-런타임 마커: B114
+런타임 마커: B115
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -33,21 +33,23 @@
    - 드롭 정착 대기 중 최소 resolve 시간과 안정 유지 시간을 확인합니다.
 13. `Assets/Scripts/Prototype/BoxStackResultPresentation.cs`
    - 결과 팝업 제목/본문/버튼 라벨 조립을 확인합니다.
-14. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+14. `Assets/Scripts/Prototype/BoxStackStagePresentation.cs`
+   - 현재 스테이지 라벨과 스테이지 버튼 표시 상태 조립을 확인합니다.
+15. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-15. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+16. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-16. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+17. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-17. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+18. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-18. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+19. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-19. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+20. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-20. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+21. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-21. 보조 파일
+22. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -259,6 +261,17 @@ B114 기준으로 `BoxStackPrototype.ResolveDrop`은 이 클래스가 반환하�
 
 B113 기준으로 `BoxStackPrototypeUiStateFactory`는 결과 표시가 필요한 상태인지 확인한 뒤 이 클래스에서 받은 제목/본문/버튼 라벨을 `BoxStackPrototypeUi.UiState`에 전달합니다. 결과 팝업 문구 자체는 바꾸지 않았고, 문구 계산 위치만 분리했습니다.
 
+### `BoxStackStagePresentation.cs`
+
+스테이지 UI 표시 상태를 조립합니다.
+
+담당 기능:
+- 현재 스테이지 번호를 두 자리 라벨로 변환.
+- 스테이지 타일의 해금 여부.
+- 스테이지 타일의 현재 선택 여부.
+
+B115 기준으로 `BoxStackPrototypeUiStateFactory`는 이 클래스가 반환한 현재 스테이지 라벨과 스테이지 버튼 상태 배열을 `BoxStackPrototypeUi.UiState`에 전달합니다. 스테이지 선택 타일 문구와 잠김/해금/선택 상태 규칙은 바꾸지 않았습니다.
+
 ### `BoxStackDropPhysics.cs`
 
 현재 프로토타입의 드롭 중 Rigidbody/Collider 기반 물리 처리 경계입니다.
@@ -376,8 +389,9 @@ B103 기준으로 `BoxStackPrototype`은 UI/audio GameObject 생성 방식과 �
 
 담당 기능:
 - 결과 팝업 표시 상태와 결과 문구 전달.
+- 현재 스테이지 표시 상태 전달.
 - 배치/목표 박스 수.
-- 스테이지 버튼 활성/선택 상태.
+- 스테이지 버튼 상태 전달.
 
 ### `BoxStackPrototypeUi.cs`
 
