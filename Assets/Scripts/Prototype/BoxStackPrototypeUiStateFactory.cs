@@ -3,11 +3,16 @@
 using System;
 internal sealed class BoxStackPrototypeUiStateFactory
 {
+    private readonly BoxStackResultPresentation _resultPresentation = new BoxStackResultPresentation();
+
     internal BoxStackPrototypeUi.UiState Create(UiContext context)
     {
         bool won = context.State == BoxStackPrototypeState.Won;
         bool resultVisible = IsResultState(context.State);
         bool hasNextStage = won && HasNextStage(context.CurrentStageIndex, context.StageCount);
+        BoxStackResultPresentationState result = resultVisible
+            ? _resultPresentation.Create(won, hasNextStage, context.LastClearWasNewBest, context.StatusText)
+            : new BoxStackResultPresentationState(string.Empty, string.Empty, string.Empty);
         var stages = new BoxStackPrototypeUi.StageButtonState[context.StageCount];
 
         for (int i = 0; i < context.StageCount; i++)
@@ -27,47 +32,12 @@ internal sealed class BoxStackPrototypeUiStateFactory
             context.TargetBoxes,
             context.State == BoxStackPrototypeState.StageSelect,
             resultVisible,
-            resultVisible ? GetResultTitle(won, hasNextStage) : string.Empty,
-            resultVisible ? GetResultBody(won, context.LastClearWasNewBest, context.StatusText) : string.Empty,
-            resultVisible ? GetResultButtonLabel(won, hasNextStage) : string.Empty,
+            result.Title,
+            result.Body,
+            result.ButtonLabel,
             context.ShowProgressControls,
             context.Palette,
             stages);
-    }
-
-    private static string GetResultTitle(bool won, bool hasNextStage)
-    {
-        if (!won)
-        {
-            return "실패";
-        }
-
-        return hasNextStage ? "클리어!" : "전체 클리어!";
-    }
-
-    private static string GetResultBody(bool won, bool lastClearWasNewBest, string statusText)
-    {
-        if (won)
-        {
-            return lastClearWasNewBest ? "탑이 안정됐어요\n최고 기록 갱신" : "탑이 안정됐어요";
-        }
-
-        if (statusText == "STACK SPREAD")
-        {
-            return "탑이 무너졌어요";
-        }
-
-        return "탑 밖으로 박스가 떨어졌어요";
-    }
-
-    private static string GetResultButtonLabel(bool won, bool hasNextStage)
-    {
-        if (!won)
-        {
-            return "다시 도전";
-        }
-
-        return hasNextStage ? "다음 스테이지" : "처음부터";
     }
 
     private static bool HasNextStage(int currentStageIndex, int stageCount)

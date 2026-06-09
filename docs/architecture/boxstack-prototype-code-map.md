@@ -1,7 +1,7 @@
 # BoxStack 프로토타입 코드 맵
 
 마지막 갱신: 2026-06-09
-런타임 마커: B112
+런타임 마커: B113
 
 이 문서는 현재 프로토타입에서 어떤 파일과 메서드가 어떤 기능을 담당하는지 빠르게 찾기 위한 요약 지도입니다. 최종 제품 아키텍처 문서가 아니라, 사람이 유지보수할 때 읽을 위치를 빠르게 잡을 수 있도록 현재 구조를 정리한 문서입니다.
 
@@ -29,21 +29,23 @@
    - 드롭 정착 후 클리어 검증 또는 다음 박스 생성 액션 결정을 확인합니다.
 11. `Assets/Scripts/Prototype/BoxStackRunEndFlow.cs`
    - 런 종료 시 최종 상태, 최고 기록 갱신 여부, 다음 스테이지 해금 필요 여부 결정을 확인합니다.
-12. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
+12. `Assets/Scripts/Prototype/BoxStackResultPresentation.cs`
+   - 결과 팝업 제목/본문/버튼 라벨 조립을 확인합니다.
+13. `Assets/Scripts/Prototype/BoxStackDropPhysics.cs`
    - 낙하 시작, 접촉 직전 y속도 리셋, 낙하 속도 제한, 스택 안정 판정, 결과 진입 시 물리 정지를 확인합니다.
-13. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
+14. `Assets/Scripts/Prototype/BoxStackBoxFactory.cs`
    - 박스 오브젝트 생성, 비주얼 선택/적용, 콜라이더/Rigidbody 초기 설정을 확인합니다.
-14. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
+15. `Assets/Scripts/Prototype/BoxStackActiveBoxMotion.cs`
    - 드롭 전 active box 좌우 이동, 화면 안전 이동 범위, active box 반폭 계산을 확인합니다.
-15. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
+16. `Assets/Scripts/Prototype/BoxStackSceneComposition.cs`
    - 카메라 설정, 배경 생성/리사이즈, 바닥 오브젝트/콜라이더 생성, 스테이지 팔레트 기반 배경/바닥 갱신을 확인합니다.
-16. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
+17. `Assets/Scripts/Prototype/BoxStackRuntimeHosts.cs`
    - UI host와 audio host GameObject 생성, UI 폰트 로드, UI/audio 컴포넌트 초기화를 확인합니다.
-17. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
+18. `Assets/Scripts/Prototype/BoxStackPrototypeUiStateFactory.cs`
    - 게임 상태를 결과 팝업 문구, 진행률, 스테이지 버튼 상태로 변환하는 코드를 확인합니다.
-18. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
+19. `Assets/Scripts/Prototype/BoxStackPrototypeUi.cs`
    - UI Toolkit으로 HUD, 스테이지 선택 화면, 결과 팝업을 생성하고 갱신하는 코드를 확인합니다.
-19. 보조 파일
+20. 보조 파일
    - 에셋 로딩, 폰트 리소스 선택, 박스 비주얼 선택, 합성 효과음, 스테이지 진행 상태/저장, 공유 상태 enum을 확인합니다.
 
 ## 파일별 책임
@@ -232,6 +234,17 @@ B111 기준으로 `BoxStackPrototype.ResolveDrop`은 `BoxStackPostDropFlow`가 �
 
 B112 기준으로 `BoxStackPrototype.EndRun`은 이 클래스가 반환한 결과를 받아 상태, 결과 문구, 최고 기록 갱신 플래그, 다음 스테이지 해금을 반영합니다. active/dropping box 정리, placed box 물리 정지, 결과음 재생, UI 갱신은 여전히 `BoxStackPrototype`이 실행합니다. 사용자 확인에서 B112 마커, 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 재시작/이동 흐름이 정상으로 수용됐습니다.
 
+### `BoxStackResultPresentation.cs`
+
+결과 팝업의 표시 문구를 조립합니다.
+
+담당 기능:
+- 성공/실패 결과 제목.
+- 성공, 최고 기록 갱신, `STACK SPREAD`, 일반 실패 본문.
+- 성공/실패 및 다음 스테이지 존재 여부에 따른 결과 버튼 라벨.
+
+B113 기준으로 `BoxStackPrototypeUiStateFactory`는 결과 표시가 필요한 상태인지 확인한 뒤 이 클래스에서 받은 제목/본문/버튼 라벨을 `BoxStackPrototypeUi.UiState`에 전달합니다. 결과 팝업 문구 자체는 바꾸지 않았고, 문구 계산 위치만 분리했습니다.
+
 ### `BoxStackDropPhysics.cs`
 
 현재 프로토타입의 드롭 중 Rigidbody/Collider 기반 물리 처리 경계입니다.
@@ -348,7 +361,7 @@ B103 기준으로 `BoxStackPrototype`은 UI/audio GameObject 생성 방식과 �
 게임 데이터를 `BoxStackPrototypeUi.UiState`로 변환합니다.
 
 담당 기능:
-- 결과 팝업 제목/본문/버튼 문구.
+- 결과 팝업 표시 상태와 결과 문구 전달.
 - 배치/목표 박스 수.
 - 스테이지 버튼 활성/선택 상태.
 
@@ -524,12 +537,10 @@ B099 기준 실패 판정은 `BoxStackRunRules`가 맡고, B105 기준 클리어
 
 먼저 볼 곳:
 - `BoxStackResultFlow`
+- `BoxStackResultPresentation`
 - `BoxStackPrototype.HandleCurrentResultButton`
-- `BoxStackPrototypeUiStateFactory.GetResultTitle`
-- `BoxStackPrototypeUiStateFactory.GetResultBody`
-- `BoxStackPrototypeUiStateFactory.GetResultButtonLabel`
 
-결과 팝업 문구를 바꿀 때는 `BoxStackPrototypeUiStateFactory`를 먼저 확인하고, 결과 버튼을 눌렀을 때의 흐름을 바꿀 때는 `BoxStackResultFlow`를 먼저 확인합니다. B088 기준 결과 팝업 본문은 클리어를 `탑이 안정됐어요`, `STACK SPREAD` 실패를 `탑이 무너졌어요`로 짧게 표현합니다. B091 기준 새 최고 진행 기록을 갱신한 클리어는 결과 본문에 `최고 기록 갱신`을 한 줄 더 표시합니다. B107 기준 결과 버튼 액션 결정은 `BoxStackResultFlow`가 맡습니다. B089에서 시도한 스테이지 도전 라벨은 철회했고, B090 기준 스테이지 타일 문구는 `BoxStackPrototypeUi.GetStageButtonLabel`에서 큰 번호 한 줄만 표시합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
+결과 팝업 문구를 바꿀 때는 `BoxStackResultPresentation`을 먼저 확인하고, 결과 버튼을 눌렀을 때의 흐름을 바꿀 때는 `BoxStackResultFlow`를 먼저 확인합니다. B088 기준 결과 팝업 본문은 클리어를 `탑이 안정됐어요`, `STACK SPREAD` 실패를 `탑이 무너졌어요`로 짧게 표현합니다. B091 기준 새 최고 진행 기록을 갱신한 클리어는 결과 본문에 `최고 기록 갱신`을 한 줄 더 표시합니다. B107 기준 결과 버튼 액션 결정은 `BoxStackResultFlow`가 맡고, B113 기준 결과 제목/본문/버튼 라벨 조립은 `BoxStackResultPresentation`이 맡습니다. B089에서 시도한 스테이지 도전 라벨은 철회했고, B090 기준 스테이지 타일 문구는 `BoxStackPrototypeUi.GetStageButtonLabel`에서 큰 번호 한 줄만 표시합니다. 플레이 중 중앙 피드백 토스트는 B046에서 제거했으므로 `좋아요`, `유지!` 같은 착지 피드백 문구는 더 이상 생성하지 않습니다. `BoxStackPrototypeUi.cs`는 가능하면 정적인 레이아웃 텍스트에만 문구를 둡니다.
 
 ### UI 레이아웃과 스타일
 

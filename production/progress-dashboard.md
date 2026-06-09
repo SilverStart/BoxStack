@@ -4,7 +4,7 @@ Last updated: 2026-06-09
 
 ## Next Immediate Action
 
-B112 run-end result refactor is accepted. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely UI state composition, `ResolveDrop` stability-wait flow, or result copy composition, while preserving the accepted B097/B112 gameplay feel.
+B113 result presentation refactor is implemented and validated. Next production refactor candidate: split one remaining `BoxStackPrototype` runtime responsibility, likely UI state composition or a smaller `ResolveDrop` stability-wait flow, while preserving the accepted B097/B113 gameplay feel.
 
 Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for normal C# validation, skip Unity CLI Connector Play Mode checks when they are only for validation, and leave actual gameplay/UI feel checks to the user in Unity Editor Play Mode.
 
@@ -232,6 +232,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - 2026-06-08: B111 user-led Editor Play verification passed. Runtime marker B111, next-box generation before target count, `VERIFYING` after target count, clear popup after validation, missed-drop failure, and two-floor-contact failure were checked with no issue.
 - 2026-06-09: B112 implements the next production refactor step. Run-end result selection now lives in `BoxStackRunEndFlow`, which decides whether the run should end, the final won/failed state, status text, new-best flag, and whether the next stage should unlock. `BoxStackPrototype.EndRun` still owns Unity object cleanup, physics freeze, result audio, and UI refresh. Unity batchmode sync regenerated the solution, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 - 2026-06-09: B112 user-led Editor Play verification passed. Runtime marker B112, success/failure result entry, new-best copy, next-stage unlock, and result popup restart/advance flows were checked with no issue.
+- 2026-06-09: B113 implements the next production refactor step. Result-popup title/body/button copy now lives in `BoxStackResultPresentation`, while `BoxStackPrototypeUiStateFactory` keeps UI-state and stage-button composition. Unity batchmode sync regenerated the solution, and `dotnet build BoxStack.slnx` passed with 0 warnings/errors.
 
 ## Current Decisions
 
@@ -297,6 +298,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B110 keeps accepted post-drop behavior while moving stable dropped-box settlement into `BoxStackDroppedBoxSettlement`. Keep this as a behavior-preserving production boundary split; later settlement changes should happen as separate box lifecycle, pooling, physics, or visual-tint work.
 - B111 keeps accepted post-drop behavior while moving target-count next-action selection into `BoxStackPostDropFlow`. Keep this as a behavior-preserving production boundary split; later post-drop flow changes should happen as separate clear-rule, run-state, or UX flow work.
 - B112 keeps accepted run-end behavior while moving final result-state/new-best/unlock decision into `BoxStackRunEndFlow`. Keep this as a behavior-preserving production boundary split; later run-end changes should happen as separate progression, result UX, or object-lifecycle work.
+- B113 keeps accepted result-popup copy while moving result title/body/button-label composition into `BoxStackResultPresentation`. Keep this as a behavior-preserving production boundary split; later result-copy changes should happen as separate UX/content work.
 - BoxStack keeps the existing Unity C# private field naming style (`_camelCase`) for this project. The starter-pack rule that forbids private-field `_` prefixes is not applied retroactively here, while shared harness/operating-rule improvements should still be mirrored to the starter-pack source when useful.
 - The B074 late-stage no-undo check accepted the B008 softened falling-box impact, B012 screen-clamped movement feel, previous single-column tolerance `0.75`, 5-second clear validation, and immediate collapse detection for that baseline. The B084 follow-up check then accepted the new floor-contact failure rule across the late-stage 16-20 flow, so recheck later-stage fairness only after physics, movement, clear validation, or failure-rule changes.
 - B016 Delivery Arcade code pass, B017 HUD undo cleanup, B018 undo config naming cleanup, and B019 UI Toolkit PanelSettings cleanup were accepted and committed.
@@ -306,7 +308,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - WebGL visual parity with Editor Play should use build-included prototype sprites; the current prototype intentionally keeps duplicate parcel/background PNGs under `Assets/Resources/Prototype/...` for speed and build inclusion stability. This remains acceptable through prototype work. During productization, prefer serialized scene/prefab/ScriptableObject references for small static MVP assets first; move to Addressables only if remote/catalog/grouped asset management, memory/build-size pressure, or App-in-Toss packaging policy requires it.
 - The Unity AIT Dev Server menu depends on the embedded AIT pnpm folder (`C:\Users\Ahneunsung\AppData\Local\.ait-unity-sdk\nodejs\v24.13.0\win-x64`) being available on Windows `PATH`; for repeated mobile WebGL iteration, prefer the reusable `Start-AitUnityDevServer.ps1` script or the project-local `tools/start-ait-dev-server.ps1` so the Vite server runs independently from Unity rebuilds. For repeatable WebGL builds, close the Unity Editor for this project and run `tools/build-webgl.ps1 -Development`; use `tools/build-webgl.ps1 -SkipUnityBuild` only to resync an already-created `webgl` build into the AIT Vite path.
 - Use a tiny in-game build marker during milestone mobile WebGL tests to distinguish a fresh build from a cached old build.
-- The current runtime build marker is `B112`; documentation-only or design-asset-only commits do not require a build marker increment.
+- The current runtime build marker is `B113`; documentation-only or design-asset-only commits do not require a build marker increment.
 
 ## Open Questions
 
@@ -314,7 +316,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - Once the real App-in-Toss MVP asset list is fixed, which assets should move to serialized references and which, if any, require Addressables?
 - When App-in-Toss storage requirements are confirmed, can the prototype `PlayerPrefs` path stay in production, or should `BoxStackStageProgressStore` switch to an AIT bridge or server-backed save path?
 - Does WebGL/App-in-Toss require a different user-gesture or mute policy for B095 audio playback than Unity Editor Play Mode?
-- Which remaining runtime responsibility should the next production refactor step split first after B112: UI state composition, result copy composition, or a smaller `ResolveDrop` stability-wait boundary?
+- Which remaining runtime responsibility should the next production refactor step split first after B113: UI state composition or a smaller `ResolveDrop` stability-wait boundary?
 
 ## Risks
 
@@ -350,6 +352,7 @@ Routine validation policy: AI agents should use `dotnet build BoxStack.slnx` for
 - B110 is behavior-preserving and accepted, but later changes to `BoxStackDroppedBoxSettlement` should recheck normal placement, placed tint continuity, placement audio timing, settled gravity behavior, missed-drop failure, floor-contact spread failure, and target-count clear validation.
 - B111 is behavior-preserving and accepted, but later changes to `BoxStackPostDropFlow` should recheck next-box generation before target count, `VERIFYING` entry at target count, validation success, missed-drop failure, and two-floor-contact failure.
 - B112 is behavior-preserving and accepted, but later changes to `BoxStackRunEndFlow` should recheck success/failure result entry, new-best result copy, next-stage unlock, final-stage restart, failure restart, result audio, and placed-box freeze.
+- B113 is behavior-preserving and validated by build, but later changes to `BoxStackResultPresentation` should recheck result title, clear body, new-best body line, failure body, and result button labels.
 - The prototype runtime is large enough that continued feature work inside `BoxStackPrototype.cs` will increase production migration cost; refactor in small verified steps before adding more product features.
 - Large early folder/class renames could create Unity `.meta` and scene/prefab reference churn, so prefer responsibility extraction before broad naming cleanup unless a rename is explicitly scoped.
 - The Delivery Arcade PNG mini pack is committed as historical design reference only; applying it to the current runtime would conflict with the accepted Stack-like 2D direction unless a future visual-direction decision reopens Delivery Arcade.
