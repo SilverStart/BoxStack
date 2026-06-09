@@ -12,7 +12,7 @@ using UnityEngine.InputSystem;
 
 public sealed class BoxStackPrototype : MonoBehaviour
 {
-    private const int PrototypeBuildNumber = 113;
+    private const int PrototypeBuildNumber = 114;
     private static readonly bool UseStackLikeAbstractVisuals = true;
     private static readonly bool UseLogisticsCenterBackground = false;
     private const float BoxSize = 1.0f;
@@ -32,6 +32,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
     private readonly BoxStackDroppedBoxSettlement _droppedBoxSettlement = new BoxStackDroppedBoxSettlement();
     private readonly BoxStackPostDropFlow _postDropFlow = new BoxStackPostDropFlow();
     private readonly BoxStackRunEndFlow _runEndFlow = new BoxStackRunEndFlow();
+    private readonly BoxStackDropStabilityWait _dropStabilityWait = new BoxStackDropStabilityWait();
 
     private BoxStackPrototypeBoxVisualCatalog _boxVisualCatalog;
     private BoxStackBoxFactory _boxFactory;
@@ -492,8 +493,7 @@ public sealed class BoxStackPrototype : MonoBehaviour
 
     private IEnumerator ResolveDrop(GameObject droppedBox)
     {
-        float resolveStartedAt = Time.time;
-        float stableStartedAt = -1f;
+        _dropStabilityWait.Begin(Time.time);
 
         while (true)
         {
@@ -509,22 +509,17 @@ public sealed class BoxStackPrototype : MonoBehaviour
             }
 
             BoxStackPrototypeConfig.TuningSettings tuning = Tuning;
-            float elapsed = Time.time - resolveStartedAt;
-            if (elapsed >= tuning.DropMinimumResolveSeconds && _dropPhysics.StackMotionIsStable(droppedBox, _placedBoxes, tuning))
+            if (_dropStabilityWait.MinimumResolveTimeElapsed(Time.time, tuning)
+                && _dropPhysics.StackMotionIsStable(droppedBox, _placedBoxes, tuning))
             {
-                if (stableStartedAt < 0f)
-                {
-                    stableStartedAt = Time.time;
-                }
-
-                if (Time.time - stableStartedAt >= tuning.DropStableSeconds)
+                if (_dropStabilityWait.MarkStableAndIsComplete(Time.time, tuning))
                 {
                     break;
                 }
             }
             else
             {
-                stableStartedAt = -1f;
+                _dropStabilityWait.ResetStable();
             }
 
             yield return null;

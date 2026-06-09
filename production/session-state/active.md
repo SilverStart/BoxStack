@@ -1,10 +1,10 @@
 <!-- STATUS -->
 Epic: Prototype Harness
 Feature: BoxStack 2D App-in-App Prototype
-Task: Result presentation production refactor pass
-Runtime Marker: B113
-Latest Commit: This change set B113 결과 문구 조립 분리
-Dirty Worktree: Clean after B113 result presentation refactor commit
+Task: Drop stability wait production refactor pass
+Runtime Marker: B114
+Latest Commit: This change set B114 드롭 안정 대기 분리
+Dirty Worktree: Clean after B114 drop stability wait refactor commit
 <!-- /STATUS -->
 
 # Active Session State
@@ -19,8 +19,8 @@ Dirty Worktree: Clean after B113 result presentation refactor commit
 
 ## Current Snapshot
 
-- 현재 런타임 마커는 `B113`이다.
-- 최신 변경 묶음은 `B113 결과 문구 조립 분리`이다.
+- 현재 런타임 마커는 `B114`이다.
+- 최신 변경 묶음은 `B114 드롭 안정 대기 분리`이다.
 - 현재 비주얼 방향은 Ketchapp `Stack`을 참고한 2D 추상 블록, 세로 그라데이션 배경, borderless faux-glass HUD다.
 - 블록 비주얼은 전체 크기를 사용하고, 콜라이더는 현재 코드 기준 `boxVisual.WorldSize * 0.98f`로 유지한다.
 - 중앙 착지 피드백 토스트, 접촉 그림자, 블록 테두리선, 결과 팝업 상단 `CLEAR/MISS` 스탬프, 되돌리기 기능은 사용하지 않는다.
@@ -77,6 +77,8 @@ Dirty Worktree: Clean after B113 result presentation refactor commit
 - B112 사용자 Editor Play 확인은 완료됐다. 런타임 마커 B112, 성공/실패 결과 진입, 최고 기록 갱신 문구, 다음 스테이지 해금, 결과 팝업 재시작/이동 흐름이 문제 없음으로 수용됐다. Unity batchmode sync 후 `dotnet build BoxStack.slnx`도 경고 0개, 오류 0개로 통과했다.
 - B113은 프로덕션 리팩토링의 다음 작은 경계로, 결과 팝업 제목/본문/버튼 라벨 조립 책임을 `BoxStackResultPresentation`으로 분리한다. `BoxStackPrototypeUiStateFactory`는 런타임 상태를 UI 표시 상태와 스테이지 버튼 상태로 조립하는 역할을 유지한다.
 - B113은 동작 변경 없이 문구 계산 위치만 옮겼고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
+- B114는 프로덕션 리팩토링의 다음 작은 경계로, 드롭 정착 대기 중 최소 resolve 시간과 stable window 누적 시간을 `BoxStackDropStabilityWait`으로 분리한다. 물리 안정 판정은 기존 `BoxStackDropPhysics.StackMotionIsStable`에 남기고, `ResolveDrop`은 실패 판정과 다음 흐름 조정만 유지한다.
+- B114는 동작 변경 없이 타이머 상태 위치만 옮겼고, Unity batchmode sync 후 `dotnet build BoxStack.slnx`가 경고 0개, 오류 0개로 통과했다.
 - B085 WebGL 빌드는 테스트용으로 한 번 만들어졌고, B091 기준 WebGL 빌드도 한 번 새로 만들었다. 하지만 WebGL을 통한 실제 디바이스 테스트는 가장 마지막 단계에서 진행하기로 했으므로 B097 확인은 우선 Unity Editor Play Mode에서 진행한다.
 - 스테이지 선택 팝업의 `진행 초기화`와 `전체 해금` 테스트 컨트롤은 현재 코드 기준 `Application.isEditor || Debug.isDebugBuild`일 때만 노출된다. B079 결정과 구현이 여전히 일치하므로 추가 런타임 변경 없이 유지한다.
 - `Assets/Art/Prototype/...`와 `Assets/Resources/Prototype/...`의 parcel/background PNG는 현재 일시적으로 같은 복사본이다. 프로토타입 동안은 WebGL 포함 안정성을 위해 `Resources` 복사본을 유지한다. `docs/architecture/boxstack-prototype-asset-loading-decision.md` 기준으로 현재는 `Resources` 런타임 경로와 `BoxStackPrototypeAssetLoader` 교체 경계를 유지한다.
@@ -100,7 +102,7 @@ Dirty Worktree: Clean after B113 result presentation refactor commit
 
 ## Next Action
 
-- B113 결과 문구 조립 분리는 자동 검증을 통과했다. 다음 작업 후보는 프로덕션 리팩토링의 남은 생산화 경계이며, `BoxStackPrototype`에 남은 UI 상태 조립 또는 `ResolveDrop` 안정 대기 경계를 어느 작은 책임으로 분리할지 정한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
+- B114 드롭 안정 대기 분리는 자동 검증을 통과했다. 다음 작업 후보는 프로덕션 리팩토링의 남은 생산화 경계이며, `BoxStackPrototype`에 남은 UI 상태 조립 또는 드롭 실패/정착 후속 흐름의 더 작은 조정 책임을 정리할지 판단한다. 폴더/네임스페이스 rename은 Unity 참조 churn이 커질 수 있으므로 책임 분리가 더 진행된 뒤 별도 범위로 다룬다.
 
 ## Open Questions
 
@@ -115,7 +117,7 @@ Dirty Worktree: Clean after B113 result presentation refactor commit
 - B084 후반 12박스 스테이지 재확인은 수용되었다. 후반 난이도는 물리, 이동, clear 검증, 실패 규칙을 다시 바꿀 때만 재점검한다.
 - B097 낙하 속도 상승은 Editor Play에서 수용됐지만, 이후 물리/이동/블록 폭 튜닝을 바꾸면 착지 충격과 좌우 밀림을 다시 확인해야 한다.
 - 프로덕션 리팩토링 중 씬/프리팹 이동이나 대규모 파일 rename을 너무 이르게 진행하면 Unity 참조 churn이 커질 수 있으므로, 먼저 작은 책임 분리부터 진행한다.
-- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리, B103 런타임 호스트 경계 분리, B104 드롭 전 이동 경계 분리, B105 클리어 검증 타이머 분리, B106 스테이지 선택 세션 분리, B107 결과 버튼 흐름 분리, B108 스테이지 흐름 분리, B109 런 정리 분리, B110 드롭 정착 분리, B111 드롭 후 흐름 분리, B112 런 종료 결과 분리는 사용자 확인에서 수용됐다. B113 결과 문구 조립 분리는 자동 검증에서 통과했다. 다음 리팩토링 단계에서 UI/오디오 host, active box 이동, 클리어 검증, 런 상태 전환, 결과 문구 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
+- B098 스테이지 진행 상태 분리, B099 클리어/실패 규칙 분리, B100 드롭 물리 처리 분리, B101 박스 생성 팩토리 분리, B102 씬 구성 경계 분리, B103 런타임 호스트 경계 분리, B104 드롭 전 이동 경계 분리, B105 클리어 검증 타이머 분리, B106 스테이지 선택 세션 분리, B107 결과 버튼 흐름 분리, B108 스테이지 흐름 분리, B109 런 정리 분리, B110 드롭 정착 분리, B111 드롭 후 흐름 분리, B112 런 종료 결과 분리는 사용자 확인에서 수용됐다. B113 결과 문구 조립 분리와 B114 드롭 안정 대기 분리는 자동 검증에서 통과했다. 다음 리팩토링 단계에서 UI/오디오 host, active box 이동, 클리어 검증, 런 상태 전환, 결과 문구, 드롭 안정 대기 경계를 건드리면 HUD, 스테이지 선택, 결과 팝업, 배치/클리어/실패 사운드, 초기/중반/후반 스테이지의 드롭/클리어/실패 흐름을 다시 확인해야 한다.
 
 ## References
 
